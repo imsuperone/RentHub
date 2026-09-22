@@ -301,7 +301,7 @@ export function renderAppHtml(username: string): string {
           <div class="flex items-center justify-between px-1">
             <div class="flex items-center gap-2">
               <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
-              <h2 class="text-xs font-bold text-neutral-600 dark:text-neutral-400 uppercase tracking-wider">近期待收房租 (点击快速收租)</h2>
+              <h2 class="text-xs font-bold text-neutral-600 dark:text-neutral-400 uppercase tracking-wider">近期待收房租 (未来30天内应收或已逾期)</h2>
             </div>
             <span class="text-xs text-neutral-400">按交租日期先后排序</span>
           </div>
@@ -751,8 +751,56 @@ export function renderAppHtml(username: string): string {
           </div>
         </div>
 
-        <!-- SMTP 发信服务配置 (完整配置项与主流邮箱一键预设) -->
-        <div class="space-y-4">
+        <!-- 发信渠道选择器 (Resend API vs 自定义 SMTP) -->
+        <div class="space-y-2">
+          <label class="block text-xs font-bold text-neutral-700 dark:text-neutral-300 px-1">发信服务通道</label>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <label class="flex items-start gap-2.5 p-3 rounded-2xl bg-[#E8EDE9]/60 dark:bg-[#161D1A] border border-[#D7DED9]/60 dark:border-[#26312B]/60 cursor-pointer hover:border-[#0F5B38] transition-all">
+              <input type="radio" name="notifyMailProvider" id="mailProvider_resend" value="resend" onchange="toggleMailProviderUI('resend')" class="accent-[#0F5B38] mt-0.5">
+              <div>
+                <div class="text-xs font-bold text-neutral-800 dark:text-neutral-100 flex items-center gap-1.5">
+                  <span>⚡ Resend API</span>
+                  <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-[#C4EED0] dark:bg-[#1A402D] text-[#002111] dark:text-[#A6F5B9] font-bold">推荐 · 零配置端口</span>
+                </div>
+                <div class="text-[11px] text-neutral-400 mt-0.5">现代 HTTP REST 发信，无需配置 SMTP 端口与授权码</div>
+              </div>
+            </label>
+            <label class="flex items-start gap-2.5 p-3 rounded-2xl bg-[#E8EDE9]/60 dark:bg-[#161D1A] border border-[#D7DED9]/60 dark:border-[#26312B]/60 cursor-pointer hover:border-[#0F5B38] transition-all">
+              <input type="radio" name="notifyMailProvider" id="mailProvider_smtp" value="smtp" checked onchange="toggleMailProviderUI('smtp')" class="accent-[#0F5B38] mt-0.5">
+              <div>
+                <div class="text-xs font-bold text-neutral-800 dark:text-neutral-100">📧 自定义 SMTP</div>
+                <div class="text-[11px] text-neutral-400 mt-0.5">支持 QQ / 163 / 谷歌 Gmail / 腾讯网易企业邮</div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- 渠道 1: Resend API 配置卡片 -->
+        <div id="resendConfigSection" class="hidden space-y-3.5 p-4 m3-subcard bg-[#E8EDE9]/40 dark:bg-[#161D1A]/60 border border-[#D7DED9]/50 dark:border-[#26312B]/60">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-neutral-800 dark:text-neutral-200">⚡ Resend 密钥与发件人</span>
+            <a href="https://resend.com/api-keys" target="_blank" rel="noopener noreferrer" class="text-[11px] font-bold text-[#0F5B38] dark:text-[#7CDCA0] hover:underline flex items-center gap-0.5">获取 Resend API Key ↗</a>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1 px-1">Resend API Key</label>
+            <input type="password" id="notifyResendApiKey" placeholder="re_••••••••••••••••••••••••" class="m3-input w-full text-xs font-mono">
+            <span class="text-[10px] text-neutral-400 mt-1 block px-1">在 resend.com 控制台免费申请（例如 <code>re_123456789...</code>）</span>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1 px-1">发件人邮箱 (From Email)</label>
+              <input type="text" id="notifyResendFromEmail" placeholder="onboarding@resend.dev 或您已验证的域名邮箱" value="onboarding@resend.dev" class="m3-input w-full text-xs font-mono">
+              <span class="text-[10px] text-neutral-400 mt-1 block px-1">测试期可直接使用 <code>onboarding@resend.dev</code></span>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1 px-1">发件人显示名称 (From Name)</label>
+              <input type="text" id="notifyResendFromName" placeholder="房东管家" value="房东管家" class="m3-input w-full text-xs font-bold">
+            </div>
+          </div>
+        </div>
+
+        <!-- 渠道 2: SMTP 发信服务配置 (完整配置项与主流邮箱一键预设) -->
+        <div id="smtpConfigSection" class="space-y-4">
           <!-- 主流邮箱快捷预设芯片 -->
           <div class="p-3.5 m3-subcard bg-[#E8EDE9]/40 dark:bg-[#161D1A]/60 space-y-2">
             <div class="flex items-center justify-between">
@@ -805,8 +853,8 @@ export function renderAppHtml(username: string): string {
             </div>
           </div>
 
-          <!-- From Name, From Email, Recipient Email -->
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <!-- From Name, From Email -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">发信人显示名称</label>
               <input type="text" id="notifySmtpFromName" placeholder="房东管家" value="房东管家" class="m3-input w-full text-xs font-bold">
@@ -815,11 +863,13 @@ export function renderAppHtml(username: string): string {
               <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">发信人地址 (若空默认同账号)</label>
               <input type="email" id="notifySmtpFromEmail" placeholder="your-email@qq.com" class="m3-input w-full text-xs font-mono">
             </div>
-            <div>
-              <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">房东接收提醒邮箱</label>
-              <input type="email" id="notifyRecipientEmail" placeholder="owner@domain.com" class="m3-input w-full text-xs font-mono">
-            </div>
           </div>
+        </div>
+
+        <!-- 接收邮箱 (双渠道通用) -->
+        <div class="p-3.5 m3-subcard bg-[#E8EDE9]/50 dark:bg-[#161D1A]/60 border border-[#D7DED9]/60 dark:border-[#26312B]/60">
+          <label class="block text-xs font-bold text-neutral-700 dark:text-neutral-200 mb-1.5 px-1">📬 房东接收提醒邮箱 (双渠道通用)</label>
+          <input type="email" id="notifyRecipientEmail" placeholder="如 owner@domain.com (接收催租、水电欠费与数据库冷备)" class="m3-input w-full text-xs font-mono font-bold">
         </div>
           <!-- 触发时机与规则 -->
           <div class="p-4 m3-subcard bg-[#E8EDE9]/40 dark:bg-[#161D1A]/60 space-y-3">
@@ -2069,7 +2119,7 @@ export function renderAppHtml(username: string): string {
         // 2. 渲染待收租队列 (极其直观实用)
         const queueEl = document.getElementById('upcomingRentQueue');
         if (!data.upcomingRentQueue || data.upcomingRentQueue.length === 0) {
-          queueEl.innerHTML = '<div class="p-8 text-center text-xs text-neutral-400">暂无待收租房源，所有房源均已正常结清</div>';
+          queueEl.innerHTML = '<div class="p-8 text-center text-xs text-neutral-400">暂无近期待收房租（未来 30 天内无待交房租，全部正常）</div>';
         } else {
           queueEl.innerHTML = data.upcomingRentQueue.map(item => \`
             <div class="p-4 flex items-center justify-between hover:bg-[#E8EDE9]/40 dark:hover:bg-[#161D1A]/60 transition-colors text-xs">
@@ -3805,51 +3855,6 @@ export function renderAppHtml(username: string): string {
     // ==================== 📧 待收提醒与邮箱设置 ====================
     let currentTplTab = 'rent';
 
-    async function loadNotificationSettings() {
-      try {
-        const res = await fetch('/api/notifications/settings');
-        const json = await res.json();
-        if (json.code === 0 && json.data) {
-          const d = json.data;
-          const prov = document.getElementById('notifyProvider');
-          if (prov) prov.value = d.provider || 'resend';
-          const rec = document.getElementById('notifyRecipientEmail');
-          if (rec) rec.value = d.recipientEmail || '';
-          const key = document.getElementById('notifyResendApiKey');
-          if (key) key.value = d.resendApiKeyMasked || d.resendApiKey || '';
-          const hook = document.getElementById('notifyWebhookUrl');
-          if (hook) hook.value = d.webhookUrl || '';
-          const days = document.getElementById('notifyDaysBefore');
-          if (days) days.value = d.notifyDaysBefore || '7,3,1';
-          const due = document.getElementById('notifyOnDueDay');
-          if (due) due.checked = !!d.notifyOnDueDay;
-          const over = document.getElementById('notifyOnOverdue');
-          if (over) over.checked = !!d.notifyOnOverdue;
-          const rTit = document.getElementById('notifyTemplateRentTitle');
-          if (rTit) rTit.value = d.templateRentTitle || '';
-          const rBod = document.getElementById('notifyTemplateRentBody');
-          if (rBod) rBod.value = d.templateRentBody || '';
-          const uTit = document.getElementById('notifyTemplateUtilityTitle');
-          if (uTit) uTit.value = d.templateUtilityTitle || '';
-          const uBod = document.getElementById('notifyTemplateUtilityBody');
-          if (uBod) uBod.value = d.templateUtilityBody || '';
-          
-          toggleNotifyProvider();
-          updateTemplatePreview();
-        }
-      } catch (err) {
-        console.error('加载通知设置失败', err);
-      }
-    }
-
-    function toggleNotifyProvider() {
-      const provider = document.getElementById('notifyProvider')?.value || 'resend';
-      const resendBox = document.getElementById('notifyResendConfig');
-      const webhookBox = document.getElementById('notifyWebhookConfig');
-      if (resendBox) resendBox.classList.toggle('hidden', provider !== 'resend');
-      if (webhookBox) webhookBox.classList.toggle('hidden', provider !== 'webhook');
-    }
-
     function setNotifyDaysPreset(days) {
       const el = document.getElementById('notifyDaysBefore');
       if (el) el.value = days;
@@ -3939,12 +3944,41 @@ export function renderAppHtml(username: string): string {
       if (fromNameEl && !fromNameEl.value) fromNameEl.value = p.fromName;
     }
 
+    function toggleMailProviderUI(provider) {
+      const resendSection = document.getElementById('resendConfigSection');
+      const smtpSection = document.getElementById('smtpConfigSection');
+      if (provider === 'resend') {
+        if (resendSection) resendSection.classList.remove('hidden');
+        if (smtpSection) smtpSection.classList.add('hidden');
+      } else {
+        if (resendSection) resendSection.classList.add('hidden');
+        if (smtpSection) smtpSection.classList.remove('hidden');
+      }
+    }
+
     async function loadNotificationSettings() {
       try {
         const res = await fetch('/api/settings/notifications');
         const json = await res.json();
         if (json.code === 0 && json.data) {
           const d = json.data;
+          const provider = d.mailProvider === 'resend' ? 'resend' : 'smtp';
+          const rResend = document.getElementById('mailProvider_resend');
+          const rSmtp = document.getElementById('mailProvider_smtp');
+          if (provider === 'resend' && rResend) {
+            rResend.checked = true;
+          } else if (rSmtp) {
+            rSmtp.checked = true;
+          }
+          toggleMailProviderUI(provider);
+
+          const resendKeyEl = document.getElementById('notifyResendApiKey');
+          const resendFromEl = document.getElementById('notifyResendFromEmail');
+          const resendNameEl = document.getElementById('notifyResendFromName');
+          if (resendKeyEl) resendKeyEl.value = d.resendApiKeyMasked || '';
+          if (resendFromEl) resendFromEl.value = d.resendFromEmail || 'onboarding@resend.dev';
+          if (resendNameEl) resendNameEl.value = d.resendFromName || '房东管家';
+
           const hostEl = document.getElementById('notifySmtpHost');
           const portEl = document.getElementById('notifySmtpPort');
           const secEl = document.getElementById('notifySmtpSecure');
@@ -3992,7 +4026,12 @@ export function renderAppHtml(username: string): string {
       fb.innerText = '';
 
       try {
+        const mailProvider = document.querySelector('input[name="notifyMailProvider"]:checked')?.value || 'smtp';
         const payload = {
+          mailProvider,
+          resendApiKey: document.getElementById('notifyResendApiKey')?.value?.trim() || '',
+          resendFromEmail: document.getElementById('notifyResendFromEmail')?.value?.trim() || 'onboarding@resend.dev',
+          resendFromName: document.getElementById('notifyResendFromName')?.value?.trim() || '房东管家',
           smtpHost: document.getElementById('notifySmtpHost')?.value?.trim() || '',
           smtpPort: parseInt(document.getElementById('notifySmtpPort')?.value, 10) || 465,
           smtpSecure: !!document.getElementById('notifySmtpSecure')?.checked,
@@ -4018,7 +4057,7 @@ export function renderAppHtml(username: string): string {
         const json = await res.json();
         if (json.code === 0) {
           fb.className = 'text-xs font-bold text-[#0F5B38] dark:text-[#7CDCA0]';
-          fb.innerText = '✓ 待收提醒设置已保存！';
+          fb.innerText = '✓ 待收提醒与发信设置已保存！';
         } else {
           throw new Error(json.message);
         }
@@ -4035,6 +4074,10 @@ export function renderAppHtml(username: string): string {
       const btn = document.getElementById('sendTestEmailBtn');
       const fb = document.getElementById('notifyFeedback');
       const targetEmail = document.getElementById('notifyRecipientEmail')?.value?.trim();
+      const mailProvider = document.querySelector('input[name="notifyMailProvider"]:checked')?.value || 'smtp';
+      const resendApiKey = document.getElementById('notifyResendApiKey')?.value?.trim();
+      const resendFromEmail = document.getElementById('notifyResendFromEmail')?.value?.trim();
+      const resendFromName = document.getElementById('notifyResendFromName')?.value?.trim();
       const smtpHost = document.getElementById('notifySmtpHost')?.value?.trim();
       const smtpPort = document.getElementById('notifySmtpPort')?.value?.trim();
       const smtpSecure = !!document.getElementById('notifySmtpSecure')?.checked;
@@ -4043,9 +4086,12 @@ export function renderAppHtml(username: string): string {
       const smtpFromName = document.getElementById('notifySmtpFromName')?.value?.trim();
       const smtpFromEmail = document.getElementById('notifySmtpFromEmail')?.value?.trim();
 
-      if (!smtpHost || !smtpPort) return alert('请先填写 SMTP 主机与端口');
-      if (!targetEmail) return alert('请填写房东收件邮箱以接收实测邮件');
-
+      if (!targetEmail) return alert('请先填写房东接收提醒邮箱以接收测试邮件');
+      if (mailProvider === 'resend') {
+        if (!resendApiKey) return alert('请先填写 Resend API Key (以 re_ 开头)');
+      } else {
+        if (!smtpHost || !smtpPort) return alert('请先填写 SMTP 主机与端口');
+      }
       btn.innerText = '正在发信...';
       btn.disabled = true;
       fb.innerText = '';
@@ -4057,6 +4103,10 @@ export function renderAppHtml(username: string): string {
           body: JSON.stringify({
             testEmail: targetEmail,
             type: currentTplTab === 'utility' ? 'utility' : 'rent',
+            mailProvider,
+            resendApiKey,
+            resendFromEmail,
+            resendFromName,
             smtpHost,
             smtpPort,
             smtpSecure,

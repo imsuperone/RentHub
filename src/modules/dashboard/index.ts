@@ -88,11 +88,11 @@ export async function handleDashboardSummary(env: Env) {
     };
   });
 
-  // 待收租预警队列：排序按距离下次收租日最近优先 (已逾期在前)
+  // 待收租预警队列：仅包含已逾期、今日到期或未来 30 天内应收租金的房源 (已逾期在前，超过30天的远期不纳入预警)
   const upcomingRentQueue = leases
-    .filter((l) => l.status === 'ACTIVE' && l.daysToNextPay !== null)
+    .filter((l) => l.status === 'ACTIVE' && l.daysToNextPay !== null && l.daysToNextPay <= 30)
     .sort((a, b) => (a.daysToNextPay || 0) - (b.daysToNextPay || 0))
-    .slice(0, 5);
+    .slice(0, 8);
 
   const recentPayments = await env.DB.prepare(
     `SELECT p.*, l.title as lease_title, l.tenant_name 

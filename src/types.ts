@@ -76,6 +76,10 @@ export interface Payment {
 
 export interface NotificationSettings {
   recipientEmail: string;
+  mailProvider?: 'smtp' | 'resend';
+  resendApiKey?: string;
+  resendFromEmail?: string;
+  resendFromName?: string;
   smtpHost: string;
   smtpPort: number;
   smtpSecure: boolean;

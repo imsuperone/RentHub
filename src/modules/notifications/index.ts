@@ -4,9 +4,14 @@
 import { Env, NotificationSettings, Lease } from '../../types';
 import { jsonOk, jsonError } from '../../utils/response';
 import { sendSmtpEmail } from '../../utils/smtp';
+import { sendResendEmail } from '../../utils/resend';
 
 const DEFAULT_SETTINGS: NotificationSettings = {
   recipientEmail: '',
+  mailProvider: 'smtp',
+  resendApiKey: '',
+  resendFromEmail: 'onboarding@resend.dev',
+  resendFromName: '房东管家',
   smtpHost: 'smtp.qq.com',
   smtpPort: 465,
   smtpSecure: true,
@@ -68,6 +73,10 @@ export async function getNotificationSettings(env: Env): Promise<NotificationSet
 
   return {
     recipientEmail: map.get('notify_recipient_email') || DEFAULT_SETTINGS.recipientEmail,
+    mailProvider: (map.get('notify_mail_provider') as 'smtp' | 'resend') || DEFAULT_SETTINGS.mailProvider,
+    resendApiKey: map.get('notify_resend_api_key') || DEFAULT_SETTINGS.resendApiKey,
+    resendFromEmail: map.get('notify_resend_from_email') || DEFAULT_SETTINGS.resendFromEmail,
+    resendFromName: map.get('notify_resend_from_name') || DEFAULT_SETTINGS.resendFromName,
     smtpHost: map.get('notify_smtp_host') || DEFAULT_SETTINGS.smtpHost,
     smtpPort: parseInt(map.get('notify_smtp_port') || String(DEFAULT_SETTINGS.smtpPort), 10) || 465,
     smtpSecure: map.has('notify_smtp_secure') ? map.get('notify_smtp_secure') === 'true' : DEFAULT_SETTINGS.smtpSecure,
@@ -87,10 +96,16 @@ export async function getNotificationSettings(env: Env): Promise<NotificationSet
 
 export async function handleGetNotificationSettings(env: Env) {
   const settings = await getNotificationSettings(env);
-  // 脱敏密码 / 授权码
+  // 脱敏密码 / 授权码与 API Key
   const maskedPass = settings.smtpPass 
     ? (settings.smtpPass.length > 6 
         ? settings.smtpPass.slice(0, 2) + '****' + settings.smtpPass.slice(-2) 
+        : '****') 
+    : '';
+
+  const maskedResendKey = settings.resendApiKey 
+    ? (settings.resendApiKey.length > 8 
+        ? settings.resendApiKey.slice(0, 3) + '****' + settings.resendApiKey.slice(-4) 
         : '****') 
     : '';
 
@@ -98,6 +113,8 @@ export async function handleGetNotificationSettings(env: Env) {
     ...settings,
     smtpPassMasked: maskedPass,
     hasSmtpPass: !!settings.smtpPass,
+    resendApiKeyMasked: maskedResendKey,
+    hasResendApiKey: !!settings.resendApiKey,
   });
 }
 
@@ -105,6 +122,15 @@ export async function handleSaveNotificationSettings(env: Env, body: any) {
   const current = await getNotificationSettings(env);
   
   const recipientEmail = body.recipientEmail !== undefined ? String(body.recipientEmail).trim() : current.recipientEmail;
+  const mailProvider = (body.mailProvider === 'resend' || body.mailProvider === 'smtp') ? body.mailProvider : current.mailProvider;
+  
+  const resendApiKey = (body.resendApiKey !== undefined && body.resendApiKey !== '****' && !body.resendApiKey.includes('****')) 
+    ? String(body.resendApiKey).trim() 
+    : current.resendApiKey;
+
+  const resendFromEmail = body.resendFromEmail !== undefined ? String(body.resendFromEmail).trim() : current.resendFromEmail;
+  const resendFromName = body.resendFromName !== undefined ? String(body.resendFromName).trim() : current.resendFromName;
+
   const smtpHost = body.smtpHost !== undefined ? String(body.smtpHost).trim() : current.smtpHost;
   const smtpPort = body.smtpPort !== undefined ? String(body.smtpPort).trim() : String(current.smtpPort);
   const smtpSecure = body.smtpSecure !== undefined ? String(body.smtpSecure) : String(current.smtpSecure);
@@ -126,6 +152,10 @@ export async function handleSaveNotificationSettings(env: Env, body: any) {
 
   const entries = [
     ['notify_recipient_email', recipientEmail],
+    ['notify_mail_provider', mailProvider || 'smtp'],
+    ['notify_resend_api_key', resendApiKey || ''],
+    ['notify_resend_from_email', resendFromEmail || ''],
+    ['notify_resend_from_name', resendFromName || ''],
     ['notify_smtp_host', smtpHost],
     ['notify_smtp_port', smtpPort],
     ['notify_smtp_secure', smtpSecure],
@@ -148,7 +178,7 @@ export async function handleSaveNotificationSettings(env: Env, body: any) {
     ).bind(k, v).run();
   }
 
-  return jsonOk(null, 'SMTP 邮件通知与催租设置已保存');
+  return jsonOk(null, '邮件通知与催租设置已保存');
 }
 
 /**
@@ -163,7 +193,7 @@ export function renderTemplate(template: string, vars: Record<string, string>): 
 }
 
 /**
- * 底层邮件派发器 (专有 SMTP 纯边缘通道)
+ * 底层邮件派发器 (支持 Resend REST API 与 SMTP 双通道)
  */
 export async function sendEmailMessage(
   settings: NotificationSettings,
@@ -175,6 +205,26 @@ export async function sendEmailMessage(
     return { success: false, message: '未指定收件人邮箱' };
   }
 
+  // 1. 优先根据指定的渠道派发：Resend API
+  if (settings.mailProvider === 'resend') {
+    if (!settings.resendApiKey) {
+      return { success: false, message: '未配置 Resend API Key，请在系统设置中填写' };
+    }
+    return await sendResendEmail(
+      {
+        apiKey: settings.resendApiKey,
+        fromName: settings.resendFromName || settings.smtpFromName || '房东管家',
+        fromEmail: settings.resendFromEmail || 'onboarding@resend.dev',
+      },
+      {
+        to: toEmail,
+        subject: title,
+        html: htmlContent,
+      }
+    );
+  }
+
+  // 2. 自定义 SMTP 派发
   if (!settings.smtpHost || !settings.smtpPort) {
     return { success: false, message: '未配置 SMTP 发信服务器，请在系统设置中配置' };
   }
@@ -198,12 +248,30 @@ export async function sendEmailMessage(
  * 房东主动手动发送测试邮件
  */
 export async function handleSendTestNotification(env: Env, body: any) {
-  const { testEmail, type, smtpHost, smtpPort, smtpSecure, smtpUser, smtpPass, smtpFromName, smtpFromEmail } = body;
+  const { 
+    testEmail, 
+    type, 
+    mailProvider,
+    resendApiKey,
+    resendFromEmail,
+    resendFromName,
+    smtpHost, 
+    smtpPort, 
+    smtpSecure, 
+    smtpUser, 
+    smtpPass, 
+    smtpFromName, 
+    smtpFromEmail 
+  } = body;
   const current = await getNotificationSettings(env);
 
   // 允许使用传入的实时配置测试 (方便用户在点击保存前先行测试)
   const activeSettings: NotificationSettings = {
     ...current,
+    mailProvider: (mailProvider === 'resend' || mailProvider === 'smtp') ? mailProvider : current.mailProvider,
+    resendApiKey: (resendApiKey && resendApiKey !== '****' && !resendApiKey.includes('****')) ? String(resendApiKey).trim() : current.resendApiKey,
+    resendFromEmail: resendFromEmail !== undefined ? String(resendFromEmail).trim() : current.resendFromEmail,
+    resendFromName: resendFromName !== undefined ? String(resendFromName).trim() : current.resendFromName,
     smtpHost: smtpHost !== undefined ? String(smtpHost).trim() : current.smtpHost,
     smtpPort: smtpPort !== undefined ? (parseInt(String(smtpPort), 10) || 465) : current.smtpPort,
     smtpSecure: smtpSecure !== undefined ? Boolean(smtpSecure) : current.smtpSecure,
@@ -213,7 +281,7 @@ export async function handleSendTestNotification(env: Env, body: any) {
     smtpFromEmail: smtpFromEmail !== undefined ? String(smtpFromEmail).trim() : current.smtpFromEmail,
   };
 
-  const targetEmail = testEmail || activeSettings.recipientEmail || activeSettings.smtpUser;
+  const targetEmail = testEmail || activeSettings.recipientEmail || (activeSettings.mailProvider === 'smtp' ? activeSettings.smtpUser : '');
   if (!targetEmail) {
     return jsonError('请先填写接收测试邮件的邮箱地址', 400);
   }
@@ -245,7 +313,8 @@ export async function handleSendTestNotification(env: Env, body: any) {
     return jsonError(`发送测试邮件失败: ${result.message}`, 400);
   }
 
-  return jsonOk(null, `测试邮件已成功通过 SMTP 服务器发送至 ${targetEmail}`);
+  const providerName = activeSettings.mailProvider === 'resend' ? 'Resend API' : 'SMTP 服务器';
+  return jsonOk(null, `测试邮件已成功通过 ${providerName} 发送至 ${targetEmail}`);
 }
 
 /**
@@ -253,8 +322,9 @@ export async function handleSendTestNotification(env: Env, body: any) {
  */
 export async function handleTriggerNotificationCheck(env: Env) {
   const settings = await getNotificationSettings(env);
-  if (!settings.recipientEmail || !settings.smtpHost || !settings.smtpPort) {
-    return jsonOk({ sentCount: 0, details: [] }, '未配置有效发信邮箱或收件邮箱，已跳过检查');
+  const isConfigured = settings.mailProvider === 'resend' ? !!settings.resendApiKey : (!!settings.smtpHost && !!settings.smtpPort);
+  if (!settings.recipientEmail || !isConfigured) {
+    return jsonOk({ sentCount: 0, details: [] }, '未配置有效发信渠道或收件邮箱，已跳过检查');
   }
 
   const now = new Date();

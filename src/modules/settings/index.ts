@@ -4,8 +4,7 @@
 import { Env, WebDavConfig, S3Config } from '../../types';
 import { testWebDavConnection } from '../webdav';
 import { testS3Connection } from '../s3';
-import { sendSmtpEmail } from '../../utils/smtp';
-import { getNotificationSettings } from '../notifications';
+import { getNotificationSettings, sendEmailMessage } from '../notifications';
 import { jsonOk, jsonError } from '../../utils/response';
 
 export async function handleGetSettings(env: Env) {
@@ -262,21 +261,11 @@ ${jsonStr.length > 50000 ? jsonStr.slice(0, 50000) + '\n\n... (已截断超长�
   </div>
 </div>`;
 
-  const sendResult = await sendSmtpEmail(
-    {
-      host: settings.smtpHost,
-      port: settings.smtpPort,
-      secure: settings.smtpSecure,
-      user: settings.smtpUser,
-      pass: settings.smtpPass,
-      fromName: settings.smtpFromName || '房东管家',
-      fromEmail: settings.smtpFromEmail || settings.smtpUser,
-    },
-    {
-      to: settings.recipientEmail,
-      subject,
-      html,
-    }
+  const sendResult = await sendEmailMessage(
+    settings,
+    settings.recipientEmail,
+    subject,
+    html
   );
 
   if (sendResult.success) {

@@ -242,7 +242,12 @@ app.delete('/api/payments/:id', async (c) => handleDeletePayment(c.env, c.req.pa
 
 // ==================== 待收提醒与邮件设置路由 ====================
 app.get('/api/notifications/settings', async (c) => handleGetNotificationSettings(c.env));
+app.get('/api/settings/notifications', async (c) => handleGetNotificationSettings(c.env));
 app.post('/api/notifications/settings', async (c) => {
+  const body = await c.req.json();
+  return handleSaveNotificationSettings(c.env, body);
+});
+app.post('/api/settings/notifications', async (c) => {
   const body = await c.req.json();
   return handleSaveNotificationSettings(c.env, body);
 });
