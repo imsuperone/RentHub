@@ -250,14 +250,20 @@ export function renderAppHtml(username: string): string {
           </div>
         </div>
 
-        <!-- 每月租金合计 -->
+        <!-- 本月实际已收 (实收款项) -->
         <div class="m3-card p-5 bg-white dark:bg-[#1A211D] border border-[#D7DED9]/50 dark:border-[#26312B]/60 shadow-sm flex flex-col justify-between">
-          <span class="text-[11px] font-bold text-neutral-400 uppercase tracking-wider">每月租金合计</span>
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-neutral-400 uppercase tracking-wider">本月实际已收</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-[#C4EED0] dark:bg-[#1A402D] text-[#002111] dark:text-[#A6F5B9] font-bold" id="statThisMonthBadge">当月实收</span>
+          </div>
           <div class="flex items-baseline gap-1 my-2">
             <span class="text-sm font-extrabold text-neutral-400">¥</span>
-            <span id="statMonthlyRent" class="text-3xl md:text-4xl font-extrabold font-mono tracking-tight text-neutral-900 dark:text-neutral-100">0</span>
+            <span id="statThisMonthIncome" class="text-3xl md:text-4xl font-extrabold font-mono tracking-tight text-[#0F5B38] dark:text-[#7CDCA0]">0.00</span>
           </div>
-          <span class="text-[11px] text-neutral-400 font-medium">当前在租房源月租总额</span>
+          <div class="flex items-center justify-between text-[11px] text-neutral-400 font-medium">
+            <span>在租月租金总额</span>
+            <span class="font-bold text-neutral-700 dark:text-neutral-300 font-mono">¥ <span id="statMonthlyRent">0</span></span>
+          </div>
         </div>
 
         <!-- 已收租房押金 -->
@@ -270,14 +276,20 @@ export function renderAppHtml(username: string): string {
           <span class="text-[11px] text-neutral-400 font-medium">当前代管的租客押金总额</span>
         </div>
 
-        <!-- 近期待收房租 -->
+        <!-- 待收欠款与近期待收 -->
         <div class="m3-card p-5 bg-white dark:bg-[#1A211D] border border-[#D7DED9]/50 dark:border-[#26312B]/60 shadow-sm flex flex-col justify-between">
-          <span class="text-[11px] font-bold text-neutral-400 uppercase tracking-wider">近期待收房租</span>
-          <div class="flex items-baseline gap-2 my-2">
-            <span id="statPendingRents" class="text-3xl md:text-4xl font-extrabold font-mono tracking-tight text-amber-600 dark:text-amber-400">0</span>
-            <span class="text-xs text-neutral-400 font-semibold">笔待收</span>
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-neutral-400 uppercase tracking-wider">待收欠款</span>
+            <span id="statUnpaidBadge" class="text-[10px] px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300 font-bold">0 笔欠费</span>
           </div>
-          <span class="text-[11px] text-neutral-400 font-medium">即将到期或已超期房租</span>
+          <div class="flex items-baseline gap-1 my-2">
+            <span class="text-sm font-extrabold text-neutral-400">¥</span>
+            <span id="statTotalUnpaid" class="text-3xl md:text-4xl font-extrabold font-mono tracking-tight text-rose-600 dark:text-rose-400">0.00</span>
+          </div>
+          <div class="flex items-center justify-between text-[11px] text-neutral-400 font-medium">
+            <span>近期待收房租</span>
+            <span class="font-bold text-amber-600 dark:text-amber-400 font-mono"><span id="statPendingRents">0</span> 笔</span>
+          </div>
         </div>
       </div>
 
@@ -411,7 +423,10 @@ export function renderAppHtml(username: string): string {
           <h2 class="text-xl font-extrabold tracking-tight">收租与水电台账</h2>
           <p class="text-xs text-neutral-400 mt-0.5">房租收取明细、水电抄表与各项收支明细</p>
         </div>
-        <div class="flex items-center gap-2 self-start sm:self-auto">
+        <div class="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+          <button onclick="exportPaymentsToCsv()" class="m3-pill px-3.5 py-2.5 bg-[#E8EDE9] dark:bg-[#161D1A] hover:bg-[#D7DED9] dark:hover:bg-[#26312B] text-neutral-700 dark:text-neutral-200 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors" title="导出当前记账台账为 Excel 兼容 CSV 表格">
+            <span>📥</span> 导出 CSV
+          </button>
           <button onclick="quickCollectRent()" class="m3-pill px-4 py-2.5 bg-[#0F5B38] dark:bg-[#7CDCA0] text-white dark:text-[#00391F] font-bold text-xs shadow-md shadow-[#0F5B38]/15 flex items-center justify-center gap-1.5">
             <span>⚡</span> 记收房租
           </button>
@@ -429,9 +444,15 @@ export function renderAppHtml(username: string): string {
             <input type="text" id="paymentSearchInput" placeholder="🔍 搜索房屋名称、租客或账单备注..." oninput="filterPayments()" class="m3-input w-full text-xs pl-10 pr-4 py-2.5">
             <svg class="w-4 h-4 text-neutral-400 absolute left-3.5 top-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
           </div>
+          <!-- 月份选择器 -->
+          <div class="flex-shrink-0">
+            <select id="paymentMonthFilter" onchange="filterPayments()" class="m3-input text-xs font-bold py-2.5 px-3 w-full sm:w-auto">
+              <option value="ALL">🗓️ 全部月份</option>
+            </select>
+          </div>
           <!-- 过滤总计展示 -->
-          <div class="flex items-center gap-2 px-3 py-2 m3-subcard bg-[#E8EDE9]/60 dark:bg-[#161D1A] text-xs font-semibold self-stretch justify-between sm:justify-start">
-            <span class="text-neutral-400">当前筛选金额：</span>
+          <div class="flex items-center gap-2 px-3.5 py-2 m3-subcard bg-[#E8EDE9]/60 dark:bg-[#161D1A] text-xs font-semibold self-stretch justify-between sm:justify-start">
+            <span class="text-neutral-400">当前筛选：</span>
             <span id="filteredPaymentsSum" class="text-sm font-extrabold font-mono text-[#0F5B38] dark:text-[#7CDCA0]">¥ 0.00</span>
           </div>
         </div>
@@ -1348,6 +1369,10 @@ export function renderAppHtml(username: string): string {
             <span>实抄用量：<strong id="utilCalcUsage" class="font-mono text-neutral-900 dark:text-neutral-100 font-extrabold">0.0</strong> <span id="utilUsageUnit">度</span></span>
             <span>换算金额：<strong id="utilCalcTotal" class="font-mono text-[#0F5B38] dark:text-[#7CDCA0] font-extrabold text-sm">¥ 0.00</strong></span>
           </div>
+          <div id="utilMeterWarning" class="hidden text-[11px] text-amber-700 dark:text-amber-300 font-bold bg-amber-50 dark:bg-amber-950/40 p-2.5 rounded-xl border border-amber-200 dark:border-amber-800/50 flex items-center gap-1.5">
+            <span>⚠️</span>
+            <span>注意：本次实抄底数小于上次底数，请核实是否录入错误或电表/水表已翻表。</span>
+          </div>
         </div>
 
         <!-- 付款/结算状态选择 (已付清 vs 暂未付款待缴欠款) -->
@@ -2029,8 +2054,16 @@ export function renderAppHtml(username: string): string {
         document.getElementById('statTotalHouses').innerText = s.totalProperties || 0;
         document.getElementById('statActiveBadge').innerText = '● ' + (s.activeCount || 0) + ' 正常在租';
         document.getElementById('statOverdueBadge').innerText = '○ ' + (s.overdueCount || 0) + ' 逾期待续';
+        
+        const incomeEl = document.getElementById('statThisMonthIncome');
+        if (incomeEl) incomeEl.innerText = Number(s.thisMonthIncome || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         document.getElementById('statMonthlyRent').innerText = (s.totalMonthlyRent || 0).toLocaleString();
         document.getElementById('statDepositPool').innerText = (s.totalDepositHeld || 0).toLocaleString();
+        
+        const unpaidEl = document.getElementById('statTotalUnpaid');
+        if (unpaidEl) unpaidEl.innerText = Number(s.totalUnpaidAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const unpaidBadge = document.getElementById('statUnpaidBadge');
+        if (unpaidBadge) unpaidBadge.innerText = (s.totalUnpaidCount || 0) + ' 笔欠费';
         document.getElementById('statPendingRents').innerText = data.upcomingRentQueue ? data.upcomingRentQueue.length : 0;
 
         // 2. 渲染待收租队列 (极其直观实用)
@@ -2970,6 +3003,13 @@ export function renderAppHtml(username: string): string {
       const curr = parseFloat(document.getElementById('utilMeterCurrent').value) || 0;
       const price = parseFloat(document.getElementById('utilMeterUnitPrice').value) || 0;
 
+      const warnEl = document.getElementById('utilMeterWarning');
+      if (curr > 0 && curr < last) {
+        if (warnEl) warnEl.classList.remove('hidden');
+      } else {
+        if (warnEl) warnEl.classList.add('hidden');
+      }
+
       const usage = Math.max(0, curr - last);
       const total = (usage * price).toFixed(2);
 
@@ -3028,11 +3068,39 @@ export function renderAppHtml(username: string): string {
       const res = await fetch('/api/payments');
       const json = await res.json();
       if (json.code === 0) {
-        appData.allPayments = json.data;
-        const unpaidCount = (json.data || []).filter(p => p.status === 'UNPAID').length;
+        appData.allPayments = json.data || [];
+        const unpaidCount = appData.allPayments.filter(p => p.status === 'UNPAID').length;
         const unpaidBadge = document.getElementById('countPaymentsUnpaid');
         if (unpaidBadge) unpaidBadge.innerText = unpaidCount;
+        updatePaymentMonthOptions();
         filterPayments();
+      }
+    }
+
+    function updatePaymentMonthOptions() {
+      const select = document.getElementById('paymentMonthFilter');
+      if (!select) return;
+      const currentVal = select.value;
+      const monthsMap = {};
+      (appData.allPayments || []).forEach(p => {
+        if (p.paid_at && p.paid_at.length >= 7) {
+          const ym = p.paid_at.slice(0, 7);
+          monthsMap[ym] = (monthsMap[ym] || 0) + 1;
+        }
+      });
+      const sortedMonths = Object.keys(monthsMap).sort().reverse();
+      
+      let html = '<option value="ALL">🗓️ 全部月份</option>';
+      sortedMonths.forEach(ym => {
+        const parts = ym.split('-');
+        const label = parts[0] + '年' + parts[1] + '月 (' + monthsMap[ym] + '笔)';
+        html += '<option value="' + ym + '">' + label + '</option>';
+      });
+      select.innerHTML = html;
+      if (currentVal && (currentVal === 'ALL' || monthsMap[currentVal])) {
+        select.value = currentVal;
+      } else {
+        select.value = 'ALL';
       }
     }
 
@@ -3054,9 +3122,14 @@ export function renderAppHtml(username: string): string {
 
     function filterPayments() {
       const keyword = (document.getElementById('paymentSearchInput')?.value || '').trim().toLowerCase();
-      const filterType = appData.currentPaymentTypeFilter;
+      const monthFilter = document.getElementById('paymentMonthFilter')?.value || 'ALL';
+      const filterType = appData.currentPaymentTypeFilter || 'ALL';
 
-      const filtered = appData.allPayments.filter(p => {
+      const filtered = (appData.allPayments || []).filter(p => {
+        if (monthFilter !== 'ALL') {
+          if (!p.paid_at || !p.paid_at.startsWith(monthFilter)) return false;
+        }
+
         if (filterType === 'UNPAID') {
           if (p.status !== 'UNPAID') return false;
         } else if (filterType !== 'ALL') {
@@ -3077,11 +3150,90 @@ export function renderAppHtml(username: string): string {
         return true;
       });
 
-      // 计算当前筛选金额
-      const totalSum = filtered.reduce((acc, p) => acc + (Number(p.amount) || 0), 0);
-      document.getElementById('filteredPaymentsSum').innerText = '¥ ' + totalSum.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      appData.filteredPayments = filtered;
+
+      // 计算当前筛选金额：区分实收与待收欠款
+      let paidSum = 0;
+      let unpaidSum = 0;
+      filtered.forEach(p => {
+        const amt = Number(p.amount) || 0;
+        if (p.status === 'UNPAID') {
+          unpaidSum += amt;
+        } else {
+          paidSum += amt;
+        }
+      });
+
+      let sumHtml = '实收 ¥ ' + paidSum.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      if (unpaidSum > 0) {
+        sumHtml += ' <span class="text-rose-600 dark:text-rose-400 font-bold ml-1.5">(待收欠款 ¥ ' + unpaidSum.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ')</span>';
+      }
+      const sumEl = document.getElementById('filteredPaymentsSum');
+      if (sumEl) sumEl.innerHTML = sumHtml;
 
       renderPaymentsList(filtered);
+    }
+
+    function exportPaymentsToCsv() {
+      const payments = appData.filteredPayments || appData.allPayments || [];
+      if (payments.length === 0) {
+        alert('当前没有可导出的账单记录');
+        return;
+      }
+
+      function escapeCsv(val) {
+        if (val === null || val === undefined) return '""';
+        const str = String(val).replace(/"/g, '""');
+        return '"' + str + '"';
+      }
+
+      const headers = [
+        '账单ID',
+        '记账时间',
+        '房源名称',
+        '承租人',
+        '费用类型',
+        '金额(元)',
+        '结算状态',
+        '上次底数',
+        '本次底数',
+        '实抄用量',
+        '单价(元)',
+        '费用说明与备注'
+      ];
+
+      const rows = payments.map(p => {
+        const typeName = getPaymentTypeName(p.payment_type);
+        const statusText = p.status === 'UNPAID' ? '🔴 待缴欠费' : (Number(p.amount) < 0 ? '已退款' : '已结清');
+        return [
+          escapeCsv(p.id),
+          escapeCsv(p.paid_at || ''),
+          escapeCsv(p.lease_title || ''),
+          escapeCsv(p.tenant_name || ''),
+          escapeCsv(typeName),
+          escapeCsv(Number(p.amount || 0).toFixed(2)),
+          escapeCsv(statusText),
+          escapeCsv(p.meter_last !== null && p.meter_last !== undefined ? p.meter_last : ''),
+          escapeCsv(p.meter_current !== null && p.meter_current !== undefined ? p.meter_current : ''),
+          escapeCsv(p.meter_usage !== null && p.meter_usage !== undefined ? p.meter_usage : ''),
+          escapeCsv(p.unit_price !== null && p.unit_price !== undefined ? p.unit_price : ''),
+          escapeCsv(p.remark || '')
+        ].join(',');
+      });
+
+      // 使用 UTF-8 BOM 确保 Windows Excel 打开中文不乱码
+      const bom = String.fromCharCode(0xFEFF);
+      const csvContent = bom + [headers.map(escapeCsv).join(','), ...rows].join(String.fromCharCode(13, 10));
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const nowStr = new Date().toISOString().slice(0, 10);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'RentHub_收租台账_' + nowStr + '.csv';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     }
 
     function renderPaymentsList(payments) {

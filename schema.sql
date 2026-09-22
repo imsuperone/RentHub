@@ -89,8 +89,12 @@ CREATE TABLE IF NOT EXISTS system_settings (
 
 -- 常用高频索引 (极致优化 Worker 边缘冷启动与 D1 读取性能)
 CREATE INDEX IF NOT EXISTS idx_leases_status ON leases(status);
+CREATE INDEX IF NOT EXISTS idx_leases_next_pay ON leases(status, next_pay_date);
 CREATE INDEX IF NOT EXISTS idx_payments_lease_id ON payments(lease_id);
 CREATE INDEX IF NOT EXISTS idx_payments_status ON payments(status);
+CREATE INDEX IF NOT EXISTS idx_payments_paid_at ON payments(paid_at DESC);
+CREATE INDEX IF NOT EXISTS idx_payments_lease_paid ON payments(lease_id, paid_at DESC);
 CREATE INDEX IF NOT EXISTS idx_attachments_lease_id ON attachments(lease_id);
 CREATE INDEX IF NOT EXISTS idx_attachments_payment_id ON attachments(payment_id);
 CREATE INDEX IF NOT EXISTS idx_attachments_storage_type ON attachments(storage_type);
+

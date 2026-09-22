@@ -14,7 +14,7 @@ export async function handleListPayments(env: Env, leaseId?: string) {
     params.push(leaseId);
   }
 
-  query += ' ORDER BY p.paid_at DESC LIMIT 100';
+  query += ' ORDER BY p.paid_at DESC LIMIT 500';
 
   const stmt = env.DB.prepare(query);
   const result = params.length > 0 ? await stmt.bind(...params).all() : await stmt.all();
@@ -67,48 +67,50 @@ export async function handleCreatePayment(env: Env, body: any) {
   const id = 'pmt_' + generateRandomHex(8);
   const paymentStatus = status === 'UNPAID' ? 'UNPAID' : 'PAID';
 
-  await env.DB.prepare(
+  const insertStmt = env.DB.prepare(
     `INSERT INTO payments (
       id, lease_id, payment_type, amount, paid_at,
       period_start, period_end,
       meter_last, meter_current, meter_usage, unit_price,
       status, remark
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-  )
-    .bind(
-      id,
-      lease_id,
-      payment_type,
-      Number(amount),
-      paid_at,
-      period_start || null,
-      period_end || null,
-      meter_last !== undefined && meter_last !== '' ? Number(meter_last) : null,
-      meter_current !== undefined && meter_current !== '' ? Number(meter_current) : null,
-      meter_usage !== undefined && meter_usage !== '' ? Number(meter_usage) : null,
-      unit_price !== undefined && unit_price !== '' ? Number(unit_price) : null,
-      paymentStatus,
-      remark ? remark.trim() : null
-    )
-    .run();
+  ).bind(
+    id,
+    lease_id,
+    payment_type,
+    Number(amount),
+    paid_at,
+    period_start || null,
+    period_end || null,
+    meter_last !== undefined && meter_last !== '' ? Number(meter_last) : null,
+    meter_current !== undefined && meter_current !== '' ? Number(meter_current) : null,
+    meter_usage !== undefined && meter_usage !== '' ? Number(meter_usage) : null,
+    unit_price !== undefined && unit_price !== '' ? Number(unit_price) : null,
+    paymentStatus,
+    remark ? remark.trim() : null
+  );
 
-  // 如果传入了新的下次交租日期，同步更新租约
+  const batchStmts = [insertStmt];
+
+  // 如果传入了新的下次交租日期，原子同步更新租约
   if (next_pay_date) {
-    await env.DB.prepare('UPDATE leases SET next_pay_date = ? WHERE id = ?')
-      .bind(next_pay_date, lease_id)
-      .run();
+    batchStmts.push(
+      env.DB.prepare('UPDATE leases SET next_pay_date = ? WHERE id = ?').bind(next_pay_date, lease_id)
+    );
   }
 
-  // 抄表底数自动滚存为房源的最新底数，下次抄表直接带出
+  // 抄表底数原子滚存为房源的最新底数，下次抄表直接带出
   if (payment_type === 'ELECTRICITY' && meter_current !== undefined && meter_current !== '' && meter_current !== null) {
-    await env.DB.prepare('UPDATE leases SET meter_electric_base = ? WHERE id = ?')
-      .bind(Number(meter_current), lease_id)
-      .run();
+    batchStmts.push(
+      env.DB.prepare('UPDATE leases SET meter_electric_base = ? WHERE id = ?').bind(Number(meter_current), lease_id)
+    );
   } else if (payment_type === 'WATER' && meter_current !== undefined && meter_current !== '' && meter_current !== null) {
-    await env.DB.prepare('UPDATE leases SET meter_water_base = ? WHERE id = ?')
-      .bind(Number(meter_current), lease_id)
-      .run();
+    batchStmts.push(
+      env.DB.prepare('UPDATE leases SET meter_water_base = ? WHERE id = ?').bind(Number(meter_current), lease_id)
+    );
   }
+
+  await env.DB.batch(batchStmts);
 
   return jsonOk({ id, status: paymentStatus }, '账单记录添加成功');
 }
@@ -136,27 +138,38 @@ export async function handleUpdatePayment(env: Env, id: string, body: any) {
     return jsonError('请选择房源并填写金额与日期', 400);
   }
 
-  await env.DB.prepare(
+  const updateStmt = env.DB.prepare(
     `UPDATE payments SET
       lease_id = ?, payment_type = ?, amount = ?, paid_at = ?,
       meter_last = ?, meter_current = ?, meter_usage = ?, unit_price = ?,
       status = ?, remark = ?
      WHERE id = ?`
-  )
-    .bind(
-      lease_id,
-      payment_type,
-      Number(amount),
-      paid_at,
-      meter_last !== undefined && meter_last !== '' ? Number(meter_last) : null,
-      meter_current !== undefined && meter_current !== '' ? Number(meter_current) : null,
-      meter_usage !== undefined && meter_usage !== '' ? Number(meter_usage) : null,
-      unit_price !== undefined && unit_price !== '' ? Number(unit_price) : null,
-      status || 'PAID',
-      remark ? remark.trim() : null,
-      id
-    )
-    .run();
+  ).bind(
+    lease_id,
+    payment_type,
+    Number(amount),
+    paid_at,
+    meter_last !== undefined && meter_last !== '' ? Number(meter_last) : null,
+    meter_current !== undefined && meter_current !== '' ? Number(meter_current) : null,
+    meter_usage !== undefined && meter_usage !== '' ? Number(meter_usage) : null,
+    unit_price !== undefined && unit_price !== '' ? Number(unit_price) : null,
+    status || 'PAID',
+    remark ? remark.trim() : null,
+    id
+  );
+
+  const batchStmts = [updateStmt];
+  if (payment_type === 'ELECTRICITY' && meter_current !== undefined && meter_current !== '' && meter_current !== null) {
+    batchStmts.push(
+      env.DB.prepare('UPDATE leases SET meter_electric_base = ? WHERE id = ?').bind(Number(meter_current), lease_id)
+    );
+  } else if (payment_type === 'WATER' && meter_current !== undefined && meter_current !== '' && meter_current !== null) {
+    batchStmts.push(
+      env.DB.prepare('UPDATE leases SET meter_water_base = ? WHERE id = ?').bind(Number(meter_current), lease_id)
+    );
+  }
+
+  await env.DB.batch(batchStmts);
 
   return jsonOk({ id }, '账单记录已修改');
 }
@@ -171,6 +184,10 @@ export async function handleSettlePayment(env: Env, id: string) {
 }
 
 export async function handleDeletePayment(env: Env, id: string) {
-  await env.DB.prepare('DELETE FROM payments WHERE id = ?').bind(id).run();
+  // 解绑关联文件 (payment_id = NULL) 并删除账单，保证文件原件完好留在文件中心
+  await env.DB.batch([
+    env.DB.prepare('UPDATE attachments SET payment_id = NULL WHERE payment_id = ?').bind(id),
+    env.DB.prepare('DELETE FROM payments WHERE id = ?').bind(id),
+  ]);
   return jsonOk({ id }, '账单记录已删除');
 }

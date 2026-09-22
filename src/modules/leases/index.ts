@@ -322,6 +322,11 @@ export async function handleUpdateLease(env: Env, id: string, body: any) {
 }
 
 export async function handleDeleteLease(env: Env, id: string) {
-  await env.DB.prepare('DELETE FROM leases WHERE id = ?').bind(id).run();
-  return jsonOk({ id }, '房源已删除');
+  // 原子事务：级联删除属于该房源的记账记录，并解绑关联文件（保持文件中心原件完好）
+  await env.DB.batch([
+    env.DB.prepare('DELETE FROM payments WHERE lease_id = ?').bind(id),
+    env.DB.prepare('UPDATE attachments SET lease_id = NULL WHERE lease_id = ?').bind(id),
+    env.DB.prepare('DELETE FROM leases WHERE id = ?').bind(id),
+  ]);
+  return jsonOk({ id }, '房源及关联记账已安全删除');
 }

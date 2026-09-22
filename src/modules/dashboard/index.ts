@@ -117,6 +117,19 @@ export async function handleDashboardSummary(env: Env) {
   const totpEnabled = userRow ? (userRow.totp_enabled as number) === 1 : false;
   const username = userRow ? (userRow.username as string) : 'Admin';
 
+  const curMonthPrefix = now.toISOString().slice(0, 7);
+  const paymentsAggRow = (await env.DB.prepare(`
+    SELECT
+      SUM(CASE WHEN status = 'PAID' AND payment_type != 'DEPOSIT' AND paid_at LIKE ? THEN amount ELSE 0 END) as this_month_income,
+      SUM(CASE WHEN status = 'UNPAID' THEN amount ELSE 0 END) as total_unpaid_amount,
+      COUNT(CASE WHEN status = 'UNPAID' THEN 1 END) as total_unpaid_count
+    FROM payments
+  `).bind(`${curMonthPrefix}%`).first()) as any;
+
+  const thisMonthIncome = Number(paymentsAggRow?.this_month_income) || 0;
+  const totalUnpaidAmount = Number(paymentsAggRow?.total_unpaid_amount) || 0;
+  const totalUnpaidCount = Number(paymentsAggRow?.total_unpaid_count) || 0;
+
   return jsonOk({
     stats: {
       totalProperties,
@@ -125,6 +138,10 @@ export async function handleDashboardSummary(env: Env) {
       terminatedCount,
       totalMonthlyRent,
       totalDepositHeld,
+      thisMonthIncome,
+      totalUnpaidAmount,
+      totalUnpaidCount,
+      currentMonth: curMonthPrefix,
     },
     upcomingRentQueue,
     leases,
