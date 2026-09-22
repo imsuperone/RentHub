@@ -201,7 +201,7 @@ export function renderAppHtml(username: string): string {
         <button onclick="switchTab('dashboard')" class="desktop-tab-btn px-4 py-2 rounded-full transition-all" data-tab="dashboard">🏠 概览</button>
         <button onclick="switchTab('leases')" class="desktop-tab-btn px-4 py-2 rounded-full transition-all" data-tab="leases">🏘️ 房源</button>
         <button onclick="switchTab('payments')" class="desktop-tab-btn px-4 py-2 rounded-full transition-all" data-tab="payments">⚡ 记账</button>
-        <button onclick="switchTab('receipts')" class="desktop-tab-btn px-4 py-2 rounded-full transition-all" data-tab="receipts">📁 凭据</button>
+        <button onclick="switchTab('receipts')" class="desktop-tab-btn px-4 py-2 rounded-full transition-all" data-tab="receipts">📁 文件</button>
         <button onclick="switchTab('settings')" class="desktop-tab-btn px-4 py-2 rounded-full transition-all" data-tab="settings">⚙️ 设置</button>
       </nav>
 
@@ -336,8 +336,8 @@ export function renderAppHtml(username: string): string {
                   📎
                 </div>
                 <div>
-                  <div class="text-xs font-bold text-neutral-800 dark:text-neutral-200 group-hover:text-[#0F5B38] dark:group-hover:text-[#7CDCA0]">上传照片/合同凭据</div>
-                  <div class="text-[11px] text-neutral-400 mt-0.5">安全保存在本地数据库或坚果云/WebDAV</div>
+                  <div class="text-xs font-bold text-neutral-800 dark:text-neutral-200 group-hover:text-[#0F5B38] dark:group-hover:text-[#7CDCA0]">上传照片/合同文件</div>
+                  <div class="text-[11px] text-neutral-400 mt-0.5">支持本地 D1、WebDAV 云盘与 S3 对象存储</div>
                 </div>
               </div>
               <svg class="w-4 h-4 text-neutral-400 group-hover:text-[#0F5B38] transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
@@ -365,7 +365,7 @@ export function renderAppHtml(username: string): string {
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 class="text-xl font-extrabold tracking-tight">房源与租客管理</h2>
-          <p class="text-xs text-neutral-400 mt-0.5">房源信息、在租状态、水电表底数及合同凭据</p>
+          <p class="text-xs text-neutral-400 mt-0.5">房源信息、在租状态、水电表底数及合同文件</p>
         </div>
         <button onclick="openAddLeaseModal()" class="m3-pill px-5 py-2.5 bg-[#0F5B38] dark:bg-[#7CDCA0] text-white dark:text-[#00391F] font-bold text-xs shadow-md shadow-[#0F5B38]/15 flex items-center justify-center gap-1.5 self-start sm:self-auto">
           <span>+</span> 添加房源
@@ -468,34 +468,167 @@ export function renderAppHtml(username: string): string {
       </div>
     </section>
 
-    <!-- ==================== TAB 4: 加密凭证库 ==================== -->
+    <!-- ==================== TAB 4: 文件中心 (多渠道加密存储) ==================== -->
     <section id="tab-receipts" class="tab-content hidden space-y-5">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 class="text-xl font-extrabold tracking-tight">合同与单据凭证</h2>
-          <p class="text-xs text-neutral-400 mt-0.5">租房合同、转账截图、验房单、电表照片等凭据管理</p>
+          <h2 class="text-xl font-extrabold tracking-tight">文件与单据中心</h2>
+          <p class="text-xs text-neutral-400 mt-0.5">租房合同、转账截图、验房单、电表照片等文件；支持查看本地 D1、WebDAV 网盘与 S3 对象存储</p>
         </div>
         <button onclick="openUploadAttachmentModal()" class="m3-pill px-5 py-2.5 bg-[#0F5B38] dark:bg-[#7CDCA0] text-white dark:text-[#00391F] font-bold text-xs shadow-md shadow-[#0F5B38]/15 flex items-center justify-center gap-1.5 self-start sm:self-auto">
-          <span>+</span> 上传凭据
+          <span>+</span> 上传文件
         </button>
+      </div>
+
+      <!-- 存储来源与分类筛选栏 -->
+      <div class="m3-card bg-white dark:bg-[#1A211D] border border-[#D7DED9]/50 dark:border-[#26312B]/60 p-4 space-y-3 shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <!-- 筛选芯片 -->
+          <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs" id="attachmentFilterChips">
+            <button onclick="filterAttachmentsBySource('ALL')" id="attFilter_ALL" class="att-filter-chip m3-pill px-3 py-1.5 font-bold bg-[#0F5B38] text-white dark:bg-[#7CDCA0] dark:text-[#00391F] transition-all">全部 (<span id="attCount_ALL">0</span>)</button>
+            <button onclick="filterAttachmentsBySource('D1_LOCAL')" id="attFilter_D1_LOCAL" class="att-filter-chip m3-pill px-3 py-1.5 font-medium bg-[#E8EDE9] text-neutral-600 dark:bg-[#161D1A] dark:text-neutral-400 hover:opacity-90 transition-all">💾 本地 D1 (<span id="attCount_D1">0</span>)</button>
+            <button onclick="filterAttachmentsBySource('WEBDAV')" id="attFilter_WEBDAV" class="att-filter-chip m3-pill px-3 py-1.5 font-medium bg-[#E8EDE9] text-neutral-600 dark:bg-[#161D1A] dark:text-neutral-400 hover:opacity-90 transition-all">☁️ WebDAV 网盘 (<span id="attCount_WEBDAV">0</span>)</button>
+            <button onclick="filterAttachmentsBySource('S3')" id="attFilter_S3" class="att-filter-chip m3-pill px-3 py-1.5 font-medium bg-[#E8EDE9] text-neutral-600 dark:bg-[#161D1A] dark:text-neutral-400 hover:opacity-90 transition-all">🪣 S3 存储 (<span id="attCount_S3">0</span>)</button>
+            <button onclick="filterAttachmentsBySource('LEASE')" id="attFilter_LEASE" class="att-filter-chip m3-pill px-3 py-1.5 font-medium bg-[#E8EDE9] text-neutral-600 dark:bg-[#161D1A] dark:text-neutral-400 hover:opacity-90 transition-all">🏠 房源文件 (<span id="attCount_LEASE">0</span>)</button>
+            <button onclick="filterAttachmentsBySource('PAYMENT')" id="attFilter_PAYMENT" class="att-filter-chip m3-pill px-3 py-1.5 font-medium bg-[#E8EDE9] text-neutral-600 dark:bg-[#161D1A] dark:text-neutral-400 hover:opacity-90 transition-all">💳 记账凭单 (<span id="attCount_PAYMENT">0</span>)</button>
+          </div>
+          <!-- 文件名称实时搜索框 -->
+          <div class="relative w-full sm:w-64 flex-shrink-0">
+            <input type="text" id="attSearchInput" oninput="renderFilteredAttachments()" placeholder="搜索文件名称 / 房源..." class="m3-input w-full text-xs pl-8 py-2">
+            <span class="absolute left-2.5 top-2.5 text-neutral-400 text-xs">🔍</span>
+          </div>
+        </div>
       </div>
 
       <div id="attachmentsGallery" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
     </section>
 
-    <!-- ==================== TAB 5: 系统设置 & 安全中心 ==================== -->
+    <!-- ==================== TAB 5: 系统设置 & 云端存储 ==================== -->
     <section id="tab-settings" class="tab-content hidden space-y-6">
       <div>
-        <h2 class="text-xl font-extrabold tracking-tight">系统设置 & 云盘备份</h2>
-        <p class="text-xs text-neutral-400 mt-0.5">邮箱发信配置、坚果云/WebDAV备份及安全二次验证</p>
+        <h2 class="text-xl font-extrabold tracking-tight">系统设置 & 存储备份</h2>
+        <p class="text-xs text-neutral-400 mt-0.5">文件加密存储渠道 (本地D1 / WebDAV / 阿里云OSS / 腾讯云COS / R2)、邮箱通知及安全二次验证</p>
       </div>
 
-      <!-- WebDAV 云盘挂载配置 -->
+      <!-- 全局默认存储渠道选择卡片 -->
+      <div class="m3-card bg-white dark:bg-[#1A211D] border border-[#D7DED9]/50 dark:border-[#26312B]/60 p-6 md:p-8 space-y-4 shadow-sm">
+        <div class="flex items-center justify-between pb-2 border-b border-[#E8EDE9] dark:border-[#26312B]/60">
+          <div>
+            <h3 class="text-sm font-bold flex items-center gap-2">
+              <span>🎯 全局默认文件存储渠道</span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full bg-[#C4EED0] dark:bg-[#1A402D] text-[#002111] dark:text-[#A6F5B9] font-bold">三轨支持</span>
+            </h3>
+            <p class="text-xs text-neutral-400 mt-0.5">决定上传文件与记账拍照时的默认保存去向（每次上传时仍可临时自由选择）</p>
+          </div>
+          <button onclick="saveDefaultStorageSetting()" id="saveDefaultStorageBtn" class="m3-pill px-4 py-2 bg-[#0F5B38] dark:bg-[#7CDCA0] text-white dark:text-[#00391F] text-xs font-bold shadow-sm">
+            保存默认设置
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+          <label class="flex items-start gap-3 p-4 rounded-2xl border border-[#D7DED9]/60 dark:border-[#26312B]/60 bg-[#E8EDE9]/30 dark:bg-[#161D1A]/50 cursor-pointer hover:border-[#0F5B38] transition-all">
+            <input type="radio" name="defaultStorageSetting" value="D1_LOCAL" class="mt-1" checked>
+            <div>
+              <div class="text-xs font-bold text-neutral-800 dark:text-neutral-200">💾 本地 D1 数据库</div>
+              <div class="text-[11px] text-neutral-400 mt-1 leading-relaxed">零门槛开箱即用。AES-256-GCM 密文保存在本地 SQLite 数据库，无任何外部服务依赖。</div>
+            </div>
+          </label>
+
+          <label class="flex items-start gap-3 p-4 rounded-2xl border border-[#D7DED9]/60 dark:border-[#26312B]/60 bg-[#E8EDE9]/30 dark:bg-[#161D1A]/50 cursor-pointer hover:border-[#0F5B38] transition-all">
+            <input type="radio" name="defaultStorageSetting" value="WEBDAV" class="mt-1">
+            <div>
+              <div class="text-xs font-bold text-neutral-800 dark:text-neutral-200">☁️ WebDAV / 网盘</div>
+              <div class="text-[11px] text-neutral-400 mt-1 leading-relaxed">推荐坚果云，或通过 AList 挂载阿里云盘、百度网盘、天翼云等。加密异地存档。</div>
+            </div>
+          </label>
+
+          <label class="flex items-start gap-3 p-4 rounded-2xl border border-[#D7DED9]/60 dark:border-[#26312B]/60 bg-[#E8EDE9]/30 dark:bg-[#161D1A]/50 cursor-pointer hover:border-[#0F5B38] transition-all">
+            <input type="radio" name="defaultStorageSetting" value="S3" class="mt-1">
+            <div>
+              <div class="text-xs font-bold text-neutral-800 dark:text-neutral-200">🪣 S3 兼容对象存储</div>
+              <div class="text-[11px] text-neutral-400 mt-1 leading-relaxed">原生 AWS SigV4 签名，完美直连阿里云 OSS、腾讯云 COS、Cloudflare R2、七牛云或自建 MinIO。</div>
+            </div>
+          </label>
+        </div>
+        <div id="defaultStorageFeedback" class="text-xs font-semibold px-1"></div>
+      </div>
+
+      <!-- S3 兼容对象存储配置卡片 (阿里云 OSS / 腾讯云 COS / Cloudflare R2 / MinIO) -->
       <div class="m3-card bg-white dark:bg-[#1A211D] border border-[#D7DED9]/50 dark:border-[#26312B]/60 p-6 md:p-8 space-y-5 shadow-sm">
         <div class="flex items-center justify-between">
           <div>
-            <h3 class="text-sm font-bold">WebDAV 云盘存储备份 (可选)</h3>
-            <p class="text-xs text-neutral-400 mt-0.5">支持坚果云、Alist等；未开启时凭据直接安全保存在本地数据库</p>
+            <h3 class="text-sm font-bold flex items-center gap-2">
+              <span>🪣 S3 兼容对象存储 (阿里云 OSS / 腾讯云 COS / R2 / MinIO)</span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full bg-sky-100 dark:bg-sky-950 text-sky-800 dark:text-sky-300 font-bold">零 SDK 依赖</span>
+            </h3>
+            <p class="text-xs text-neutral-400 mt-0.5">原生 WebCrypto 实现 AWS SigV4 认证，支持国内主流云厂商与自建 MinIO 异地容灾</p>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="s3Enabled" class="sr-only peer">
+            <div class="w-12 h-7 bg-neutral-200 peer-focus:outline-none rounded-full peer dark:bg-neutral-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[3px] after:left-[3px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5.5 after:w-5.5 after:transition-all peer-checked:bg-[#0F5B38] dark:peer-checked:bg-[#7CDCA0]"></div>
+          </label>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+          <div class="md:col-span-2">
+            <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">对象存储服务地址 (Endpoint)</label>
+            <input type="text" id="s3Endpoint" placeholder="例如 https://oss-cn-hangzhou.aliyuncs.com 或 https://cos.ap-guangzhou.myqcloud.com" class="m3-input w-full text-sm font-mono">
+            <div class="flex items-center flex-wrap gap-2.5 mt-2 px-1">
+              <span class="text-[11px] text-neutral-400">快速填入预设：</span>
+              <button onclick="fillS3Preset('aliyun')" class="text-[11px] text-orange-600 dark:text-orange-400 font-bold hover:underline">阿里云 OSS</button>
+              <button onclick="fillS3Preset('tencent')" class="text-[11px] text-blue-600 dark:text-blue-400 font-bold hover:underline">腾讯云 COS</button>
+              <button onclick="fillS3Preset('r2')" class="text-[11px] text-amber-600 dark:text-amber-400 font-bold hover:underline">Cloudflare R2</button>
+              <button onclick="fillS3Preset('qiniu')" class="text-[11px] text-cyan-600 dark:text-cyan-400 font-bold hover:underline">七牛云 Kodo</button>
+              <button onclick="fillS3Preset('minio')" class="text-[11px] text-rose-600 dark:text-rose-400 font-bold hover:underline">自建 MinIO</button>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">存储桶名称 (Bucket Name)</label>
+            <input type="text" id="s3Bucket" placeholder="例如 my-renthub-bucket" class="m3-input w-full text-sm font-mono">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">地域标识 (Region)</label>
+            <input type="text" id="s3Region" placeholder="例如 cn-hangzhou, ap-guangzhou, auto" class="m3-input w-full text-sm font-mono">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">AccessKey ID</label>
+            <input type="text" id="s3AccessKey" placeholder="对象存储访问密钥 ID" class="m3-input w-full text-sm font-mono">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">Secret Access Key (修改时填入，不改留空)</label>
+            <input type="password" id="s3SecretKey" placeholder="••••••••" class="m3-input w-full text-sm font-mono">
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">存储根目录前缀 (Base Path)</label>
+            <input type="text" id="s3BasePath" placeholder="RentHubFiles" class="m3-input w-full text-sm font-mono">
+          </div>
+        </div>
+
+        <div class="pt-4 border-t border-[#E8EDE9] dark:border-[#26312B]/60 flex flex-col sm:flex-row items-center gap-3">
+          <button onclick="testS3()" id="testS3Btn" class="m3-pill w-full sm:w-auto px-5 py-2.5 bg-[#E8EDE9] dark:bg-[#161D1A] hover:opacity-90 text-xs font-bold transition-all">
+            测试 S3 连通性
+          </button>
+          <button onclick="saveS3()" id="saveS3Btn" class="m3-pill w-full sm:w-auto px-5 py-2.5 bg-[#0F5B38] dark:bg-[#7CDCA0] text-white dark:text-[#00391F] text-xs font-bold shadow-sm transition-all">
+            保存 S3 配置
+          </button>
+          <span id="s3Feedback" class="text-xs font-semibold px-2"></span>
+        </div>
+      </div>
+
+      <!-- WebDAV 云盘挂载配置 (坚果云 / AList 挂载阿里云盘百度网盘 / 123云盘) -->
+      <div class="m3-card bg-white dark:bg-[#1A211D] border border-[#D7DED9]/50 dark:border-[#26312B]/60 p-6 md:p-8 space-y-5 shadow-sm">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-sm font-bold flex items-center gap-2">
+              <span>☁️ WebDAV 云盘存储 (坚果云 / AList 挂载阿里云盘·百度网盘 / 123云盘)</span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-800 dark:text-indigo-300 font-bold">网盘利器</span>
+            </h3>
+            <p class="text-xs text-neutral-400 mt-0.5">支持坚果云直连；配合 AList 更可无感对接阿里云盘、百度网盘、天翼云、夸克等各种国内网盘</p>
           </div>
           <label class="relative inline-flex items-center cursor-pointer">
             <input type="checkbox" id="webdavEnabled" class="sr-only peer">
@@ -506,17 +639,19 @@ export function renderAppHtml(username: string): string {
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
           <div class="md:col-span-2">
             <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">WebDAV 服务器地址 (Endpoint)</label>
-            <input type="text" id="webdavEndpoint" placeholder="https://dav.jianguoyun.com/dav/ 或 http://openlist.local:5244/dav/" class="m3-input w-full text-sm">
-            <div class="flex items-center gap-3 mt-2 px-1">
-              <span class="text-[11px] text-neutral-400">快捷填充预设：</span>
-              <button onclick="fillPreset('jianguoyun')" class="text-[11px] text-[#0F5B38] dark:text-[#7CDCA0] font-bold underline">坚果云预设</button>
-              <button onclick="fillPreset('openlist')" class="text-[11px] text-indigo-600 dark:text-indigo-400 font-bold underline">OpenList 预设</button>
+            <input type="text" id="webdavEndpoint" placeholder="https://dav.jianguoyun.com/dav/ 或 http://your-alist-host:5244/dav/" class="m3-input w-full text-sm font-mono">
+            <div class="flex items-center flex-wrap gap-2.5 mt-2 px-1">
+              <span class="text-[11px] text-neutral-400">快速填入预设：</span>
+              <button onclick="fillPreset('jianguoyun')" class="text-[11px] text-[#0F5B38] dark:text-[#7CDCA0] font-bold hover:underline">坚果云预设</button>
+              <button onclick="fillPreset('alist')" class="text-[11px] text-indigo-600 dark:text-indigo-400 font-bold hover:underline">AList 网盘预设 (挂载阿里云盘/百度网盘)</button>
+              <button onclick="fillPreset('123pan')" class="text-[11px] text-blue-600 dark:text-blue-400 font-bold hover:underline">123 云盘预设</button>
+              <button onclick="fillPreset('openlist')" class="text-[11px] text-neutral-500 font-bold hover:underline">OpenList 预设</button>
             </div>
           </div>
 
           <div>
             <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">用户名 / 账号</label>
-            <input type="text" id="webdavUsername" placeholder="坚果云注册邮箱或云盘用户名" class="m3-input w-full text-sm">
+            <input type="text" id="webdavUsername" placeholder="坚果云注册邮箱或云盘/AList 用户名" class="m3-input w-full text-sm">
           </div>
 
           <div>
@@ -526,7 +661,7 @@ export function renderAppHtml(username: string): string {
 
           <div class="md:col-span-2">
             <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">远端基础目录 (Base Path)</label>
-            <input type="text" id="webdavBasePath" placeholder="/RentRecords" class="m3-input w-full text-sm">
+            <input type="text" id="webdavBasePath" placeholder="/RentRecords" class="m3-input w-full text-sm font-mono">
           </div>
         </div>
 
@@ -787,7 +922,10 @@ export function renderAppHtml(username: string): string {
             </h3>
             <p class="text-xs text-neutral-400 mt-0.5">直接在网页中像 Excel 一样透视查阅底层所有数据表</p>
           </div>
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2 flex-wrap">
+            <button onclick="sendEmailBackup()" id="emailBackupBtn" class="m3-pill px-3.5 py-1.5 bg-[#C4EED0] dark:bg-[#1A402D] text-[#002111] dark:text-[#A6F5B9] hover:opacity-90 text-xs font-bold flex items-center gap-1">
+              📧 发送备份至邮箱
+            </button>
             <button onclick="dumpDatabaseJson()" class="m3-pill px-3.5 py-1.5 bg-[#E8EDE9] dark:bg-[#161D1A] hover:opacity-90 text-xs font-semibold flex items-center gap-1">
               📥 导出全量 JSON
             </button>
@@ -806,7 +944,7 @@ export function renderAppHtml(username: string): string {
             💰 记账明细 (payments)
           </button>
           <button onclick="inspectDatabaseTable('attachments')" id="tab_table_attachments" class="inspect-tab-btn m3-pill px-3.5 py-1.5 font-medium bg-[#E8EDE9] text-neutral-600 dark:bg-[#161D1A] dark:text-neutral-400 transition-all">
-            📎 单据凭据 (attachments)
+            📎 单据文件 (attachments)
           </button>
           <button onclick="inspectDatabaseTable('users')" id="tab_table_users" class="inspect-tab-btn m3-pill px-3.5 py-1.5 font-medium bg-[#E8EDE9] text-neutral-600 dark:bg-[#161D1A] dark:text-neutral-400 transition-all">
             👤 管理账号 (users)
@@ -853,7 +991,7 @@ export function renderAppHtml(username: string): string {
     </button>
     <button onclick="switchTab('receipts')" class="mobile-nav-btn px-3 py-1.5 rounded-full flex flex-col items-center transition-all text-neutral-400" data-tab="receipts">
       <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
-      <span class="text-[10px] font-medium mt-0.5">凭据</span>
+      <span class="text-[10px] font-medium mt-0.5">文件</span>
     </button>
     <button onclick="switchTab('settings')" class="mobile-nav-btn px-3 py-1.5 rounded-full flex flex-col items-center transition-all text-neutral-400" data-tab="settings">
       <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
@@ -1106,7 +1244,7 @@ export function renderAppHtml(username: string): string {
             <label class="font-bold text-neutral-600 dark:text-neutral-300 text-xs">📎 关联收款凭证 (截图/收据，可选)</label>
             <div class="inline-flex rounded-full bg-[#E8EDE9] dark:bg-[#161D1A] p-0.5 text-[10px] font-bold">
               <button type="button" id="rentAttMode_upload" onclick="switchRentAttMode('upload')" class="px-2.5 py-1 rounded-full bg-white dark:bg-[#202824] text-[#0F5B38] dark:text-[#7CDCA0] shadow-sm">📤 上传新照片</button>
-              <button type="button" id="rentAttMode_existing" onclick="switchRentAttMode('existing')" class="px-2.5 py-1 rounded-full text-neutral-500 hover:text-neutral-900 dark:hover:text-white">🗃️ 选择已有凭据</button>
+              <button type="button" id="rentAttMode_existing" onclick="switchRentAttMode('existing')" class="px-2.5 py-1 rounded-full text-neutral-500 hover:text-neutral-900 dark:hover:text-white">🗃️ 选择已有文件</button>
             </div>
           </div>
           <div id="rentAttUploadBox">
@@ -1114,10 +1252,10 @@ export function renderAppHtml(username: string): string {
           </div>
           <div id="rentAttExistingBox" class="hidden">
             <select id="rentExistingAttSelect" class="m3-input w-full text-xs font-bold" onchange="previewExistingAtt('rent')">
-              <option value="">-- 请选择之前已上传过的凭据 --</option>
+              <option value="">-- 请选择之前已上传过的文件 --</option>
             </select>
             <div id="rentExistingPreview" class="hidden mt-2 p-2 rounded-xl bg-[#E8EDE9]/50 dark:bg-[#161D1A] flex items-center gap-2 text-xs">
-              <img id="rentExistingThumb" src="" class="w-10 h-10 rounded-lg object-cover bg-neutral-200" alt="凭据缩略图">
+              <img id="rentExistingThumb" src="" class="w-10 h-10 rounded-lg object-cover bg-neutral-200" alt="文件缩略图">
               <div class="flex-1 truncate">
                 <div id="rentExistingName" class="font-bold truncate text-[11px]"></div>
                 <div id="rentExistingMeta" class="text-neutral-400 text-[10px]"></div>
@@ -1248,10 +1386,10 @@ export function renderAppHtml(username: string): string {
 
         <div class="space-y-2">
           <div class="flex items-center justify-between px-1">
-            <label class="font-bold text-neutral-600 dark:text-neutral-300 text-xs">📎 关联收款凭证 (转账截图/收据，可选)</label>
+            <label class="font-bold text-neutral-600 dark:text-neutral-300 text-xs">📎 关联收款单据 (转账截图/收据，可选)</label>
             <div class="inline-flex rounded-full bg-[#E8EDE9] dark:bg-[#161D1A] p-0.5 text-[10px] font-bold">
               <button type="button" id="utilAttMode_upload" onclick="switchUtilAttMode('upload')" class="px-2.5 py-1 rounded-full bg-white dark:bg-[#202824] text-[#0F5B38] dark:text-[#7CDCA0] shadow-sm">📤 上传新照片</button>
-              <button type="button" id="utilAttMode_existing" onclick="switchUtilAttMode('existing')" class="px-2.5 py-1 rounded-full text-neutral-500 hover:text-neutral-900 dark:hover:text-white">🗃️ 选择已有凭据</button>
+              <button type="button" id="utilAttMode_existing" onclick="switchUtilAttMode('existing')" class="px-2.5 py-1 rounded-full text-neutral-500 hover:text-neutral-900 dark:hover:text-white">🗃️ 选择已有文件</button>
             </div>
           </div>
           <div id="utilAttUploadBox">
@@ -1259,10 +1397,10 @@ export function renderAppHtml(username: string): string {
           </div>
           <div id="utilAttExistingBox" class="hidden">
             <select id="utilExistingAttSelect" class="m3-input w-full text-xs font-bold" onchange="previewExistingAtt('util')">
-              <option value="">-- 请选择之前已上传过的凭据 --</option>
+              <option value="">-- 请选择之前已上传过的文件 --</option>
             </select>
             <div id="utilExistingPreview" class="hidden mt-2 p-2 rounded-xl bg-[#E8EDE9]/50 dark:bg-[#161D1A] flex items-center gap-2 text-xs">
-              <img id="utilExistingThumb" src="" class="w-10 h-10 rounded-lg object-cover bg-neutral-200" alt="凭据缩略图">
+              <img id="utilExistingThumb" src="" class="w-10 h-10 rounded-lg object-cover bg-neutral-200" alt="文件缩略图">
               <div class="flex-1 truncate">
                 <div id="utilExistingName" class="font-bold truncate text-[11px]"></div>
                 <div id="utilExistingMeta" class="text-neutral-400 text-[10px]"></div>
@@ -1376,25 +1514,49 @@ export function renderAppHtml(username: string): string {
     </div>
   </div>
 
-  <!-- ==================== 弹窗：直接绑定上传凭证 (双轨加密存储) ==================== -->
+  <!-- ==================== 弹窗：直接绑定上传文件 (多渠道透明加密存储) ==================== -->
   <div id="uploadModal" class="hidden fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center p-0 sm:p-4">
     <div class="m3-sheet bg-white dark:bg-[#1A211D] w-full max-w-xl sm:max-w-2xl rounded-t-[36px] sm:rounded-[36px] p-6 sm:p-9 space-y-5 max-h-[90vh] overflow-y-auto shadow-2xl">
       <div class="w-12 h-1.5 rounded-full bg-neutral-300 dark:bg-neutral-600 mx-auto"></div>
       <div class="flex items-center justify-between pb-1 border-b border-[#E8EDE9] dark:border-[#26312B]/60">
-        <h3 id="uploadModalTitle" class="text-base font-extrabold">上传凭据照片</h3>
+        <h3 id="uploadModalTitle" class="text-base font-extrabold">上传文件 / 关联附件</h3>
         <button onclick="closeModal('uploadModal')" class="w-7 h-7 rounded-full bg-[#E8EDE9] dark:bg-[#161D1A] text-neutral-400 font-bold flex items-center justify-center text-xs">✕</button>
       </div>
 
       <input type="hidden" id="uploadPaymentId" value="">
 
-      <div class="p-3 m3-subcard bg-[#E8EDE9]/60 dark:bg-[#161D1A] text-neutral-500 dark:text-neutral-400 text-xs leading-relaxed">
-        🛡️ <strong>安全存储：</strong>未配置 WebDAV 云盘时，凭据安全保存在本地数据库中；若已配置 WebDAV 则自动存入云盘。
+      <!-- 存储目标去向选择器 (明确展示并允许选择存储渠道，存储去向透明化) -->
+      <div id="uploadStorageSelectorArea">
+        <label class="block font-bold text-neutral-600 dark:text-neutral-300 mb-1.5 px-1">存放目标位置</label>
+        <div class="grid grid-cols-3 gap-2">
+          <label id="uploadStorageLabel_D1" class="flex flex-col items-center justify-center p-2.5 rounded-2xl border-2 border-[#0F5B38] bg-[#C4EED0]/30 dark:bg-[#1A402D]/40 cursor-pointer text-center transition-all">
+            <input type="radio" name="uploadStorageType" value="D1_LOCAL" class="sr-only" checked onchange="onUploadStorageTypeChange()">
+            <span class="text-base">💾</span>
+            <span class="text-[11px] font-bold mt-1 text-neutral-800 dark:text-neutral-200">本地 D1 数据库</span>
+            <span class="text-[9px] text-neutral-400 mt-0.5">免配置 · 密文直存</span>
+          </label>
+          <label id="uploadStorageLabel_WEBDAV" class="flex flex-col items-center justify-center p-2.5 rounded-2xl border border-[#D7DED9]/60 dark:border-[#26312B]/60 bg-[#E8EDE9]/30 dark:bg-[#161D1A]/50 cursor-pointer text-center hover:border-neutral-400 transition-all">
+            <input type="radio" name="uploadStorageType" value="WEBDAV" class="sr-only" onchange="onUploadStorageTypeChange()">
+            <span class="text-base">☁️</span>
+            <span class="text-[11px] font-bold mt-1 text-neutral-800 dark:text-neutral-200">WebDAV / 网盘</span>
+            <span class="text-[9px] text-neutral-400 mt-0.5">坚果云 / AList</span>
+          </label>
+          <label id="uploadStorageLabel_S3" class="flex flex-col items-center justify-center p-2.5 rounded-2xl border border-[#D7DED9]/60 dark:border-[#26312B]/60 bg-[#E8EDE9]/30 dark:bg-[#161D1A]/50 cursor-pointer text-center hover:border-neutral-400 transition-all">
+            <input type="radio" name="uploadStorageType" value="S3" class="sr-only" onchange="onUploadStorageTypeChange()">
+            <span class="text-base">🪣</span>
+            <span class="text-[11px] font-bold mt-1 text-neutral-800 dark:text-neutral-200">S3 对象存储</span>
+            <span class="text-[9px] text-neutral-400 mt-0.5">OSS / COS / R2</span>
+          </label>
+        </div>
+        <div id="uploadStorageHint" class="mt-2 text-[11px] text-[#0F5B38] dark:text-[#7CDCA0] px-1 font-medium">
+          ✓ 文件将以 AES-256-GCM 强加密形式安全保存在 Cloudflare D1 数据库中，免第三方配置。
+        </div>
       </div>
 
-      <!-- 模式切换：上传新凭据 / 选择已有内置凭据 -->
+      <!-- 模式切换：上传新文件 / 选择已有内置文件 -->
       <div class="flex items-center justify-center p-1 rounded-2xl bg-[#E8EDE9] dark:bg-[#161D1A]">
         <button type="button" id="uploadModalTab_upload" onclick="switchUploadModalTab('upload')" class="flex-1 py-2 rounded-xl text-xs font-bold bg-white dark:bg-[#202824] text-[#0F5B38] dark:text-[#7CDCA0] shadow-sm transition-all">📤 上传新照片/PDF</button>
-        <button type="button" id="uploadModalTab_existing" onclick="switchUploadModalTab('existing')" class="flex-1 py-2 rounded-xl text-xs font-bold text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-all">🗃️ 选择已有凭据并关联</button>
+        <button type="button" id="uploadModalTab_existing" onclick="switchUploadModalTab('existing')" class="flex-1 py-2 rounded-xl text-xs font-bold text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-all">🗃️ 选择系统已有文件并关联</button>
       </div>
 
       <!-- 模式A: 上传新文件 -->
@@ -1409,26 +1571,26 @@ export function renderAppHtml(username: string): string {
             <select id="uploadLeaseId" class="m3-input w-full text-xs font-bold"></select>
           </div>
           <div>
-            <label class="block font-bold text-neutral-600 dark:text-neutral-300 mb-1 px-1">凭据分类</label>
+            <label class="block font-bold text-neutral-600 dark:text-neutral-300 mb-1 px-1">文件分类</label>
             <select id="uploadCategory" class="m3-input w-full text-xs font-bold">
-              <option value="CONTRACT">租房合同/照片</option>
-              <option value="RECEIPT">交租/转账回执</option>
+              <option value="CONTRACT">租房合同/协议照片</option>
+              <option value="RECEIPT">交租/转账回执单据</option>
               <option value="HANDOVER">验房交接/电表照</option>
-              <option value="OTHER">其他资料</option>
+              <option value="OTHER">其他附件资料</option>
             </select>
           </div>
         </div>
       </div>
 
-      <!-- 模式B: 选择已有内置凭据 -->
+      <!-- 模式B: 选择已有内置文件 -->
       <div id="uploadSection_existing" class="hidden space-y-3.5 text-xs">
         <div>
-          <label class="block font-bold text-neutral-600 dark:text-neutral-300 mb-1 px-1">选择已存入系统的内置凭据</label>
+          <label class="block font-bold text-neutral-600 dark:text-neutral-300 mb-1 px-1">选择已存入系统的内置文件</label>
           <select id="uploadExistingAttSelect" class="m3-input w-full text-xs font-bold" onchange="previewExistingAtt('upload')">
-            <option value="">-- 请选择系统已有凭据 --</option>
+            <option value="">-- 请选择系统已有文件 --</option>
           </select>
           <div id="uploadExistingPreview" class="hidden mt-2 p-2.5 rounded-xl bg-[#E8EDE9]/50 dark:bg-[#161D1A] flex items-center gap-2.5 text-xs">
-            <img id="uploadExistingThumb" src="" class="w-12 h-12 rounded-lg object-cover bg-neutral-200" alt="凭据缩略图">
+            <img id="uploadExistingThumb" src="" class="w-12 h-12 rounded-lg object-cover bg-neutral-200" alt="文件缩略图">
             <div class="flex-1 truncate">
               <div id="uploadExistingName" class="font-bold truncate text-xs"></div>
               <div id="uploadExistingMeta" class="text-neutral-400 text-[11px] mt-0.5"></div>
@@ -1442,19 +1604,19 @@ export function renderAppHtml(username: string): string {
       </div>
 
       <button onclick="submitUpload()" id="uploadSubmitBtn" class="m3-pill w-full py-3.5 bg-[#0F5B38] dark:bg-[#7CDCA0] text-white dark:text-[#00391F] font-bold text-xs shadow-md shadow-[#0F5B38]/15 hover:opacity-95">
-        确认保存
+        确认保存并加密存入
       </button>
     </div>
   </div>
 
-  <!-- ==================== 弹窗：凭据高分辨率 Lightbox 预览 ==================== -->
+  <!-- ==================== 弹窗：文件高分辨率 Lightbox 预览 ==================== -->
   <div id="lightboxModal" class="hidden fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4" onclick="closeModal('lightboxModal')">
     <div class="max-w-3xl max-h-[85vh] w-full bg-white dark:bg-[#1A211D] rounded-[32px] overflow-hidden shadow-2xl p-5 flex flex-col" onclick="event.stopPropagation()">
       <div class="flex items-center justify-between pb-3 border-b border-[#D7DED9]/60 dark:border-[#26312B]/60">
-        <h4 id="lightboxTitle" class="text-xs font-bold truncate max-w-md">凭证预览</h4>
+        <h4 id="lightboxTitle" class="text-xs font-bold truncate max-w-md">文件预览</h4>
         <div class="flex items-center gap-3">
-          <button id="lightboxDeleteBtn" onclick="deleteCurrentLightboxAttachment()" type="button" class="text-xs text-rose-500 hover:text-rose-700 font-bold hover:underline flex items-center gap-1">🗑️ 删除照片</button>
-          <a id="lightboxDownload" href="#" target="_blank" class="text-xs text-[#0F5B38] dark:text-[#7CDCA0] font-bold underline">在新标签打开原图</a>
+          <button id="lightboxDeleteBtn" onclick="deleteCurrentLightboxAttachment()" type="button" class="text-xs text-rose-500 hover:text-rose-700 font-bold hover:underline flex items-center gap-1">🗑️ 删除文件</button>
+          <a id="lightboxDownload" href="#" target="_blank" class="text-xs text-[#0F5B38] dark:text-[#7CDCA0] font-bold underline">在新标签打开原件</a>
           <button onclick="closeModal('lightboxModal')" class="w-7 h-7 rounded-full bg-[#E8EDE9] dark:bg-[#161D1A] text-neutral-400 font-bold flex items-center justify-center text-xs">✕</button>
         </div>
       </div>
@@ -1649,7 +1811,7 @@ export function renderAppHtml(username: string): string {
       return val + 'T' + new Date().toTimeString().slice(0, 8);
     }
 
-    // ==================== 📎 内置已有凭据绑定与模式切换 ====================
+    // ==================== 📎 内置已有文件绑定与模式切换 ====================
     let rentAttMode = 'upload';
     let utilAttMode = 'upload';
     let uploadModalTab = 'upload';
@@ -1710,13 +1872,13 @@ export function renderAppHtml(username: string): string {
         if (secExisting) secExisting.classList.add('hidden');
         if (tabNew) tabNew.className = 'flex-1 py-2 rounded-xl text-xs font-bold bg-white dark:bg-[#202824] text-[#0F5B38] dark:text-[#7CDCA0] shadow-sm transition-all';
         if (tabExisting) tabExisting.className = 'flex-1 py-2 rounded-xl text-xs font-bold text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-all';
-        if (submitBtn) submitBtn.innerText = '开始加密存储';
+        if (submitBtn) submitBtn.innerText = '确认保存并加密存入';
       } else {
         if (secNew) secNew.classList.add('hidden');
         if (secExisting) secExisting.classList.remove('hidden');
         if (tabExisting) tabExisting.className = 'flex-1 py-2 rounded-xl text-xs font-bold bg-white dark:bg-[#202824] text-[#0F5B38] dark:text-[#7CDCA0] shadow-sm transition-all';
         if (tabNew) tabNew.className = 'flex-1 py-2 rounded-xl text-xs font-bold text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-all';
-        if (submitBtn) submitBtn.innerText = '确认绑定已有凭据';
+        if (submitBtn) submitBtn.innerText = '确认绑定已有文件';
         const curLeaseId = document.getElementById('uploadLeaseId')?.value;
         populateExistingAttDropdown('uploadExistingAttSelect', curLeaseId);
       }
@@ -1733,9 +1895,9 @@ export function renderAppHtml(username: string): string {
         } catch (_) {}
       }
       const list = appData.attachments || [];
-      select.innerHTML = '<option value="">-- 请选择系统内已上传过的凭据 --</option>';
+      select.innerHTML = '<option value="">-- 请选择系统内已上传过的文件 --</option>';
       if (list.length === 0) {
-        select.innerHTML = '<option value="">暂无已上传的凭据</option>';
+        select.innerHTML = '<option value="">暂无已上传的文件</option>';
         return;
       }
       const sorted = [...list].sort((a, b) => {
@@ -1748,7 +1910,7 @@ export function renderAppHtml(username: string): string {
         const opt = document.createElement('option');
         opt.value = a.id;
         const isThisLease = currentLeaseId && a.lease_id === currentLeaseId;
-        const tag = isThisLease ? '【本房源】' : (a.payment_id ? '【账单凭据】' : '【通用凭据】');
+        const tag = isThisLease ? '【本房源】' : (a.payment_id ? '【账单单据】' : '【通用资料】');
         const sizeStr = (a.file_size / 1024).toFixed(0) + 'KB';
         const dateStr = a.created_at ? a.created_at.slice(0, 10) : '';
         opt.textContent = tag + ' ' + a.file_name + ' (' + sizeStr + ' · ' + dateStr + ')';
@@ -1781,7 +1943,7 @@ export function renderAppHtml(username: string): string {
       const thumb = document.getElementById(thumbId);
       if (thumb) thumb.src = '/api/attachments/' + attId + '/file';
       const nameEl = document.getElementById(nameId);
-      if (nameEl) nameEl.innerText = opt.dataset.filename || '已选凭据';
+      if (nameEl) nameEl.innerText = opt.dataset.filename || '已选文件';
       const metaEl = document.getElementById(metaId);
       if (metaEl) metaEl.innerText = '大小：' + (opt.dataset.filesize || '') + ' · 上传时间：' + (opt.dataset.createdat || '');
     }
@@ -2045,7 +2207,7 @@ export function renderAppHtml(username: string): string {
                 body: JSON.stringify({ attachmentId: existingAttId, paymentId: targetPaymentId, leaseId: lease_id })
               });
             } catch (attErr) {
-              console.warn('绑定已有凭据未成功:', attErr);
+              console.warn('绑定已有文件未成功:', attErr);
             }
           } else if (rentAttMode === 'upload' && receiptFile && targetPaymentId) {
             try {
@@ -2056,7 +2218,7 @@ export function renderAppHtml(username: string): string {
               fd.append('category', 'RECEIPT');
               await fetch('/api/attachments/upload', { method: 'POST', body: fd });
             } catch (attErr) {
-              console.warn('付款凭证上传未成功:', attErr);
+              console.warn('收款单据上传未成功:', attErr);
             }
           }
 
@@ -2065,7 +2227,7 @@ export function renderAppHtml(username: string): string {
           loadPayments();
           loadLeases();
           loadAttachments();
-          alert('✓ 租金已成功入账！' + ((rentAttMode === 'upload' && receiptFile) || (rentAttMode === 'existing' && existingAttId) ? '（付款凭据已关联绑定）' : ''));
+          alert('✓ 租金已成功入账！' + ((rentAttMode === 'upload' && receiptFile) || (rentAttMode === 'existing' && existingAttId) ? '（收款单据已关联绑定）' : ''));
         } else {
           alert(json.message || '保存失败');
         }
@@ -2203,7 +2365,7 @@ export function renderAppHtml(username: string): string {
                 <img src="/api/attachments/\${a.id}/file" alt="\${a.file_name}" class="w-full h-full object-cover" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\\'w-full h-full flex items-center justify-center text-[10px] font-bold text-neutral-400\\'>PDF</div>';">
               </div>
             \`).join('') + (boundAtts.length > 4 ? \`<span class="text-[10px] text-neutral-400 font-bold self-center">+更多\${boundAtts.length - 4}份</span>\` : '')
-          : '<span class="text-neutral-400 text-[11px]">暂无绑定凭据原件</span>';
+          : '<span class="text-neutral-400 text-[11px]">暂无绑定文件原件</span>';
 
         return \`
         <div class="m3-card bg-white dark:bg-[#1A211D] border border-[#D7DED9]/50 dark:border-[#26312B]/60 p-5 space-y-4 flex flex-col justify-between shadow-sm">
@@ -2267,11 +2429,11 @@ export function renderAppHtml(username: string): string {
               </div>
             </div>
 
-            <!-- 凭证缩略条 -->
+            <!-- 文件缩略条 -->
             <div class="space-y-1.5 pt-1">
               <div class="flex items-center justify-between text-[11px]">
-                <span class="font-bold text-neutral-400">已绑加密凭据 (\${boundAtts.length}份)：</span>
-                <button onclick="openUploadForLease('\${l.id}')" class="text-[#0F5B38] dark:text-[#7CDCA0] font-bold hover:underline">+ 绑定新凭据</button>
+                <span class="font-bold text-neutral-400">已绑加密文件 (\${boundAtts.length}份)：</span>
+                <button onclick="openUploadForLease('\${l.id}')" class="text-[#0F5B38] dark:text-[#7CDCA0] font-bold hover:underline">+ 绑定新文件</button>
               </div>
               <div class="flex flex-wrap items-center gap-2">
                 \${attThumbnails}
@@ -2953,16 +3115,16 @@ export function renderAppHtml(username: string): string {
         if (boundAtts.length > 0) {
           attHtml = '<div class="flex items-center gap-1.5 mt-1.5 flex-wrap">' +
             boundAtts.map(function(a) {
-              var safeName = (a.file_name || '凭证').replace(/'/g, '');
+              var safeName = (a.file_name || '文件').replace(/'/g, '');
               return '<div onclick="openLightbox(&apos;/api/attachments/' + a.id + '/file&apos;, &apos;' + safeName + '&apos;, &apos;' + a.id + '&apos;)" class="w-8 h-8 rounded-xl bg-[#E8EDE9] dark:bg-[#161D1A] overflow-hidden border border-[#D7DED9]/60 dark:border-[#26312B]/60 cursor-pointer hover:opacity-80 transition-opacity flex-shrink-0" title="' + a.file_name + '">' +
                 '<img src="/api/attachments/' + a.id + '/file" alt="' + a.file_name + '" class="w-full h-full object-cover" onerror="this.onerror=null; this.parentElement.innerHTML=&apos;<span class=\\\'text-[8px] font-bold text-neutral-400 block text-center leading-8\\\'>PDF</span>&apos;;">' +
               '</div>';
             }).join('') +
-            '<button onclick="openUploadForPayment(&apos;' + p.id + '&apos;, &apos;' + (p.lease_id || '') + '&apos;, &apos;' + typeName + '&apos;)" class="text-[10px] font-bold text-[#0F5B38] dark:text-[#7CDCA0] bg-[#C4EED0]/60 dark:bg-[#1A402D]/60 hover:bg-[#C4EED0] px-2 py-0.5 rounded-full flex items-center gap-0.5 transition-all" title="补传付款凭据">+ 补传</button>' +
+            '<button onclick="openUploadForPayment(&apos;' + p.id + '&apos;, &apos;' + (p.lease_id || '') + '&apos;, &apos;' + typeName + '&apos;)" class="text-[10px] font-bold text-[#0F5B38] dark:text-[#7CDCA0] bg-[#C4EED0]/60 dark:bg-[#1A402D]/60 hover:bg-[#C4EED0] px-2 py-0.5 rounded-full flex items-center gap-0.5 transition-all" title="补传单据文件">+ 补传</button>' +
           '</div>';
         } else {
           attHtml = '<div class="mt-1">' +
-            '<button onclick="openUploadForPayment(&apos;' + p.id + '&apos;, &apos;' + (p.lease_id || '') + '&apos;, &apos;' + typeName + '&apos;)" class="text-[10px] font-medium text-neutral-400 hover:text-[#0F5B38] dark:hover:text-[#7CDCA0] bg-[#E8EDE9]/60 dark:bg-[#161D1A] hover:bg-[#C4EED0]/50 px-2 py-0.5 rounded-full inline-flex items-center gap-0.5 transition-colors" title="绑定付款凭据或转账截图">📎 绑凭据</button>' +
+            '<button onclick="openUploadForPayment(&apos;' + p.id + '&apos;, &apos;' + (p.lease_id || '') + '&apos;, &apos;' + typeName + '&apos;)" class="text-[10px] font-medium text-neutral-400 hover:text-[#0F5B38] dark:hover:text-[#7CDCA0] bg-[#E8EDE9]/60 dark:bg-[#161D1A] hover:bg-[#C4EED0]/50 px-2 py-0.5 rounded-full inline-flex items-center gap-0.5 transition-colors" title="绑定付款单据或转账截图">📎 关联文件</button>' +
           '</div>';
         }
 
@@ -3114,7 +3276,7 @@ export function renderAppHtml(username: string): string {
                 body: JSON.stringify({ attachmentId: existingAttId, paymentId: targetPaymentId, leaseId: lease_id })
               });
             } catch (attErr) {
-              console.warn('绑定已有凭据未成功:', attErr);
+              console.warn('绑定已有文件未成功:', attErr);
             }
           } else if (utilAttMode === 'upload' && receiptFile && targetPaymentId) {
             try {
@@ -3125,7 +3287,7 @@ export function renderAppHtml(username: string): string {
               fd.append('category', 'RECEIPT');
               await fetch('/api/attachments/upload', { method: 'POST', body: fd });
             } catch (attErr) {
-              console.warn('凭据上传未成功:', attErr);
+              console.warn('单据文件上传未成功:', attErr);
             }
           }
 
@@ -3134,7 +3296,7 @@ export function renderAppHtml(username: string): string {
           loadPayments();
           loadLeases(); // 刷新租约以获得最新滚存底数和欠款标记
           loadAttachments();
-          alert('✓ 水电杂费台账记录已保存！' + ((utilAttMode === 'upload' && receiptFile) || (utilAttMode === 'existing' && existingAttId) ? '（凭据已关联绑定）' : ''));
+          alert('✓ 水电杂费台账记录已保存！' + ((utilAttMode === 'upload' && receiptFile) || (utilAttMode === 'existing' && existingAttId) ? '（单据文件已关联绑定）' : ''));
         } else {
           alert(json.message || '保存失败');
         }
@@ -3155,46 +3317,131 @@ export function renderAppHtml(username: string): string {
       loadDashboard();
     }
 
-    // ==================== 合同与单据凭证库 ====================
+    // ==================== 📁 文件与单据中心 (多渠道加密存储) ====================
+    let currentAttFilter = 'ALL';
+
     async function loadAttachments() {
       const res = await fetch('/api/attachments');
       const json = await res.json();
       if (json.code === 0) {
-        appData.attachments = json.data;
-        const gallery = document.getElementById('attachmentsGallery');
-        if (json.data.length === 0) {
-          gallery.innerHTML = '<div class="col-span-full m3-card bg-white dark:bg-[#1A211D] p-8 text-center text-xs text-neutral-400">暂无凭据照片，点击右上角上传</div>';
-          return;
-        }
-        gallery.innerHTML = json.data.map(function(a) {
-          var typeBadge = a.payment_id 
-            ? '<span class="text-[9px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 font-bold">💳 账单凭据</span>' 
-            : '<span class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-bold">🏠 房源租约凭证</span>';
-          var storageBadge = a.storage_type === 'D1_LOCAL' 
-            ? '<span class="text-[#0F5B38] dark:text-[#7CDCA0] font-bold text-[9px]">● 本地保存</span>' 
-            : '<span class="text-indigo-600 font-bold text-[9px]">● WebDAV</span>';
-
-          var safeName = (a.file_name || '凭证').replace(/'/g, '');
-          return '<div class="m3-card bg-white dark:bg-[#1A211D] border border-[#D7DED9]/50 dark:border-[#26312B]/60 p-3.5 space-y-2 flex flex-col justify-between shadow-sm">' +
-            '<div onclick="openLightbox(&apos;/api/attachments/' + a.id + '/file&apos;, &apos;' + safeName + '&apos;, &apos;' + a.id + '&apos;)" class="aspect-square bg-[#E8EDE9] dark:bg-[#161D1A] rounded-[20px] overflow-hidden flex items-center justify-center relative group cursor-pointer">' +
-              '<img src="/api/attachments/' + a.id + '/file" alt="' + a.file_name + '" class="w-full h-full object-cover" loading="lazy" onerror="this.onerror=null; this.src=&apos;&apos;; this.parentElement.innerHTML=&apos;<span class=\\\'text-xl font-bold text-neutral-400\\\'>PDF</span>&apos;;">' +
-              '<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-xs font-bold transition-opacity">' +
-                '点击放大预览' +
-              '</div>' +
-            '</div>' +
-            '<div>' +
-              '<div class="flex items-center justify-between gap-1 mb-1">' +
-                typeBadge + storageBadge +
-              '</div>' +
-              '<div class="text-xs font-bold truncate" title="' + a.file_name + '">' + a.file_name + '</div>' +
-              '<div class="text-[10px] text-neutral-400 mt-0.5">' + (a.file_size / 1024).toFixed(1) + ' KB</div>' +
-            '</div>' +
-            '<button onclick="deleteAttachment(&apos;' + a.id + '&apos;)" class="text-[11px] text-rose-500 hover:underline text-right self-end mt-1">' +
-              '删除照片' +
-            '</button>' +
-          '</div>';
-        }).join('');
+        appData.attachments = json.data || [];
+        updateAttachmentFilterCounts();
+        renderFilteredAttachments();
       }
+    }
+
+    function updateAttachmentFilterCounts() {
+      const list = appData.attachments || [];
+      const total = list.length;
+      const d1Count = list.filter(a => a.storage_type === 'D1_LOCAL').length;
+      const webdavCount = list.filter(a => a.storage_type === 'WEBDAV').length;
+      const s3Count = list.filter(a => a.storage_type === 'S3').length;
+      const leaseCount = list.filter(a => !a.payment_id).length;
+      const paymentCount = list.filter(a => !!a.payment_id).length;
+
+      const elAll = document.getElementById('attCount_ALL');
+      if (elAll) elAll.innerText = total;
+      const elD1 = document.getElementById('attCount_D1');
+      if (elD1) elD1.innerText = d1Count;
+      const elWd = document.getElementById('attCount_WEBDAV');
+      if (elWd) elWd.innerText = webdavCount;
+      const elS3 = document.getElementById('attCount_S3');
+      if (elS3) elS3.innerText = s3Count;
+      const elLease = document.getElementById('attCount_LEASE');
+      if (elLease) elLease.innerText = leaseCount;
+      const elPmt = document.getElementById('attCount_PAYMENT');
+      if (elPmt) elPmt.innerText = paymentCount;
+    }
+
+    function filterAttachmentsBySource(source) {
+      currentAttFilter = source;
+      const chips = ['ALL', 'D1_LOCAL', 'WEBDAV', 'S3', 'LEASE', 'PAYMENT'];
+      chips.forEach(c => {
+        const btn = document.getElementById('attFilter_' + c);
+        if (!btn) return;
+        if (c === source) {
+          btn.className = 'att-filter-chip m3-pill px-3 py-1.5 font-bold bg-[#0F5B38] text-white dark:bg-[#7CDCA0] dark:text-[#00391F] transition-all';
+        } else {
+          btn.className = 'att-filter-chip m3-pill px-3 py-1.5 font-medium bg-[#E8EDE9] text-neutral-600 dark:bg-[#161D1A] dark:text-neutral-400 hover:opacity-90 transition-all';
+        }
+      });
+      renderFilteredAttachments();
+    }
+
+    function renderFilteredAttachments() {
+      const gallery = document.getElementById('attachmentsGallery');
+      if (!gallery) return;
+
+      const keyword = (document.getElementById('attSearchInput')?.value || '').trim().toLowerCase();
+      let list = appData.attachments || [];
+
+      // 按渠道或分类过滤
+      if (currentAttFilter === 'D1_LOCAL') {
+        list = list.filter(a => a.storage_type === 'D1_LOCAL');
+      } else if (currentAttFilter === 'WEBDAV') {
+        list = list.filter(a => a.storage_type === 'WEBDAV');
+      } else if (currentAttFilter === 'S3') {
+        list = list.filter(a => a.storage_type === 'S3');
+      } else if (currentAttFilter === 'LEASE') {
+        list = list.filter(a => !a.payment_id);
+      } else if (currentAttFilter === 'PAYMENT') {
+        list = list.filter(a => !!a.payment_id);
+      }
+
+      // 按搜索词模糊匹配
+      if (keyword) {
+        list = list.filter(a => {
+          const fn = (a.file_name || '').toLowerCase();
+          const pth = (a.webdav_path || '').toLowerCase();
+          return fn.includes(keyword) || pth.includes(keyword);
+        });
+      }
+
+      if (list.length === 0) {
+        gallery.innerHTML = '<div class="col-span-full m3-card bg-white dark:bg-[#1A211D] p-8 text-center text-xs text-neutral-400">未找到符合条件的文件，可尝试切换分类或点击右上角上传</div>';
+        return;
+      }
+
+      gallery.innerHTML = list.map(function(a) {
+        var typeBadge = a.payment_id 
+          ? '<span class="text-[9px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 font-bold">💳 记账凭单</span>' 
+          : '<span class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-bold">🏠 房源资料</span>';
+        
+        var storageBadge = '';
+        if (a.storage_type === 'S3') {
+          storageBadge = '<span class="text-[9px] px-1.5 py-0.5 rounded bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300 font-bold">🪣 S3 存储</span>';
+        } else if (a.storage_type === 'WEBDAV') {
+          storageBadge = '<span class="text-[9px] px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300 font-bold">☁️ WebDAV</span>';
+        } else {
+          storageBadge = '<span class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-100 text-[#0F5B38] dark:bg-emerald-950 dark:text-[#7CDCA0] font-bold">💾 本地 D1</span>';
+        }
+
+        var pathHint = a.webdav_path 
+          ? '<div class="text-[10px] text-neutral-400 font-mono truncate mt-0.5" title="' + a.webdav_path + '">路径: ' + a.webdav_path + '</div>'
+          : '<div class="text-[10px] text-neutral-400 mt-0.5">本地 SQLite 数据库</div>';
+
+        var safeName = (a.file_name || '文件').replace(/'/g, '');
+        return '<div class="m3-card bg-white dark:bg-[#1A211D] border border-[#D7DED9]/50 dark:border-[#26312B]/60 p-3.5 space-y-2 flex flex-col justify-between shadow-sm">' +
+          '<div onclick="openLightbox(&apos;/api/attachments/' + a.id + '/file&apos;, &apos;' + safeName + '&apos;, &apos;' + a.id + '&apos;)" class="aspect-square bg-[#E8EDE9] dark:bg-[#161D1A] rounded-[20px] overflow-hidden flex items-center justify-center relative group cursor-pointer">' +
+            '<span class="text-2xl font-bold text-neutral-400">📄</span>' +
+            '<img src="/api/attachments/' + a.id + '/file" alt="' + safeName + '" class="absolute inset-0 w-full h-full object-cover" loading="lazy" onerror="this.onerror=null; this.classList.add(&apos;hidden&apos;);">' +
+            '<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-xs font-bold transition-opacity">' +
+              '点击查看原件' +
+            '</div>' +
+          '</div>' +
+          '<div>' +
+            '<div class="flex items-center justify-between gap-1 mb-1">' +
+              typeBadge + storageBadge +
+            '</div>' +
+            '<div class="text-xs font-bold truncate" title="' + a.file_name + '">' + a.file_name + '</div>' +
+            pathHint +
+            '<div class="text-[10px] text-neutral-400 mt-0.5">' + (a.file_size / 1024).toFixed(1) + ' KB</div>' +
+          '</div>' +
+          '<button onclick="deleteAttachment(&apos;' + a.id + '&apos;)" class="text-[11px] text-rose-500 hover:underline text-right self-end mt-1">' +
+            '删除文件' +
+          '</button>' +
+        '</div>';
+      }).join('');
     }
 
     function openLightbox(url, title, attId) {
@@ -3213,13 +3460,49 @@ export function renderAppHtml(username: string): string {
       }
     }
 
+    function onUploadStorageTypeChange() {
+      const val = document.querySelector('input[name="uploadStorageType"]:checked')?.value || 'D1_LOCAL';
+      const labelD1 = document.getElementById('uploadStorageLabel_D1');
+      const labelWd = document.getElementById('uploadStorageLabel_WEBDAV');
+      const labelS3 = document.getElementById('uploadStorageLabel_S3');
+      const hint = document.getElementById('uploadStorageHint');
+
+      const activeCls = 'flex flex-col items-center justify-center p-2.5 rounded-2xl border-2 border-[#0F5B38] bg-[#C4EED0]/30 dark:bg-[#1A402D]/40 cursor-pointer text-center transition-all';
+      const inactiveCls = 'flex flex-col items-center justify-center p-2.5 rounded-2xl border border-[#D7DED9]/60 dark:border-[#26312B]/60 bg-[#E8EDE9]/30 dark:bg-[#161D1A]/50 cursor-pointer text-center hover:border-neutral-400 transition-all';
+
+      if (labelD1) labelD1.className = val === 'D1_LOCAL' ? activeCls : inactiveCls;
+      if (labelWd) labelWd.className = val === 'WEBDAV' ? activeCls : inactiveCls;
+      if (labelS3) labelS3.className = val === 'S3' ? activeCls : inactiveCls;
+
+      if (hint) {
+        if (val === 'D1_LOCAL') {
+          hint.innerText = '✓ 文件将以 AES-256-GCM 强加密形式安全保存在 Cloudflare D1 数据库中，零外部依赖。';
+          hint.className = 'mt-2 text-[11px] text-[#0F5B38] dark:text-[#7CDCA0] px-1 font-medium';
+        } else if (val === 'WEBDAV') {
+          hint.innerText = '✓ 文件将加密上传至远程 WebDAV 云盘（坚果云或通过 AList 挂载的阿里云盘/百度网盘等）。';
+          hint.className = 'mt-2 text-[11px] text-indigo-600 dark:text-indigo-400 px-1 font-medium';
+        } else if (val === 'S3') {
+          hint.innerText = '✓ 文件将加密上传至 S3 兼容对象存储桶（阿里云 OSS / 腾讯云 COS / Cloudflare R2 / 七牛云）。';
+          hint.className = 'mt-2 text-[11px] text-sky-600 dark:text-sky-400 px-1 font-medium';
+        }
+      }
+    }
+
+    function setUploadModalStorageDefault() {
+      const def = appData.default_storage || 'D1_LOCAL';
+      const radio = document.querySelector('input[name="uploadStorageType"][value="' + def + '"]');
+      if (radio) radio.checked = true;
+      onUploadStorageTypeChange();
+    }
+
     async function openUploadAttachmentModal() {
       await ensureLeaseDropdowns();
       const pid = document.getElementById('uploadPaymentId');
       if (pid) pid.value = '';
       const titleEl = document.getElementById('uploadModalTitle');
-      if (titleEl) titleEl.innerText = '上传或绑定凭据';
+      if (titleEl) titleEl.innerText = '上传文件 / 关联附件';
       switchUploadModalTab('upload');
+      setUploadModalStorageDefault();
       const curLease = document.getElementById('uploadLeaseId')?.value;
       populateExistingAttDropdown('uploadExistingAttSelect', curLease);
       openModal('uploadModal');
@@ -3238,8 +3521,9 @@ export function renderAppHtml(username: string): string {
       document.getElementById('uploadCategory').value = 'RECEIPT';
       document.getElementById('uploadFileInput').value = '';
       const titleEl = document.getElementById('uploadModalTitle');
-      if (titleEl) titleEl.innerText = '关联记账凭据 (' + (desc || '付款凭据') + ')';
+      if (titleEl) titleEl.innerText = '关联记账单据 (' + (desc || '付款单据') + ')';
       switchUploadModalTab('upload');
+      setUploadModalStorageDefault();
       populateExistingAttDropdown('uploadExistingAttSelect', leaseId);
       openModal('uploadModal');
     }
@@ -3250,7 +3534,7 @@ export function renderAppHtml(username: string): string {
 
       if (uploadModalTab === 'existing') {
         const attId = document.getElementById('uploadExistingAttSelect')?.value;
-        if (!attId) return alert('请选择要关联的已有凭据');
+        if (!attId) return alert('请选择要关联的已有文件');
         const leaseId = document.getElementById('uploadExistingLeaseId')?.value || document.getElementById('uploadLeaseId')?.value;
         const paymentId = document.getElementById('uploadPaymentId')?.value || null;
 
@@ -3313,6 +3597,12 @@ export function renderAppHtml(username: string): string {
         const paymentId = document.getElementById('uploadPaymentId')?.value;
         if (paymentId) formData.append('payment_id', paymentId);
 
+        // 存储目标去向
+        const chosenStorage = document.querySelector('input[name="uploadStorageType"]:checked')?.value;
+        if (chosenStorage) {
+          formData.append('storage_type', chosenStorage);
+        }
+
         const res = await fetch('/api/attachments/upload', {
           method: 'POST',
           body: formData
@@ -3346,7 +3636,7 @@ export function renderAppHtml(username: string): string {
     }
 
     async function deleteAttachment(id) {
-      if (!confirm('确定删除这张凭据照片吗？\\n\\n💡 提示：此操作仅删除凭据文件本身，关联的房租、水电记账记录和房源都会完好保留，请放心。')) return;
+      if (!confirm('确定删除这份文件吗？\\n\\n💡 提示：此操作仅删除文件本身，关联的房租、水电记账记录和房源都会完好保留，请放心。')) return;
       const res = await fetch('/api/attachments/' + id, { method: 'DELETE' });
       const json = await res.json();
       if (json.code === 0) {
@@ -3356,7 +3646,7 @@ export function renderAppHtml(username: string): string {
         loadPayments();
         loadDashboard();
       } else {
-        alert(json.message || '删除凭据失败');
+        alert(json.message || '删除文件失败');
       }
     }
 
@@ -3658,20 +3948,87 @@ export function renderAppHtml(username: string): string {
       }
     }
 
-    // ==================== 设置与 WebDAV 管理 ====================
+    // ==================== 设置、多渠道存储 (WebDAV / S3) 与邮箱备份 ====================
     async function loadSettings() {
-      const res = await fetch('/api/settings');
-      const json = await res.json();
-      if (json.code === 0 && json.data.webdav) {
-        const w = json.data.webdav;
-        document.getElementById('webdavEnabled').checked = !!w.is_enabled;
-        document.getElementById('webdavEndpoint').value = w.endpoint || '';
-        document.getElementById('webdavUsername').value = w.username || '';
-        document.getElementById('webdavPassword').value = w.password || '';
-        document.getElementById('webdavBasePath').value = w.base_path || '/RentRecords';
+      try {
+        const res = await fetch('/api/settings');
+        const json = await res.json();
+        if (json.code === 0 && json.data) {
+          // WebDAV
+          if (json.data.webdav) {
+            const w = json.data.webdav;
+            const elEn = document.getElementById('webdavEnabled');
+            if (elEn) elEn.checked = !!w.is_enabled;
+            const elEp = document.getElementById('webdavEndpoint');
+            if (elEp) elEp.value = w.endpoint || '';
+            const elUn = document.getElementById('webdavUsername');
+            if (elUn) elUn.value = w.username || '';
+            const elPw = document.getElementById('webdavPassword');
+            if (elPw) elPw.value = w.password || '';
+            const elBp = document.getElementById('webdavBasePath');
+            if (elBp) elBp.value = w.base_path || '/RentRecords';
+          }
+          // S3 对象存储
+          if (json.data.s3) {
+            const s = json.data.s3;
+            const elEn = document.getElementById('s3Enabled');
+            if (elEn) elEn.checked = !!s.is_enabled;
+            const elEp = document.getElementById('s3Endpoint');
+            if (elEp) elEp.value = s.endpoint || '';
+            const elBk = document.getElementById('s3Bucket');
+            if (elBk) elBk.value = s.bucket || '';
+            const elRg = document.getElementById('s3Region');
+            if (elRg) elRg.value = s.region || 'cn-hangzhou';
+            const elAk = document.getElementById('s3AccessKey');
+            if (elAk) elAk.value = s.access_key_id || '';
+            const elSk = document.getElementById('s3SecretKey');
+            if (elSk) elSk.value = s.secret_access_key || '';
+            const elBp = document.getElementById('s3BasePath');
+            if (elBp) elBp.value = s.base_path || 'RentHubFiles';
+          }
+          // 全局默认存储渠道
+          const defStorage = json.data.default_storage || 'D1_LOCAL';
+          appData.default_storage = defStorage;
+          const radio = document.querySelector('input[name="defaultStorageSetting"][value="' + defStorage + '"]');
+          if (radio) radio.checked = true;
+        }
+      } catch (err) {
+        console.warn('拉取系统存储设置失败:', err);
       }
       loadNotificationSettings();
       inspectDatabaseTable(currentInspectTable);
+    }
+
+    async function saveDefaultStorageSetting() {
+      const btn = document.getElementById('saveDefaultStorageBtn');
+      const fb = document.getElementById('defaultStorageFeedback');
+      const selected = document.querySelector('input[name="defaultStorageSetting"]:checked')?.value || 'D1_LOCAL';
+
+      btn.innerText = '保存中...';
+      btn.disabled = true;
+      fb.innerText = '';
+
+      try {
+        const res = await fetch('/api/settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ default_storage: selected })
+        });
+        const json = await res.json();
+        if (json.code === 0) {
+          appData.default_storage = selected;
+          fb.className = 'text-xs font-bold text-[#0F5B38] dark:text-[#7CDCA0]';
+          fb.innerText = '✓ 全局默认存储渠道已更新为: ' + (selected === 'S3' ? 'S3 对象存储' : (selected === 'WEBDAV' ? 'WebDAV 云盘' : '本地 D1 数据库'));
+        } else {
+          throw new Error(json.message);
+        }
+      } catch (err) {
+        fb.className = 'text-xs font-bold text-rose-500';
+        fb.innerText = '✕ 保存失败: ' + err.message;
+      } finally {
+        btn.innerText = '保存默认设置';
+        btn.disabled = false;
+      }
     }
 
     // ==================== 数据库速览透视与全量导出 ====================
@@ -3745,15 +4102,151 @@ export function renderAppHtml(username: string): string {
       }
     }
 
+    async function sendEmailBackup() {
+      const btn = document.getElementById('emailBackupBtn');
+      if (!confirm('确定将系统当前数据库的全量备份归档发送至您的管理员邮箱吗？\\n此操作将导出所有房源、租约、账单与配置的最新快照并邮件发送。')) return;
+
+      btn.innerText = '正在打包发送...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/settings/email-backup', { method: 'POST' });
+        const json = await res.json();
+        if (json.code === 0) {
+          alert('✓ ' + json.message);
+        } else {
+          alert('发送备份邮件失败: ' + json.message);
+        }
+      } catch (err) {
+        alert('发送备份邮件异常: ' + err.message);
+      } finally {
+        btn.innerText = '📧 发送备份至邮箱';
+        btn.disabled = false;
+      }
+    }
+
     function fillPreset(type) {
       if (type === 'jianguoyun') {
         document.getElementById('webdavEndpoint').value = 'https://dav.jianguoyun.com/dav/';
+        document.getElementById('webdavBasePath').value = '/RentRecords';
+        document.getElementById('webdavEnabled').checked = true;
+      } else if (type === 'alist') {
+        document.getElementById('webdavEndpoint').value = 'http://127.0.0.1:5244/dav/';
+        document.getElementById('webdavBasePath').value = '/RentRecords';
+        document.getElementById('webdavEnabled').checked = true;
+        alert('💡 AList 提示：可先在 AList 后台挂载阿里云盘、百度网盘、天翼云等，并将 Endpoint 修改为您 AList 服务的公网或内网地址。');
+      } else if (type === '123pan') {
+        document.getElementById('webdavEndpoint').value = 'https://open-api.123pan.com/webdav/';
         document.getElementById('webdavBasePath').value = '/RentRecords';
         document.getElementById('webdavEnabled').checked = true;
       } else if (type === 'openlist') {
         document.getElementById('webdavEndpoint').value = 'https://your-openlist-domain/dav/';
         document.getElementById('webdavBasePath').value = '/RentRecords';
         document.getElementById('webdavEnabled').checked = true;
+      }
+    }
+
+    function fillS3Preset(type) {
+      document.getElementById('s3Enabled').checked = true;
+      if (type === 'aliyun') {
+        document.getElementById('s3Endpoint').value = 'https://oss-cn-hangzhou.aliyuncs.com';
+        document.getElementById('s3Region').value = 'cn-hangzhou';
+        document.getElementById('s3BasePath').value = 'RentHubFiles';
+      } else if (type === 'tencent') {
+        document.getElementById('s3Endpoint').value = 'https://cos.ap-guangzhou.myqcloud.com';
+        document.getElementById('s3Region').value = 'ap-guangzhou';
+        document.getElementById('s3BasePath').value = 'RentHubFiles';
+      } else if (type === 'r2') {
+        document.getElementById('s3Endpoint').value = 'https://<ACCOUNT_ID>.r2.cloudflarestorage.com';
+        document.getElementById('s3Region').value = 'auto';
+        document.getElementById('s3BasePath').value = 'RentHubFiles';
+      } else if (type === 'qiniu') {
+        document.getElementById('s3Endpoint').value = 'https://s3.cn-east-1.qiniucs.com';
+        document.getElementById('s3Region').value = 'cn-east-1';
+        document.getElementById('s3BasePath').value = 'RentHubFiles';
+      } else if (type === 'minio') {
+        document.getElementById('s3Endpoint').value = 'http://127.0.0.1:9000';
+        document.getElementById('s3Region').value = 'us-east-1';
+        document.getElementById('s3BasePath').value = 'RentHubFiles';
+      }
+    }
+
+    async function testS3() {
+      const btn = document.getElementById('testS3Btn');
+      const fb = document.getElementById('s3Feedback');
+      btn.innerText = '测试中...';
+      btn.disabled = true;
+      fb.innerText = '';
+
+      try {
+        const payload = {
+          s3: {
+            endpoint: document.getElementById('s3Endpoint').value,
+            bucket: document.getElementById('s3Bucket').value,
+            region: document.getElementById('s3Region').value,
+            access_key_id: document.getElementById('s3AccessKey').value,
+            secret_access_key: document.getElementById('s3SecretKey').value,
+            base_path: document.getElementById('s3BasePath').value,
+          }
+        };
+        const res = await fetch('/api/settings/test-s3', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const json = await res.json();
+        if (json.code === 0) {
+          fb.className = 'text-xs font-bold text-[#0F5B38] dark:text-[#7CDCA0]';
+          fb.innerText = '✓ ' + json.message;
+        } else {
+          fb.className = 'text-xs font-bold text-rose-500';
+          fb.innerText = '✕ ' + json.message;
+        }
+      } catch (err) {
+        fb.className = 'text-xs font-bold text-rose-500';
+        fb.innerText = '✕ S3 测试请求异常';
+      } finally {
+        btn.innerText = '测试 S3 连通性';
+        btn.disabled = false;
+      }
+    }
+
+    async function saveS3() {
+      const btn = document.getElementById('saveS3Btn');
+      const fb = document.getElementById('s3Feedback');
+      btn.innerText = '保存中...';
+      btn.disabled = true;
+
+      try {
+        const payload = {
+          s3: {
+            endpoint: document.getElementById('s3Endpoint').value,
+            bucket: document.getElementById('s3Bucket').value,
+            region: document.getElementById('s3Region').value,
+            access_key_id: document.getElementById('s3AccessKey').value,
+            secret_access_key: document.getElementById('s3SecretKey').value,
+            base_path: document.getElementById('s3BasePath').value,
+            is_enabled: document.getElementById('s3Enabled').checked,
+          }
+        };
+        const res = await fetch('/api/settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const json = await res.json();
+        if (json.code === 0) {
+          fb.className = 'text-xs font-bold text-[#0F5B38] dark:text-[#7CDCA0]';
+          fb.innerText = '✓ S3 对象存储配置已安全保存！';
+        } else {
+          throw new Error(json.message);
+        }
+      } catch (err) {
+        fb.className = 'text-xs font-bold text-rose-500';
+        fb.innerText = '✕ ' + err.message;
+      } finally {
+        btn.innerText = '保存 S3 配置';
+        btn.disabled = false;
       }
     }
 

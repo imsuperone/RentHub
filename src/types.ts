@@ -100,9 +100,9 @@ export interface Attachment {
   file_size: number;
   mime_type: string;
   category: 'CONTRACT' | 'RECEIPT' | 'HANDOVER' | 'OTHER';
-  webdav_path?: string | null;
+  webdav_path?: string | null; // 也作为通用 remote_path
   data_blob?: string | null;
-  storage_type?: 'WEBDAV' | 'D1_LOCAL';
+  storage_type?: 'WEBDAV' | 'D1_LOCAL' | 'S3';
   enc_iv: string; // Base64
   enc_tag: string; // Base64
   created_at?: string;
@@ -113,6 +113,16 @@ export interface WebDavConfig {
   username: string;
   password: string;    // App password
   base_path: string;   // e.g. /RentRecords
+  is_enabled: boolean;
+}
+
+export interface S3Config {
+  endpoint: string;           // e.g. oss-cn-hangzhou.aliyuncs.com, cos.ap-guangzhou.myqcloud.com
+  bucket: string;             // e.g. my-renthub-bucket
+  region: string;             // e.g. cn-hangzhou, ap-guangzhou, auto
+  access_key_id: string;
+  secret_access_key: string;
+  base_path?: string;         // e.g. /RentHubFiles
   is_enabled: boolean;
 }
 

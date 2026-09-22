@@ -1,12 +1,23 @@
 // src/modules/settings/index.ts
-// 系统设置与 WebDAV 存储参数管理
+// 系统设置、多渠道云存储 (WebDAV / S3 对象存储) 与邮件备份管理
 
-import { Env, WebDavConfig } from '../../types';
+import { Env, WebDavConfig, S3Config } from '../../types';
 import { testWebDavConnection } from '../webdav';
+import { testS3Connection } from '../s3';
+import { sendSmtpEmail } from '../../utils/smtp';
+import { getNotificationSettings } from '../notifications';
 import { jsonOk, jsonError } from '../../utils/response';
 
 export async function handleGetSettings(env: Env) {
-  const row = await env.DB.prepare("SELECT value FROM system_settings WHERE key = 'webdav_config'").first();
+  const rows = await env.DB.prepare(
+    "SELECT key, value FROM system_settings WHERE key IN ('webdav_config', 's3_config', 'default_storage')"
+  ).all();
+
+  const map = new Map<string, string>();
+  for (const r of rows.results as { key: string; value: string }[]) {
+    map.set(r.key, r.value);
+  }
+
   let webdav: Partial<WebDavConfig> = {
     endpoint: '',
     username: '',
@@ -15,9 +26,21 @@ export async function handleGetSettings(env: Env) {
     is_enabled: false,
   };
 
-  if (row && row.value) {
+  let s3: Partial<S3Config> = {
+    endpoint: '',
+    bucket: '',
+    region: 'cn-hangzhou',
+    access_key_id: '',
+    secret_access_key: '',
+    base_path: 'RentHubFiles',
+    is_enabled: false,
+  };
+
+  let defaultStorage = map.get('default_storage') || 'D1_LOCAL';
+
+  if (map.has('webdav_config')) {
     try {
-      const parsed = JSON.parse(row.value as string);
+      const parsed = JSON.parse(map.get('webdav_config')!);
       webdav = {
         ...parsed,
         password: parsed.password ? '******' : '', // 脱敏输出
@@ -27,47 +50,98 @@ export async function handleGetSettings(env: Env) {
     }
   }
 
-  return jsonOk({ webdav });
-}
-
-export async function handleSaveSettings(env: Env, body: any) {
-  const { webdav } = body;
-  if (!webdav) {
-    return jsonError('缺少设置参数', 400);
-  }
-
-  // 检查原先的密码
-  const existingRow = await env.DB.prepare("SELECT value FROM system_settings WHERE key = 'webdav_config'").first();
-  let existingPassword = '';
-  if (existingRow && existingRow.value) {
+  if (map.has('s3_config')) {
     try {
-      const parsed = JSON.parse(existingRow.value as string);
-      existingPassword = parsed.password || '';
+      const parsed = JSON.parse(map.get('s3_config')!);
+      s3 = {
+        ...parsed,
+        secret_access_key: parsed.secret_access_key ? '******' : '', // 脱敏输出
+      };
     } catch {
       // ignore
     }
   }
 
-  // 如果传进来的是 '******'，保留原密码
-  const finalPassword = webdav.password === '******' ? existingPassword : (webdav.password || '');
+  return jsonOk({ webdav, s3, default_storage: defaultStorage });
+}
 
-  const configToSave: WebDavConfig = {
-    endpoint: (webdav.endpoint || '').trim(),
-    username: (webdav.username || '').trim(),
-    password: finalPassword.trim(),
-    base_path: (webdav.base_path || '/RentRecords').trim(),
-    is_enabled: !!webdav.is_enabled,
-  };
+export async function handleSaveSettings(env: Env, body: any) {
+  const { webdav, s3, default_storage } = body;
 
-  await env.DB.prepare(
-    `INSERT INTO system_settings (key, value, updated_at)
-     VALUES ('webdav_config', ?, datetime('now'))
-     ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = datetime('now')`
-  )
-    .bind(JSON.stringify(configToSave))
-    .run();
+  // 1. 保存 WebDAV 设置
+  if (webdav) {
+    const existingRow = await env.DB.prepare("SELECT value FROM system_settings WHERE key = 'webdav_config'").first();
+    let existingPassword = '';
+    if (existingRow && existingRow.value) {
+      try {
+        existingPassword = JSON.parse(existingRow.value as string).password || '';
+      } catch {
+        // ignore
+      }
+    }
+    const finalPassword = webdav.password === '******' ? existingPassword : (webdav.password || '');
 
-  return jsonOk(null, '设置保存成功');
+    const webdavToSave: WebDavConfig = {
+      endpoint: (webdav.endpoint || '').trim(),
+      username: (webdav.username || '').trim(),
+      password: finalPassword.trim(),
+      base_path: (webdav.base_path || '/RentRecords').trim(),
+      is_enabled: !!webdav.is_enabled,
+    };
+
+    await env.DB.prepare(
+      `INSERT INTO system_settings (key, value, updated_at)
+       VALUES ('webdav_config', ?, datetime('now'))
+       ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = datetime('now')`
+    )
+      .bind(JSON.stringify(webdavToSave))
+      .run();
+  }
+
+  // 2. 保存 S3 对象存储设置
+  if (s3) {
+    const existingRow = await env.DB.prepare("SELECT value FROM system_settings WHERE key = 's3_config'").first();
+    let existingSecret = '';
+    if (existingRow && existingRow.value) {
+      try {
+        existingSecret = JSON.parse(existingRow.value as string).secret_access_key || '';
+      } catch {
+        // ignore
+      }
+    }
+    const finalSecret = s3.secret_access_key === '******' ? existingSecret : (s3.secret_access_key || '');
+
+    const s3ToSave: S3Config = {
+      endpoint: (s3.endpoint || '').trim(),
+      bucket: (s3.bucket || '').trim(),
+      region: (s3.region || 'cn-hangzhou').trim(),
+      access_key_id: (s3.access_key_id || '').trim(),
+      secret_access_key: finalSecret.trim(),
+      base_path: (s3.base_path || 'RentHubFiles').trim(),
+      is_enabled: !!s3.is_enabled,
+    };
+
+    await env.DB.prepare(
+      `INSERT INTO system_settings (key, value, updated_at)
+       VALUES ('s3_config', ?, datetime('now'))
+       ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = datetime('now')`
+    )
+      .bind(JSON.stringify(s3ToSave))
+      .run();
+  }
+
+  // 3. 保存默认存储渠道
+  if (default_storage) {
+    await env.DB.prepare(
+      `INSERT INTO system_settings (key, value, updated_at)
+       VALUES ('default_storage', ?, datetime('now'))
+       ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = datetime('now')`
+    )
+      .bind(default_storage)
+      .run();
+  }
+
+  return jsonOk(null, '设置已成功保存');
 }
 
 export async function handleTestSettings(env: Env, body: any) {
@@ -76,14 +150,12 @@ export async function handleTestSettings(env: Env, body: any) {
     return jsonError('请填写 WebDAV 服务地址', 400);
   }
 
-  // 如果密码是脱敏符号，读取数据库原密码
   let testPassword = webdav.password;
   if (testPassword === '******') {
     const existingRow = await env.DB.prepare("SELECT value FROM system_settings WHERE key = 'webdav_config'").first();
     if (existingRow && existingRow.value) {
       try {
-        const parsed = JSON.parse(existingRow.value as string);
-        testPassword = parsed.password;
+        testPassword = JSON.parse(existingRow.value as string).password;
       } catch {
         // ignore
       }
@@ -103,6 +175,114 @@ export async function handleTestSettings(env: Env, body: any) {
     return jsonOk(null, result.message);
   } else {
     return jsonError(result.message, 400);
+  }
+}
+
+/**
+ * 测试 S3 对象存储连通性
+ */
+export async function handleTestS3Settings(env: Env, body: any) {
+  const { s3 } = body;
+  if (!s3 || !s3.endpoint || !s3.bucket) {
+    return jsonError('请填写 S3 Endpoint 与存储桶名称', 400);
+  }
+
+  let testSecret = s3.secret_access_key;
+  if (testSecret === '******') {
+    const existingRow = await env.DB.prepare("SELECT value FROM system_settings WHERE key = 's3_config'").first();
+    if (existingRow && existingRow.value) {
+      try {
+        testSecret = JSON.parse(existingRow.value as string).secret_access_key;
+      } catch {
+        // ignore
+      }
+    }
+  }
+
+  const config: S3Config = {
+    endpoint: s3.endpoint.trim(),
+    bucket: s3.bucket.trim(),
+    region: (s3.region || 'cn-hangzhou').trim(),
+    access_key_id: (s3.access_key_id || '').trim(),
+    secret_access_key: (testSecret || '').trim(),
+    base_path: (s3.base_path || 'RentHubFiles').trim(),
+    is_enabled: true,
+  };
+
+  const result = await testS3Connection(config);
+  if (result.success) {
+    return jsonOk(null, result.message);
+  } else {
+    return jsonError(result.message, 400);
+  }
+}
+
+/**
+ * 一键将数据库全量备份发送到房东邮箱 (轻量实用，零配置云端)
+ */
+export async function handleSendDatabaseBackupToEmail(env: Env) {
+  const settings = await getNotificationSettings(env);
+  if (!settings.recipientEmail) {
+    return jsonError('请先在「待收提醒与邮箱设置」中填写房东收件邮箱', 400);
+  }
+  if (!settings.smtpHost || !settings.smtpPort) {
+    return jsonError('请先在「待收提醒与邮箱设置」中配置发信 SMTP 服务器', 400);
+  }
+
+  // 1. 导出完整数据
+  const dumpRes = await handleDumpDatabase(env);
+  const dumpData = dumpRes.status === 200 ? (await dumpRes.json() as any).data : null;
+  if (!dumpData) {
+    return jsonError('生成数据库备份失败', 500);
+  }
+
+  const jsonStr = JSON.stringify(dumpData, null, 2);
+  const nowStr = new Date().toISOString().slice(0, 19).replace('T', ' ');
+
+  const subject = `【房东管家备份】全量数据归档 (${nowStr})`;
+  const html = `
+<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 640px; margin: 0 auto; padding: 24px; border: 1px solid #e0e0e0; border-radius: 16px; background-color: #ffffff;">
+  <div style="border-bottom: 2px solid #0F5B38; padding-bottom: 12px; margin-bottom: 18px;">
+    <h2 style="color: #0F5B38; margin: 0; font-size: 20px;">📦 房东管家 · 数据库全量备份</h2>
+    <p style="color: #888; font-size: 12px; margin: 4px 0 0 0;">备份时刻：${nowStr}</p>
+  </div>
+  <p style="font-size: 14px; color: #333;">房东您好，这是您系统当前的全量数据库备份存档：</p>
+  <div style="background-color: #f1f8f4; border-radius: 12px; padding: 16px; margin: 16px 0; font-size: 13px; color: #444; line-height: 1.8;">
+    <div><strong>🏠 房源租约数量：</strong>${dumpData.leases?.length || 0} 套</div>
+    <div><strong>💰 账单记录数量：</strong>${dumpData.payments?.length || 0} 笔</div>
+    <div><strong>📁 关联文件数量：</strong>${dumpData.attachments?.length || 0} 份</div>
+    <div><strong>⚙️ 系统配置项数：</strong>${dumpData.settings?.length || 0} 项</div>
+  </div>
+  <p style="font-size: 13px; color: #666;">💡 备份说明：下方为完整的 JSON 备份数据文本，您也可以将其复制保存为 <code>renthub_backup.json</code> 作为冷备。</p>
+  <div style="background-color: #f6f8fa; border: 1px solid #ddd; border-radius: 8px; padding: 12px; max-height: 300px; overflow-y: auto; font-family: monospace; font-size: 11px; white-space: pre-wrap; word-break: break-all; color: #24292e;">
+${jsonStr.length > 50000 ? jsonStr.slice(0, 50000) + '\n\n... (已截断超长部分，完整数据请在后台导出 JSON)' : jsonStr}
+  </div>
+  <div style="border-top: 1px dashed #ddd; padding-top: 14px; margin-top: 16px; font-size: 12px; color: #999;">
+    • 此邮件由房东管家系统自动触发生成，请妥善保管您的备份邮件，避免外泄。
+  </div>
+</div>`;
+
+  const sendResult = await sendSmtpEmail(
+    {
+      host: settings.smtpHost,
+      port: settings.smtpPort,
+      secure: settings.smtpSecure,
+      user: settings.smtpUser,
+      pass: settings.smtpPass,
+      fromName: settings.smtpFromName || '房东管家',
+      fromEmail: settings.smtpFromEmail || settings.smtpUser,
+    },
+    {
+      to: settings.recipientEmail,
+      subject,
+      html,
+    }
+  );
+
+  if (sendResult.success) {
+    return jsonOk(null, `✓ 全量数据库备份已成功发送至邮箱 ${settings.recipientEmail}`);
+  } else {
+    return jsonError(`发送备份邮件失败: ${sendResult.message}`, 500);
   }
 }
 

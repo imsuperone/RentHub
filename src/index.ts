@@ -52,6 +52,8 @@ import {
   handleGetSettings,
   handleSaveSettings,
   handleTestSettings,
+  handleTestS3Settings,
+  handleSendDatabaseBackupToEmail,
   handleInspectDatabase,
   handleDumpDatabase,
 } from './modules/settings';
@@ -271,7 +273,7 @@ app.post('/api/attachments/unbind', async (c) => {
   return handleUnbindAttachment(c.env, body);
 });
 
-// ==================== 系统设置与 WebDAV 存储路由 ====================
+// ==================== 系统设置与 多渠道云存储 (WebDAV / S3) 路由 ====================
 app.get('/api/settings', async (c) => handleGetSettings(c.env));
 app.post('/api/settings', async (c) => {
   const body = await c.req.json();
@@ -281,6 +283,11 @@ app.post('/api/settings/test-webdav', async (c) => {
   const body = await c.req.json();
   return handleTestSettings(c.env, body);
 });
+app.post('/api/settings/test-s3', async (c) => {
+  const body = await c.req.json();
+  return handleTestS3Settings(c.env, body);
+});
+app.post('/api/settings/email-backup', async (c) => handleSendDatabaseBackupToEmail(c.env));
 
 // ==================== 数据库速览透视与备份路由 ====================
 app.get('/api/database/inspect', async (c) => {
