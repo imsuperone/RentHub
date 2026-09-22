@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+
+# Cloudflare Wrangler local state & SQLite databases (CRITICAL: Never commit local database state)
+.wrangler/
+.dev.vars
+.dev.vars.*
+
+# Local test & scratch scripts (Do not commit test suites or temporary scripts)
+scratch/
+test/
+*.test.js
+*.spec.js
+find_escapes.js
+
+# Environment and secrets
+.env
+.env.*
+*.pem
+*.key
+*.cert
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# System files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# IDE & Editor files
+.vscode/
+.idea/
+*.swp
+*.swo

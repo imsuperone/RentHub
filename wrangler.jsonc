@@ -1,0 +1,23 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "renthub",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-02-24",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  // 绑定 Cloudflare D1 边缘数据库
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "zufang_db",
+      "database_id": "placeholder-zufang-db-id"
+    }
+  ],
+  "triggers": {
+    "crons": ["0 1 * * *"]
+  },
+  "observability": {
+    "enabled": false
+  }
+}
