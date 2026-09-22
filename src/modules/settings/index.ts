@@ -21,17 +21,17 @@ export async function handleGetSettings(env: Env) {
     endpoint: '',
     username: '',
     password: '',
-    base_path: '/RentRecords',
+    base_path: '',
     is_enabled: false,
   };
 
   let s3: Partial<S3Config> = {
     endpoint: '',
     bucket: '',
-    region: 'cn-hangzhou',
+    region: '',
     access_key_id: '',
     secret_access_key: '',
-    base_path: 'RentHubFiles',
+    base_path: '',
     is_enabled: false,
   };
 
@@ -84,7 +84,7 @@ export async function handleSaveSettings(env: Env, body: any) {
       endpoint: (webdav.endpoint || '').trim(),
       username: (webdav.username || '').trim(),
       password: finalPassword.trim(),
-      base_path: (webdav.base_path || '/RentRecords').trim(),
+      base_path: (webdav.base_path || '').trim(),
       is_enabled: !!webdav.is_enabled,
     };
 
@@ -95,6 +95,19 @@ export async function handleSaveSettings(env: Env, body: any) {
     )
       .bind(JSON.stringify(webdavToSave))
       .run();
+
+    // 二选一保证：若启用了 WebDAV，则自动停用 S3
+    if (webdavToSave.is_enabled) {
+      const s3Row = await env.DB.prepare("SELECT value FROM system_settings WHERE key = 's3_config'").first();
+      if (s3Row && s3Row.value) {
+        try {
+          const s3Obj = JSON.parse(s3Row.value as string);
+          s3Obj.is_enabled = false;
+          await env.DB.prepare("UPDATE system_settings SET value = ?, updated_at = datetime('now') WHERE key = 's3_config'")
+            .bind(JSON.stringify(s3Obj)).run();
+        } catch {}
+      }
+    }
   }
 
   // 2. 保存 S3 对象存储设置
@@ -113,10 +126,10 @@ export async function handleSaveSettings(env: Env, body: any) {
     const s3ToSave: S3Config = {
       endpoint: (s3.endpoint || '').trim(),
       bucket: (s3.bucket || '').trim(),
-      region: (s3.region || 'cn-hangzhou').trim(),
+      region: (s3.region || '').trim(),
       access_key_id: (s3.access_key_id || '').trim(),
       secret_access_key: finalSecret.trim(),
-      base_path: (s3.base_path || 'RentHubFiles').trim(),
+      base_path: (s3.base_path || '').trim(),
       is_enabled: !!s3.is_enabled,
     };
 
@@ -127,9 +140,22 @@ export async function handleSaveSettings(env: Env, body: any) {
     )
       .bind(JSON.stringify(s3ToSave))
       .run();
+
+    // 二选一保证：若启用了 S3，则自动停用 WebDAV
+    if (s3ToSave.is_enabled) {
+      const wdRow = await env.DB.prepare("SELECT value FROM system_settings WHERE key = 'webdav_config'").first();
+      if (wdRow && wdRow.value) {
+        try {
+          const wdObj = JSON.parse(wdRow.value as string);
+          wdObj.is_enabled = false;
+          await env.DB.prepare("UPDATE system_settings SET value = ?, updated_at = datetime('now') WHERE key = 'webdav_config'")
+            .bind(JSON.stringify(wdObj)).run();
+        } catch {}
+      }
+    }
   }
 
-  // 3. 保存默认存储渠道
+  // 3. 保存默认存储渠道 / 云端备份二选一状态同步
   if (default_storage) {
     await env.DB.prepare(
       `INSERT INTO system_settings (key, value, updated_at)
@@ -138,6 +164,28 @@ export async function handleSaveSettings(env: Env, body: any) {
     )
       .bind(default_storage)
       .run();
+
+    if (default_storage === 'D1_LOCAL') {
+      // 关闭所有云端备份
+      const s3Row = await env.DB.prepare("SELECT value FROM system_settings WHERE key = 's3_config'").first();
+      if (s3Row && s3Row.value) {
+        try {
+          const s3Obj = JSON.parse(s3Row.value as string);
+          s3Obj.is_enabled = false;
+          await env.DB.prepare("UPDATE system_settings SET value = ?, updated_at = datetime('now') WHERE key = 's3_config'")
+            .bind(JSON.stringify(s3Obj)).run();
+        } catch {}
+      }
+      const wdRow = await env.DB.prepare("SELECT value FROM system_settings WHERE key = 'webdav_config'").first();
+      if (wdRow && wdRow.value) {
+        try {
+          const wdObj = JSON.parse(wdRow.value as string);
+          wdObj.is_enabled = false;
+          await env.DB.prepare("UPDATE system_settings SET value = ?, updated_at = datetime('now') WHERE key = 'webdav_config'")
+            .bind(JSON.stringify(wdObj)).run();
+        } catch {}
+      }
+    }
   }
 
   return jsonOk(null, '设置已成功保存');

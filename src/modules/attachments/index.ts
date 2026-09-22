@@ -132,8 +132,12 @@ export async function handleUploadAttachment(env: Env, formData: FormData) {
   }
 
   try {
+    // 始终在本地预先派生与加密一份密文数据，保证「本地默认保存无法取消」的基石可靠性
+    const { ciphertext, ivBase64 } = await encryptBuffer(buffer, cryptoKey);
+    const dataBlobBase64 = bytesToBase64(ciphertext);
+
     if (chosenStorage === 'S3' && s3Config) {
-      // 方案 A: S3 / 阿里云OSS / 腾讯云COS / Cloudflare R2 对象存储
+      // 方案 A: S3 / 阿里云OSS / 腾讯云COS / Cloudflare R2 对象存储（本地 + 云端双轨保存）
       const dateStr = new Date().toISOString().slice(0, 7).replace('-', '');
       const uniquePrefix = generateRandomHex(6);
       const safeFileName = `${uniquePrefix}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
@@ -154,7 +158,7 @@ export async function handleUploadAttachment(env: Env, formData: FormData) {
         `INSERT INTO attachments (
           id, lease_id, payment_id, file_name, file_size,
           mime_type, category, webdav_path, data_blob, storage_type, enc_iv, enc_tag
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, 'S3', ?, ?)`
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'S3', ?, ?)`
       )
         .bind(
           attachmentId,
@@ -165,6 +169,7 @@ export async function handleUploadAttachment(env: Env, formData: FormData) {
           file.type || 'application/octet-stream',
           category,
           uploadResult.s3Path,
+          dataBlobBase64,
           uploadResult.ivBase64,
           'INCLUDED'
         )
@@ -175,10 +180,10 @@ export async function handleUploadAttachment(env: Env, formData: FormData) {
         fileName: file.name,
         storageType: 'S3',
         storagePath: uploadResult.s3Path,
-      }, '文件已端到端加密保存至对象存储');
+      }, '文件已加密保存至本地数据库并完成 S3 异地备份');
 
     } else if (chosenStorage === 'WEBDAV' && webdavConfig) {
-      // 方案 B: WebDAV 异地加密存储 (坚果云 / AList 挂载的网盘等)
+      // 方案 B: WebDAV 异地加密存储（本地 + 网盘双轨保存）
       const dateStr = new Date().toISOString().slice(0, 7).replace('-', '');
       const uniquePrefix = generateRandomHex(6);
       const safeFileName = `${uniquePrefix}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
@@ -199,7 +204,7 @@ export async function handleUploadAttachment(env: Env, formData: FormData) {
         `INSERT INTO attachments (
           id, lease_id, payment_id, file_name, file_size,
           mime_type, category, webdav_path, data_blob, storage_type, enc_iv, enc_tag
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, 'WEBDAV', ?, ?)`
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'WEBDAV', ?, ?)`
       )
         .bind(
           attachmentId,
@@ -210,6 +215,7 @@ export async function handleUploadAttachment(env: Env, formData: FormData) {
           file.type || 'application/octet-stream',
           category,
           uploadResult.webdavPath,
+          dataBlobBase64,
           uploadResult.ivBase64,
           'INCLUDED'
         )
@@ -220,13 +226,10 @@ export async function handleUploadAttachment(env: Env, formData: FormData) {
         fileName: file.name,
         storageType: 'WEBDAV',
         storagePath: uploadResult.webdavPath,
-      }, '文件已端到端加密保存至云盘');
+      }, '文件已加密保存至本地数据库并完成 WebDAV 异地备份');
 
     } else {
-      // 方案 C: 本地 D1 数据库密文直存 (零配置开箱即用)
-      const { ciphertext, ivBase64 } = await encryptBuffer(buffer, cryptoKey);
-      const dataBlobBase64 = bytesToBase64(ciphertext);
-
+      // 方案 C: 本地 D1 数据库密文直存 (基石保障 · 零配置开箱即用)
       await env.DB.prepare(
         `INSERT INTO attachments (
           id, lease_id, payment_id, file_name, file_size,
@@ -251,7 +254,7 @@ export async function handleUploadAttachment(env: Env, formData: FormData) {
         id: attachmentId,
         fileName: file.name,
         storageType: 'D1_LOCAL',
-        storagePath: 'D1 数据库',
+        storagePath: '本地 D1 数据库',
       }, '文件已端到端加密保存至本地数据库');
     }
   } catch (err: any) {
@@ -277,29 +280,49 @@ export async function handleGetAttachmentFile(env: Env, attachmentId: string) {
     let decryptedBuffer: ArrayBuffer;
 
     if (att.storage_type === 'S3') {
-      // 从 S3 对象存储下载并解密
-      const s3Config = await getS3Config(env);
-      if (!s3Config) throw new Error('S3 对象存储未配置');
-      decryptedBuffer = await downloadAndDecryptFromS3(
-        s3Config,
-        att.webdav_path!,
-        att.enc_iv,
-        cryptoKey
-      );
-    } else if (att.storage_type === 'D1_LOCAL' || (!att.webdav_path && att.data_blob)) {
-      // 从 D1 本地解密
+      // 优先从 S3 对象存储下载；若云端异常则平滑回退读取本地基础数据库
+      try {
+        const s3Config = await getS3Config(env);
+        if (!s3Config) throw new Error('S3 对象存储未配置');
+        decryptedBuffer = await downloadAndDecryptFromS3(
+          s3Config,
+          att.webdav_path!,
+          att.enc_iv,
+          cryptoKey
+        );
+      } catch (cloudErr) {
+        if (att.data_blob) {
+          console.warn('S3 读取异常，自动回退读取本地 D1 数据库密文:', cloudErr);
+          const encryptedBytes = base64ToBytes(att.data_blob);
+          decryptedBuffer = await decryptBuffer(encryptedBytes, cryptoKey, att.enc_iv);
+        } else {
+          throw cloudErr;
+        }
+      }
+    } else if (att.storage_type === 'WEBDAV') {
+      // 优先从 WebDAV 网盘下载；若云端异常则平滑回退读取本地基础数据库
+      try {
+        const webdavConfig = await getWebDavConfig(env);
+        if (!webdavConfig) throw new Error('WebDAV 未配置');
+        decryptedBuffer = await downloadAndDecryptFromWebDav(
+          webdavConfig,
+          att.webdav_path!,
+          att.enc_iv,
+          cryptoKey
+        );
+      } catch (cloudErr) {
+        if (att.data_blob) {
+          console.warn('WebDAV 读取异常，自动回退读取本地 D1 数据库密文:', cloudErr);
+          const encryptedBytes = base64ToBytes(att.data_blob);
+          decryptedBuffer = await decryptBuffer(encryptedBytes, cryptoKey, att.enc_iv);
+        } else {
+          throw cloudErr;
+        }
+      }
+    } else {
+      // 从 D1 本地数据库解密
       const encryptedBytes = base64ToBytes(att.data_blob!);
       decryptedBuffer = await decryptBuffer(encryptedBytes, cryptoKey, att.enc_iv);
-    } else {
-      // 从 WebDAV 下载并解密
-      const webdavConfig = await getWebDavConfig(env);
-      if (!webdavConfig) throw new Error('WebDAV 未配置');
-      decryptedBuffer = await downloadAndDecryptFromWebDav(
-        webdavConfig,
-        att.webdav_path!,
-        att.enc_iv,
-        cryptoKey
-      );
     }
 
     const headers = new Headers();

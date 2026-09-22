@@ -531,52 +531,91 @@ export function renderAppHtml(username: string): string {
         <p class="text-xs text-neutral-400 mt-0.5">文件加密存储渠道 (本地D1 / WebDAV / 阿里云OSS / 腾讯云COS / R2)、邮箱通知及安全二次验证</p>
       </div>
 
-      <!-- 全局默认存储渠道选择卡片 -->
-      <div class="m3-card bg-white dark:bg-[#1A211D] border border-[#D7DED9]/50 dark:border-[#26312B]/60 p-6 md:p-8 space-y-4 shadow-sm">
-        <div class="flex items-center justify-between pb-2 border-b border-[#E8EDE9] dark:border-[#26312B]/60">
+      <!-- 全局文件存储与云端异地备份卡片 -->
+      <div class="m3-card bg-white dark:bg-[#1A211D] border border-[#D7DED9]/50 dark:border-[#26312B]/60 p-6 md:p-8 space-y-5 shadow-sm">
+        <div class="flex items-center justify-between pb-3 border-b border-[#E8EDE9] dark:border-[#26312B]/60">
           <div>
             <h3 class="text-sm font-bold flex items-center gap-2">
-              <span>🎯 全局默认文件存储渠道</span>
-              <span class="text-[10px] px-2 py-0.5 rounded-full bg-[#C4EED0] dark:bg-[#1A402D] text-[#002111] dark:text-[#A6F5B9] font-bold">三轨支持</span>
+              <span>📁 文件存储渠道与异地备份</span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full bg-[#C4EED0] dark:bg-[#1A402D] text-[#002111] dark:text-[#A6F5B9] font-bold">本地基石 + 云端二选一</span>
             </h3>
-            <p class="text-xs text-neutral-400 mt-0.5">决定上传文件与记账拍照时的默认保存去向（每次上传时仍可临时自由选择）</p>
+            <p class="text-xs text-neutral-400 mt-0.5">本地 SQLite 数据库为底层基础存储，始终保存；云端异地备份支持 WebDAV 与 S3 二选一</p>
           </div>
           <button onclick="saveDefaultStorageSetting()" id="saveDefaultStorageBtn" class="m3-pill px-4 py-2 bg-[#0F5B38] dark:bg-[#7CDCA0] text-white dark:text-[#00391F] text-xs font-bold shadow-sm">
-            保存默认设置
+            保存存储模式
           </button>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-          <label class="flex items-start gap-3 p-4 rounded-2xl border border-[#D7DED9]/60 dark:border-[#26312B]/60 bg-[#E8EDE9]/30 dark:bg-[#161D1A]/50 cursor-pointer hover:border-[#0F5B38] transition-all">
-            <input type="radio" name="defaultStorageSetting" value="D1_LOCAL" class="mt-1" checked>
-            <div>
-              <div class="text-xs font-bold text-neutral-800 dark:text-neutral-200">💾 本地 D1 数据库</div>
-              <div class="text-[11px] text-neutral-400 mt-1 leading-relaxed">零门槛开箱即用。AES-256-GCM 密文保存在本地 SQLite 数据库，无任何外部服务依赖。</div>
+        <!-- 1. 本地存储 (常驻基石 · 无法取消) -->
+        <div class="p-3.5 rounded-2xl bg-[#E8EDE9]/40 dark:bg-[#161D1A]/60 border border-[#D7DED9]/60 dark:border-[#26312B]/60 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-[#0F5B38]/10 dark:bg-[#7CDCA0]/10 text-[#0F5B38] dark:text-[#7CDCA0] flex items-center justify-center font-bold text-base flex-shrink-0">
+              💾
             </div>
-          </label>
-
-          <label class="flex items-start gap-3 p-4 rounded-2xl border border-[#D7DED9]/60 dark:border-[#26312B]/60 bg-[#E8EDE9]/30 dark:bg-[#161D1A]/50 cursor-pointer hover:border-[#0F5B38] transition-all">
-            <input type="radio" name="defaultStorageSetting" value="WEBDAV" class="mt-1">
             <div>
-              <div class="text-xs font-bold text-neutral-800 dark:text-neutral-200">☁️ WebDAV / 网盘</div>
-              <div class="text-[11px] text-neutral-400 mt-1 leading-relaxed">推荐坚果云，或通过 AList 挂载阿里云盘、百度网盘、天翼云等。加密异地存档。</div>
+              <div class="text-xs font-bold text-neutral-800 dark:text-neutral-100 flex items-center gap-2">
+                <span>本地 D1 数据库存储</span>
+                <span class="text-[10px] px-2 py-0.2 rounded-full bg-[#C4EED0] dark:bg-[#1A402D] text-[#002111] dark:text-[#A6F5B9] font-bold">系统基础 · 默认保存</span>
+              </div>
+              <div class="text-[11px] text-neutral-400 mt-0.5">合同原件与记账单据端到端加密保存在本地 SQLite 数据库中，始终保存无法取消</div>
             </div>
-          </label>
-
-          <label class="flex items-start gap-3 p-4 rounded-2xl border border-[#D7DED9]/60 dark:border-[#26312B]/60 bg-[#E8EDE9]/30 dark:bg-[#161D1A]/50 cursor-pointer hover:border-[#0F5B38] transition-all">
-            <input type="radio" name="defaultStorageSetting" value="S3" class="mt-1">
-            <div>
-              <div class="text-xs font-bold text-neutral-800 dark:text-neutral-200">🪣 S3 兼容对象存储</div>
-              <div class="text-[11px] text-neutral-400 mt-1 leading-relaxed">原生 AWS SigV4 签名，完美直连阿里云 OSS、腾讯云 COS、Cloudflare R2、七牛云或自建 MinIO。</div>
-            </div>
-          </label>
+          </div>
+          <div class="flex items-center gap-1 text-[11px] font-bold text-[#0F5B38] dark:text-[#7CDCA0] px-3 py-1.5 rounded-full bg-[#0F5B38]/10 dark:bg-[#7CDCA0]/10 cursor-not-allowed select-none flex-shrink-0" title="系统基础存储，永久启用无法取消">
+            <span>✓ 始终保存</span>
+          </div>
         </div>
+
+        <!-- 2. 云端异地备份通道 (二选一 / 可关闭) -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <label class="block text-xs font-bold text-neutral-700 dark:text-neutral-300 px-1">
+              云端异地备份通道 (二选一)
+            </label>
+            <span class="text-[11px] text-neutral-400">选择后在下方展开配置服务</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            <!-- 选项 A: 关 / 不开启云备份 -->
+            <label class="flex items-start gap-2.5 p-3.5 rounded-2xl bg-[#E8EDE9]/40 dark:bg-[#161D1A]/60 border border-[#D7DED9]/60 dark:border-[#26312B]/60 cursor-pointer hover:border-[#0F5B38] transition-all">
+              <input type="radio" name="cloudBackupProvider" id="cloudBackup_none" value="NONE" checked onchange="toggleCloudBackupUI('NONE')" class="accent-[#0F5B38] mt-0.5">
+              <div>
+                <div class="text-xs font-bold text-neutral-800 dark:text-neutral-100">🚫 不开启云备份</div>
+                <div class="text-[11px] text-neutral-400 mt-0.5 leading-relaxed">仅保存在本地 D1 数据库，不占用任何外部网盘或对象存储</div>
+              </div>
+            </label>
+
+            <!-- 选项 B: WebDAV / 网盘 -->
+            <label class="flex items-start gap-2.5 p-3.5 rounded-2xl bg-[#E8EDE9]/40 dark:bg-[#161D1A]/60 border border-[#D7DED9]/60 dark:border-[#26312B]/60 cursor-pointer hover:border-[#0F5B38] transition-all">
+              <input type="radio" name="cloudBackupProvider" id="cloudBackup_webdav" value="WEBDAV" onchange="toggleCloudBackupUI('WEBDAV')" class="accent-[#0F5B38] mt-0.5">
+              <div>
+                <div class="text-xs font-bold text-neutral-800 dark:text-neutral-100 flex items-center gap-1.5">
+                  <span>☁️ WebDAV / 网盘</span>
+                  <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-800 dark:text-indigo-300 font-bold">国内网盘</span>
+                </div>
+                <div class="text-[11px] text-neutral-400 mt-0.5 leading-relaxed">坚果云直连，或经 AList 备份至阿里云盘、百度网盘、天翼云</div>
+              </div>
+            </label>
+
+            <!-- 选项 C: S3 兼容对象存储 -->
+            <label class="flex items-start gap-2.5 p-3.5 rounded-2xl bg-[#E8EDE9]/40 dark:bg-[#161D1A]/60 border border-[#D7DED9]/60 dark:border-[#26312B]/60 cursor-pointer hover:border-[#0F5B38] transition-all">
+              <input type="radio" name="cloudBackupProvider" id="cloudBackup_s3" value="S3" onchange="toggleCloudBackupUI('S3')" class="accent-[#0F5B38] mt-0.5">
+              <div>
+                <div class="text-xs font-bold text-neutral-800 dark:text-neutral-100 flex items-center gap-1.5">
+                  <span>🪣 S3 兼容对象存储</span>
+                  <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-sky-100 dark:bg-sky-950 text-sky-800 dark:text-sky-300 font-bold">高可用</span>
+                </div>
+                <div class="text-[11px] text-neutral-400 mt-0.5 leading-relaxed">阿里云 OSS、腾讯云 COS、Cloudflare R2、自建 MinIO</div>
+              </div>
+            </label>
+          </div>
+        </div>
+
         <div id="defaultStorageFeedback" class="text-xs font-semibold px-1"></div>
       </div>
 
-      <!-- S3 兼容对象存储配置卡片 (阿里云 OSS / 腾讯云 COS / Cloudflare R2 / MinIO) -->
-      <div class="m3-card bg-white dark:bg-[#1A211D] border border-[#D7DED9]/50 dark:border-[#26312B]/60 p-6 md:p-8 space-y-5 shadow-sm">
-        <div class="flex items-center justify-between">
+      <!-- S3 兼容对象存储配置卡片 (按需展开，无丑陋开关) -->
+      <div id="s3ConfigCard" class="hidden m3-card bg-white dark:bg-[#1A211D] border border-[#D7DED9]/50 dark:border-[#26312B]/60 p-6 md:p-8 space-y-5 shadow-sm">
+        <div class="flex items-center justify-between pb-2 border-b border-[#E8EDE9] dark:border-[#26312B]/60">
           <div>
             <h3 class="text-sm font-bold flex items-center gap-2">
               <span>🪣 S3 兼容对象存储 (阿里云 OSS / 腾讯云 COS / R2 / MinIO)</span>
@@ -584,13 +623,9 @@ export function renderAppHtml(username: string): string {
             </h3>
             <p class="text-xs text-neutral-400 mt-0.5">原生 WebCrypto 实现 AWS SigV4 认证，支持国内主流云厂商与自建 MinIO 异地容灾</p>
           </div>
-          <label class="relative inline-flex items-center cursor-pointer">
-            <input type="checkbox" id="s3Enabled" class="sr-only peer">
-            <div class="w-12 h-7 bg-neutral-200 peer-focus:outline-none rounded-full peer dark:bg-neutral-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[3px] after:left-[3px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5.5 after:w-5.5 after:transition-all peer-checked:bg-[#0F5B38] dark:peer-checked:bg-[#7CDCA0]"></div>
-          </label>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
           <div class="md:col-span-2">
             <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">对象存储服务地址 (Endpoint)</label>
             <input type="text" id="s3Endpoint" placeholder="例如 https://oss-cn-hangzhou.aliyuncs.com 或 https://cos.ap-guangzhou.myqcloud.com" class="m3-input w-full text-sm font-mono">
@@ -606,7 +641,7 @@ export function renderAppHtml(username: string): string {
 
           <div>
             <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">存储桶名称 (Bucket Name)</label>
-            <input type="text" id="s3Bucket" placeholder="例如 my-renthub-bucket" class="m3-input w-full text-sm font-mono">
+            <input type="text" id="s3Bucket" placeholder="填入 Bucket 名称" class="m3-input w-full text-sm font-mono">
           </div>
 
           <div>
@@ -620,13 +655,13 @@ export function renderAppHtml(username: string): string {
           </div>
 
           <div>
-            <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">Secret Access Key (修改时填入，不改留空)</label>
-            <input type="password" id="s3SecretKey" placeholder="••••••••" class="m3-input w-full text-sm font-mono">
+            <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">Secret Access Key</label>
+            <input type="password" id="s3SecretKey" placeholder="修改时填入，留空不修改" class="m3-input w-full text-sm font-mono">
           </div>
 
           <div class="md:col-span-2">
             <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">存储根目录前缀 (Base Path)</label>
-            <input type="text" id="s3BasePath" placeholder="RentHubFiles" class="m3-input w-full text-sm font-mono">
+            <input type="text" id="s3BasePath" placeholder="例如 RentHubFiles (留空存根目录)" class="m3-input w-full text-sm font-mono">
           </div>
         </div>
 
@@ -641,9 +676,9 @@ export function renderAppHtml(username: string): string {
         </div>
       </div>
 
-      <!-- WebDAV 云盘挂载配置 (坚果云 / AList 挂载阿里云盘百度网盘 / 123云盘) -->
-      <div class="m3-card bg-white dark:bg-[#1A211D] border border-[#D7DED9]/50 dark:border-[#26312B]/60 p-6 md:p-8 space-y-5 shadow-sm">
-        <div class="flex items-center justify-between">
+      <!-- WebDAV 云盘挂载配置 (按需展开，无丑陋开关) -->
+      <div id="webdavConfigCard" class="hidden m3-card bg-white dark:bg-[#1A211D] border border-[#D7DED9]/50 dark:border-[#26312B]/60 p-6 md:p-8 space-y-5 shadow-sm">
+        <div class="flex items-center justify-between pb-2 border-b border-[#E8EDE9] dark:border-[#26312B]/60">
           <div>
             <h3 class="text-sm font-bold flex items-center gap-2">
               <span>☁️ WebDAV 云盘存储 (坚果云 / AList 挂载阿里云盘·百度网盘 / 123云盘)</span>
@@ -651,16 +686,12 @@ export function renderAppHtml(username: string): string {
             </h3>
             <p class="text-xs text-neutral-400 mt-0.5">支持坚果云直连；配合 AList 更可无感对接阿里云盘、百度网盘、天翼云、夸克等各种国内网盘</p>
           </div>
-          <label class="relative inline-flex items-center cursor-pointer">
-            <input type="checkbox" id="webdavEnabled" class="sr-only peer">
-            <div class="w-12 h-7 bg-neutral-200 peer-focus:outline-none rounded-full peer dark:bg-neutral-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[3px] after:left-[3px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5.5 after:w-5.5 after:transition-all peer-checked:bg-[#0F5B38] dark:peer-checked:bg-[#7CDCA0]"></div>
-          </label>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
           <div class="md:col-span-2">
             <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">WebDAV 服务器地址 (Endpoint)</label>
-            <input type="text" id="webdavEndpoint" placeholder="https://dav.jianguoyun.com/dav/ 或 http://your-alist-host:5244/dav/" class="m3-input w-full text-sm font-mono">
+            <input type="text" id="webdavEndpoint" placeholder="例如 https://dav.jianguoyun.com/dav/ 或 http://your-alist-host:5244/dav/" class="m3-input w-full text-sm font-mono">
             <div class="flex items-center flex-wrap gap-2.5 mt-2 px-1">
               <span class="text-[11px] text-neutral-400">快速填入预设：</span>
               <button onclick="fillPreset('jianguoyun')" class="text-[11px] text-[#0F5B38] dark:text-[#7CDCA0] font-bold hover:underline">坚果云预设</button>
@@ -672,17 +703,17 @@ export function renderAppHtml(username: string): string {
 
           <div>
             <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">用户名 / 账号</label>
-            <input type="text" id="webdavUsername" placeholder="坚果云注册邮箱或云盘/AList 用户名" class="m3-input w-full text-sm">
+            <input type="text" id="webdavUsername" placeholder="坚果云注册邮箱或网盘用户名" class="m3-input w-full text-sm">
           </div>
 
           <div>
-            <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">应用专用密码 (修改时填新密码，不改留空)</label>
-            <input type="password" id="webdavPassword" placeholder="••••••••" class="m3-input w-full text-sm">
+            <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">应用专用密码</label>
+            <input type="password" id="webdavPassword" placeholder="修改时填入，留空不修改" class="m3-input w-full text-sm">
           </div>
 
           <div class="md:col-span-2">
             <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">远端基础目录 (Base Path)</label>
-            <input type="text" id="webdavBasePath" placeholder="/RentRecords" class="m3-input w-full text-sm font-mono">
+            <input type="text" id="webdavBasePath" placeholder="例如 /RentRecords (留空存根目录)" class="m3-input w-full text-sm font-mono">
           </div>
         </div>
 
@@ -783,18 +814,18 @@ export function renderAppHtml(username: string): string {
           </div>
           <div>
             <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1 px-1">Resend API Key</label>
-            <input type="password" id="notifyResendApiKey" placeholder="re_••••••••••••••••••••••••" class="m3-input w-full text-xs font-mono">
+            <input type="password" id="notifyResendApiKey" placeholder="填入 Resend API Key (以 re_ 开头)" class="m3-input w-full text-xs font-mono">
             <span class="text-[10px] text-neutral-400 mt-1 block px-1">在 resend.com 控制台免费申请（例如 <code>re_123456789...</code>）</span>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
               <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1 px-1">发件人邮箱 (From Email)</label>
-              <input type="text" id="notifyResendFromEmail" placeholder="onboarding@resend.dev 或您已验证的域名邮箱" value="onboarding@resend.dev" class="m3-input w-full text-xs font-mono">
-              <span class="text-[10px] text-neutral-400 mt-1 block px-1">测试期可直接使用 <code>onboarding@resend.dev</code></span>
+              <input type="text" id="notifyResendFromEmail" placeholder="例如 onboarding@resend.dev 或已验证域名邮箱" class="m3-input w-full text-xs font-mono">
+              <span class="text-[10px] text-neutral-400 mt-1 block px-1">测试期可直接填入 <code>onboarding@resend.dev</code></span>
             </div>
             <div>
               <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1 px-1">发件人显示名称 (From Name)</label>
-              <input type="text" id="notifyResendFromName" placeholder="房东管家" value="房东管家" class="m3-input w-full text-xs font-bold">
+              <input type="text" id="notifyResendFromName" placeholder="例如 房东管家" class="m3-input w-full text-xs font-bold">
             </div>
           </div>
         </div>
@@ -822,11 +853,11 @@ export function renderAppHtml(username: string): string {
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div class="sm:col-span-2">
               <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">SMTP 服务器主机地址 (Host)</label>
-              <input type="text" id="notifySmtpHost" placeholder="如 smtp.qq.com 或 smtp.163.com" class="m3-input w-full text-xs font-mono">
+              <input type="text" id="notifySmtpHost" placeholder="例如 smtp.qq.com 或 smtp.163.com" class="m3-input w-full text-xs font-mono">
             </div>
             <div>
               <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">端口 (Port)</label>
-              <input type="number" id="notifySmtpPort" placeholder="465" value="465" class="m3-input w-full text-xs font-mono font-bold">
+              <input type="number" id="notifySmtpPort" placeholder="465 或 587" class="m3-input w-full text-xs font-mono font-bold">
             </div>
           </div>
 
@@ -842,14 +873,14 @@ export function renderAppHtml(username: string): string {
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">SMTP 账号 / 发信邮箱</label>
-              <input type="text" id="notifySmtpUser" placeholder="如 your-email@qq.com" class="m3-input w-full text-xs font-mono">
+              <input type="text" id="notifySmtpUser" placeholder="例如 your-email@qq.com" class="m3-input w-full text-xs font-mono">
             </div>
             <div>
               <div class="flex items-center justify-between mb-1.5 px-1">
                 <label class="text-xs font-bold text-neutral-600 dark:text-neutral-400">发信授权码 / 密码</label>
                 <span class="text-[11px] text-amber-600 dark:text-amber-400 font-bold">QQ/网易请填专有授权码</span>
               </div>
-              <input type="password" id="notifySmtpPass" placeholder="••••••••••••••••" class="m3-input w-full text-xs font-mono">
+              <input type="password" id="notifySmtpPass" placeholder="修改时填入授权码，留空不修改" class="m3-input w-full text-xs font-mono">
             </div>
           </div>
 
@@ -857,11 +888,11 @@ export function renderAppHtml(username: string): string {
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">发信人显示名称</label>
-              <input type="text" id="notifySmtpFromName" placeholder="房东管家" value="房东管家" class="m3-input w-full text-xs font-bold">
+              <input type="text" id="notifySmtpFromName" placeholder="例如 房东管家" class="m3-input w-full text-xs font-bold">
             </div>
             <div>
               <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">发信人地址 (若空默认同账号)</label>
-              <input type="email" id="notifySmtpFromEmail" placeholder="your-email@qq.com" class="m3-input w-full text-xs font-mono">
+              <input type="email" id="notifySmtpFromEmail" placeholder="例如 your-email@qq.com (留空同账号)" class="m3-input w-full text-xs font-mono">
             </div>
           </div>
         </div>
@@ -3956,6 +3987,21 @@ export function renderAppHtml(username: string): string {
       }
     }
 
+    function toggleCloudBackupUI(provider) {
+      const s3Card = document.getElementById('s3ConfigCard');
+      const webdavCard = document.getElementById('webdavConfigCard');
+      if (provider === 'S3') {
+        if (s3Card) s3Card.classList.remove('hidden');
+        if (webdavCard) webdavCard.classList.add('hidden');
+      } else if (provider === 'WEBDAV') {
+        if (s3Card) s3Card.classList.add('hidden');
+        if (webdavCard) webdavCard.classList.remove('hidden');
+      } else {
+        if (s3Card) s3Card.classList.add('hidden');
+        if (webdavCard) webdavCard.classList.add('hidden');
+      }
+    }
+
     async function loadNotificationSettings() {
       try {
         const res = await fetch('/api/settings/notifications');
@@ -3976,8 +4022,8 @@ export function renderAppHtml(username: string): string {
           const resendFromEl = document.getElementById('notifyResendFromEmail');
           const resendNameEl = document.getElementById('notifyResendFromName');
           if (resendKeyEl) resendKeyEl.value = d.resendApiKeyMasked || '';
-          if (resendFromEl) resendFromEl.value = d.resendFromEmail || 'onboarding@resend.dev';
-          if (resendNameEl) resendNameEl.value = d.resendFromName || '房东管家';
+          if (resendFromEl) resendFromEl.value = d.resendFromEmail || '';
+          if (resendNameEl) resendNameEl.value = d.resendFromName || '';
 
           const hostEl = document.getElementById('notifySmtpHost');
           const portEl = document.getElementById('notifySmtpPort');
@@ -3996,11 +4042,11 @@ export function renderAppHtml(username: string): string {
           const utilBodyEl = document.getElementById('notifyTemplateUtilityBody');
 
           if (hostEl) hostEl.value = d.smtpHost || '';
-          if (portEl) portEl.value = d.smtpPort || 465;
+          if (portEl) portEl.value = d.smtpPort || '';
           if (secEl) secEl.checked = d.smtpSecure !== false;
           if (userEl) userEl.value = d.smtpUser || '';
           if (passEl) passEl.value = d.smtpPassMasked || '';
-          if (nameEl) nameEl.value = d.smtpFromName || '房东管家';
+          if (nameEl) nameEl.value = d.smtpFromName || '';
           if (fromEl) fromEl.value = d.smtpFromEmail || '';
           if (rcptEl) rcptEl.value = d.recipientEmail || '';
           if (daysEl) daysEl.value = d.notifyDaysBefore || '7,3,1';
@@ -4030,8 +4076,8 @@ export function renderAppHtml(username: string): string {
         const payload = {
           mailProvider,
           resendApiKey: document.getElementById('notifyResendApiKey')?.value?.trim() || '',
-          resendFromEmail: document.getElementById('notifyResendFromEmail')?.value?.trim() || 'onboarding@resend.dev',
-          resendFromName: document.getElementById('notifyResendFromName')?.value?.trim() || '房东管家',
+          resendFromEmail: document.getElementById('notifyResendFromEmail')?.value?.trim() || '',
+          resendFromName: document.getElementById('notifyResendFromName')?.value?.trim() || '',
           smtpHost: document.getElementById('notifySmtpHost')?.value?.trim() || '',
           smtpPort: parseInt(document.getElementById('notifySmtpPort')?.value, 10) || 465,
           smtpSecure: !!document.getElementById('notifySmtpSecure')?.checked,
@@ -4097,7 +4143,7 @@ export function renderAppHtml(username: string): string {
       fb.innerText = '';
 
       try {
-        const res = await fetch('/api/notifications/send-test', {
+        const res = await fetch('/api/settings/notifications/test', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -4159,8 +4205,6 @@ export function renderAppHtml(username: string): string {
           // WebDAV
           if (json.data.webdav) {
             const w = json.data.webdav;
-            const elEn = document.getElementById('webdavEnabled');
-            if (elEn) elEn.checked = !!w.is_enabled;
             const elEp = document.getElementById('webdavEndpoint');
             if (elEp) elEp.value = w.endpoint || '';
             const elUn = document.getElementById('webdavUsername');
@@ -4168,31 +4212,41 @@ export function renderAppHtml(username: string): string {
             const elPw = document.getElementById('webdavPassword');
             if (elPw) elPw.value = w.password || '';
             const elBp = document.getElementById('webdavBasePath');
-            if (elBp) elBp.value = w.base_path || '/RentRecords';
+            if (elBp) elBp.value = w.base_path || '';
           }
           // S3 对象存储
           if (json.data.s3) {
             const s = json.data.s3;
-            const elEn = document.getElementById('s3Enabled');
-            if (elEn) elEn.checked = !!s.is_enabled;
             const elEp = document.getElementById('s3Endpoint');
             if (elEp) elEp.value = s.endpoint || '';
             const elBk = document.getElementById('s3Bucket');
             if (elBk) elBk.value = s.bucket || '';
             const elRg = document.getElementById('s3Region');
-            if (elRg) elRg.value = s.region || 'cn-hangzhou';
+            if (elRg) elRg.value = s.region || '';
             const elAk = document.getElementById('s3AccessKey');
             if (elAk) elAk.value = s.access_key_id || '';
             const elSk = document.getElementById('s3SecretKey');
             if (elSk) elSk.value = s.secret_access_key || '';
             const elBp = document.getElementById('s3BasePath');
-            if (elBp) elBp.value = s.base_path || 'RentHubFiles';
+            if (elBp) elBp.value = s.base_path || '';
           }
-          // 全局默认存储渠道
-          const defStorage = json.data.default_storage || 'D1_LOCAL';
-          appData.default_storage = defStorage;
-          const radio = document.querySelector('input[name="defaultStorageSetting"][value="' + defStorage + '"]');
-          if (radio) radio.checked = true;
+          // 全局存储渠道判定与云端备份二选一
+          let activeCloud = 'NONE';
+          if (json.data.default_storage === 'S3' || (json.data.s3 && json.data.s3.is_enabled)) {
+            activeCloud = 'S3';
+          } else if (json.data.default_storage === 'WEBDAV' || (json.data.webdav && json.data.webdav.is_enabled)) {
+            activeCloud = 'WEBDAV';
+          }
+          appData.default_storage = activeCloud === 'NONE' ? 'D1_LOCAL' : activeCloud;
+
+          const rNone = document.getElementById('cloudBackup_none');
+          const rWd = document.getElementById('cloudBackup_webdav');
+          const rS3 = document.getElementById('cloudBackup_s3');
+          if (activeCloud === 'S3' && rS3) rS3.checked = true;
+          else if (activeCloud === 'WEBDAV' && rWd) rWd.checked = true;
+          else if (rNone) rNone.checked = true;
+
+          toggleCloudBackupUI(activeCloud);
         }
       } catch (err) {
         console.warn('拉取系统存储设置失败:', err);
@@ -4204,7 +4258,8 @@ export function renderAppHtml(username: string): string {
     async function saveDefaultStorageSetting() {
       const btn = document.getElementById('saveDefaultStorageBtn');
       const fb = document.getElementById('defaultStorageFeedback');
-      const selected = document.querySelector('input[name="defaultStorageSetting"]:checked')?.value || 'D1_LOCAL';
+      const selected = document.querySelector('input[name="cloudBackupProvider"]:checked')?.value || 'NONE';
+      const defaultStorage = selected === 'S3' ? 'S3' : (selected === 'WEBDAV' ? 'WEBDAV' : 'D1_LOCAL');
 
       btn.innerText = '保存中...';
       btn.disabled = true;
@@ -4214,13 +4269,19 @@ export function renderAppHtml(username: string): string {
         const res = await fetch('/api/settings', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ default_storage: selected })
+          body: JSON.stringify({ default_storage: defaultStorage })
         });
         const json = await res.json();
         if (json.code === 0) {
-          appData.default_storage = selected;
+          appData.default_storage = defaultStorage;
           fb.className = 'text-xs font-bold text-[#0F5B38] dark:text-[#7CDCA0]';
-          fb.innerText = '✓ 全局默认存储渠道已更新为: ' + (selected === 'S3' ? 'S3 对象存储' : (selected === 'WEBDAV' ? 'WebDAV 云盘' : '本地 D1 数据库'));
+          if (selected === 'NONE') {
+            fb.innerText = '✓ 已设置为：仅保存在本地 D1 数据库 (未开启外部云备份)';
+          } else if (selected === 'WEBDAV') {
+            fb.innerText = '✓ 已开启 WebDAV 网盘同步备份 (本地 D1 + WebDAV 双轨运行)';
+          } else {
+            fb.innerText = '✓ 已开启 S3 对象存储同步备份 (本地 D1 + S3 双轨运行)';
+          }
         } else {
           throw new Error(json.message);
         }
@@ -4228,7 +4289,7 @@ export function renderAppHtml(username: string): string {
         fb.className = 'text-xs font-bold text-rose-500';
         fb.innerText = '✕ 保存失败: ' + err.message;
       } finally {
-        btn.innerText = '保存默认设置';
+        btn.innerText = '保存存储模式';
         btn.disabled = false;
       }
     }
@@ -4328,28 +4389,31 @@ export function renderAppHtml(username: string): string {
     }
 
     function fillPreset(type) {
+      const rWd = document.getElementById('cloudBackup_webdav');
+      if (rWd) rWd.checked = true;
+      toggleCloudBackupUI('WEBDAV');
+
       if (type === 'jianguoyun') {
         document.getElementById('webdavEndpoint').value = 'https://dav.jianguoyun.com/dav/';
         document.getElementById('webdavBasePath').value = '/RentRecords';
-        document.getElementById('webdavEnabled').checked = true;
       } else if (type === 'alist') {
         document.getElementById('webdavEndpoint').value = 'http://127.0.0.1:5244/dav/';
         document.getElementById('webdavBasePath').value = '/RentRecords';
-        document.getElementById('webdavEnabled').checked = true;
         alert('💡 AList 提示：可先在 AList 后台挂载阿里云盘、百度网盘、天翼云等，并将 Endpoint 修改为您 AList 服务的公网或内网地址。');
       } else if (type === '123pan') {
         document.getElementById('webdavEndpoint').value = 'https://open-api.123pan.com/webdav/';
         document.getElementById('webdavBasePath').value = '/RentRecords';
-        document.getElementById('webdavEnabled').checked = true;
       } else if (type === 'openlist') {
         document.getElementById('webdavEndpoint').value = 'https://your-openlist-domain/dav/';
         document.getElementById('webdavBasePath').value = '/RentRecords';
-        document.getElementById('webdavEnabled').checked = true;
       }
     }
 
     function fillS3Preset(type) {
-      document.getElementById('s3Enabled').checked = true;
+      const rS3 = document.getElementById('cloudBackup_s3');
+      if (rS3) rS3.checked = true;
+      toggleCloudBackupUI('S3');
+
       if (type === 'aliyun') {
         document.getElementById('s3Endpoint').value = 'https://oss-cn-hangzhou.aliyuncs.com';
         document.getElementById('s3Region').value = 'cn-hangzhou';
@@ -4422,14 +4486,15 @@ export function renderAppHtml(username: string): string {
       try {
         const payload = {
           s3: {
-            endpoint: document.getElementById('s3Endpoint').value,
-            bucket: document.getElementById('s3Bucket').value,
-            region: document.getElementById('s3Region').value,
-            access_key_id: document.getElementById('s3AccessKey').value,
-            secret_access_key: document.getElementById('s3SecretKey').value,
-            base_path: document.getElementById('s3BasePath').value,
-            is_enabled: document.getElementById('s3Enabled').checked,
-          }
+            endpoint: document.getElementById('s3Endpoint').value.trim(),
+            bucket: document.getElementById('s3Bucket').value.trim(),
+            region: document.getElementById('s3Region').value.trim(),
+            access_key_id: document.getElementById('s3AccessKey').value.trim(),
+            secret_access_key: document.getElementById('s3SecretKey').value.trim(),
+            base_path: document.getElementById('s3BasePath').value.trim(),
+            is_enabled: true,
+          },
+          default_storage: 'S3'
         };
         const res = await fetch('/api/settings', {
           method: 'POST',
@@ -4438,8 +4503,11 @@ export function renderAppHtml(username: string): string {
         });
         const json = await res.json();
         if (json.code === 0) {
+          appData.default_storage = 'S3';
+          const rS3 = document.getElementById('cloudBackup_s3');
+          if (rS3) rS3.checked = true;
           fb.className = 'text-xs font-bold text-[#0F5B38] dark:text-[#7CDCA0]';
-          fb.innerText = '✓ S3 对象存储配置已安全保存！';
+          fb.innerText = '✓ S3 对象存储配置已安全保存并开启同步！';
         } else {
           throw new Error(json.message);
         }
@@ -4499,12 +4567,13 @@ export function renderAppHtml(username: string): string {
       try {
         const payload = {
           webdav: {
-            endpoint: document.getElementById('webdavEndpoint').value,
-            username: document.getElementById('webdavUsername').value,
-            password: document.getElementById('webdavPassword').value,
-            base_path: document.getElementById('webdavBasePath').value,
-            is_enabled: document.getElementById('webdavEnabled').checked,
-          }
+            endpoint: document.getElementById('webdavEndpoint').value.trim(),
+            username: document.getElementById('webdavUsername').value.trim(),
+            password: document.getElementById('webdavPassword').value.trim(),
+            base_path: document.getElementById('webdavBasePath').value.trim(),
+            is_enabled: true,
+          },
+          default_storage: 'WEBDAV'
         };
         const res = await fetch('/api/settings', {
           method: 'POST',
@@ -4513,8 +4582,11 @@ export function renderAppHtml(username: string): string {
         });
         const json = await res.json();
         if (json.code === 0) {
+          appData.default_storage = 'WEBDAV';
+          const rWd = document.getElementById('cloudBackup_webdav');
+          if (rWd) rWd.checked = true;
           fb.className = 'text-xs font-bold text-[#0F5B38] dark:text-[#7CDCA0]';
-          fb.innerText = '✓ WebDAV 配置已加密保存！';
+          fb.innerText = '✓ WebDAV 网盘配置已加密保存并开启同步！';
         } else {
           throw new Error(json.message);
         }
