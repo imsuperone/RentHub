@@ -146,7 +146,7 @@ export async function handleInitAdmin(env: Env, body: any) {
   }
 
   // 构造标准 OTP Auth URL
-  const issuer = encodeURIComponent('房东管家');
+  const issuer = encodeURIComponent('RentHub');
   const account = encodeURIComponent(username.trim());
   const totpUri = `otpauth://totp/${issuer}:${account}?secret=${totpSecret}&issuer=${issuer}`;
 
@@ -450,7 +450,7 @@ export async function handlePrepare2FA(env: Env, userId: string) {
   };
 
   const bindToken = await createSessionToken(bindPayload as any, TEMP_AUTH_SALT);
-  const issuer = encodeURIComponent('房东管家');
+  const issuer = encodeURIComponent('RentHub');
   const account = encodeURIComponent(user.username);
   const totpUri = `otpauth://totp/${issuer}:${account}?secret=${totpSecret}&issuer=${issuer}`;
 
@@ -479,21 +479,18 @@ export async function handleConfirmBind2FA(env: Env, userId: string, body: any) 
   const cleanCode = String(code).trim();
   const verified = await verifyTOTP(cleanCode, payload.secret, 1);
   if (!verified) {
-    return jsonError('动态验证码错误，请检查手机验证器时间或重试', 400);
+    return jsonError('动态验证码不正确，请核对手机时间同步', 400);
   }
 
-  // 校验成功，正式写入并开启 2FA
-  await env.DB.prepare(
-    'UPDATE users SET totp_secret = ?, totp_enabled = 1, recovery_codes = ? WHERE id = ?'
-  )
+  await env.DB.prepare('UPDATE users SET totp_enabled = 1, totp_secret = ?, recovery_codes = ? WHERE id = ?')
     .bind(payload.secret, JSON.stringify(payload.recoveryCodes), userId)
     .run();
 
-  return jsonOk({ totpEnabled: true }, '2FA 动态验证绑定成功！');
+  return jsonOk({ totpEnabled: true }, '2FA 动态验证成功开启');
 }
 
 /**
- * 取消 / 关闭 2FA (需要验证当前管理员主密码)
+ * 关闭 2FA 动态口令
  */
 export async function handleDisable2FA(env: Env, userId: string, body: any) {
   const { password } = body;
@@ -519,12 +516,12 @@ export async function handleDisable2FA(env: Env, userId: string, body: any) {
 }
 
 export async function handleGet2FADetails(env: Env, userId: string) {
-  const user = (await env.DB.prepare('SELECT username, totp_secret, totp_enabled, recovery_codes FROM users WHERE id = ?')
+  const user = (await env.DB.prepare('SELECT username, totp_secret, totp_enabled, recovery_codes, recovery_email FROM users WHERE id = ?')
     .bind(userId)
-    .first()) as User | null;
+    .first()) as (User & { recovery_email?: string | null }) | null;
   if (!user) return jsonError('用户不存在', 404);
 
-  const issuer = encodeURIComponent('房东管家');
+  const issuer = encodeURIComponent('RentHub');
   const account = encodeURIComponent(user.username);
   const totpUri = `otpauth://totp/${issuer}:${account}?secret=${user.totp_secret}&issuer=${issuer}`;
 
@@ -538,7 +535,43 @@ export async function handleGet2FADetails(env: Env, userId: string) {
     totpSecret: user.totp_secret,
     totpUri,
     recoveryCodes,
+    recoveryEmail: user.recovery_email || null,
   });
+}
+
+/**
+ * 查看/换绑安全找回与提醒邮箱
+ */
+export async function handleUpdateSecurityEmail(env: Env, userId: string, body: any) {
+  const { newEmail, password } = body;
+  if (!newEmail || !String(newEmail).trim().includes('@')) {
+    return jsonError('请填写有效的安全邮箱地址', 400);
+  }
+  if (!password) {
+    return jsonError('请输入当前管理员密码以确认安全换绑', 400);
+  }
+
+  const user = (await env.DB.prepare('SELECT id, salt, password_hash FROM users WHERE id = ?')
+    .bind(userId)
+    .first()) as User | null;
+  if (!user) return jsonError('用户不存在', 404);
+
+  const isValid = await verifyPassword(password, user.salt, user.password_hash);
+  if (!isValid) {
+    return jsonError('管理员密码不正确，无法换绑邮箱', 400);
+  }
+
+  const cleanEmail = String(newEmail).trim();
+  await env.DB.prepare('UPDATE users SET recovery_email = ? WHERE id = ?')
+    .bind(cleanEmail, userId)
+    .run();
+
+  // 同步更新系统提醒接收邮箱 (system_settings)
+  await env.DB.prepare(
+    "INSERT INTO system_settings (key, value) VALUES ('notify_recipient_email', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value"
+  ).bind(cleanEmail).run();
+
+  return jsonOk({ recoveryEmail: cleanEmail }, '安全邮箱已成功换绑更新');
 }
 
 export async function handleLogout() {

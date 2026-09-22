@@ -10,7 +10,7 @@ export function renderGateHtml(isInitialized: boolean): string {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>房东管家 · 登录</title>
+  <title>RentHub · Login</title>
   <!-- 异步轻量字体，绝不阻塞渲染 -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
   <script src="https://cdn.tailwindcss.com"></script>
@@ -210,23 +210,14 @@ export function renderGateHtml(isInitialized: boolean): string {
     }
   </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4 sm:p-6">
+<body class="min-h-screen flex items-start justify-center p-4 sm:p-6 sm:py-10">
   
   <!-- 核心门禁容器 -->
   <div id="gateCard" class="m3-expressive-card w-full max-w-[540px] p-6 sm:p-8 relative overflow-hidden shadow-2xl">
 
-    <!-- 品牌与精致现代图标 (房东管家 RentHub) -->
-    <div id="brandHeader" class="flex flex-col items-center mb-5">
-      <div class="w-14 h-14 rounded-2xl bg-[#0F5B38] dark:bg-[#1A402D] text-white shadow-lg shadow-[#0F5B38]/20 flex items-center justify-center mb-2.5 ring-4 ring-emerald-100/60 dark:ring-emerald-950/50 transition-transform hover:scale-105">
-        <svg class="w-7 h-7 text-[#A6F5B9] dark:text-[#7CDCA0]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1h-5a1 1 0 01-1-1v-5H9v5a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" />
-        </svg>
-      </div>
-      <div class="flex items-center gap-2">
-        <h1 class="text-2xl font-black tracking-tight text-neutral-900 dark:text-neutral-50">房东管家</h1>
-        <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#C4EED0] dark:bg-[#1A402D] text-[#002111] dark:text-[#A6F5B9] font-mono">RentHub</span>
-      </div>
-      <p class="text-xs text-neutral-400 font-medium mt-1">出租记账 · 水电抄表 · 简单好用</p>
+    <!-- 品牌标题 (RentHub) -->
+    <div id="brandHeader" class="flex flex-col items-center mb-6">
+      <h1 class="text-3xl font-black tracking-tight text-[#006C4C] dark:text-[#2EE59D] font-mono">RentHub</h1>
     </div>
 
     <!-- 动态错误提示胶囊 (Material 3 Expressive Tonal Banner) -->
@@ -1440,6 +1431,11 @@ export function renderGateHtml(isInitialized: boolean): string {
         }
       }
     });
+
+    if ('scrollRestoration' in history) {
+      history.scrollRestoration = 'manual';
+    }
+    window.scrollTo(0, 0);
   </script>
 </body>
 </html>`;

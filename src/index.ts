@@ -17,6 +17,7 @@ import {
   handlePrepare2FA,
   handleConfirmBind2FA,
   handleDisable2FA,
+  handleUpdateSecurityEmail,
   handleLogout,
   checkSessionFromCookie,
   handleSendInitVerifyCode,
@@ -206,6 +207,11 @@ app.post('/api/auth/disable-2fa', async (c) => {
   const body = await c.req.json();
   const userId = c.get('userId' as never) as string;
   return handleDisable2FA(c.env, userId, body);
+});
+app.post('/api/auth/update-email', async (c) => {
+  const body = await c.req.json();
+  const userId = c.get('userId' as never) as string;
+  return handleUpdateSecurityEmail(c.env, userId, body);
 });
 
 // ==================== 聚合仪表盘路由 (极限节省配额) ====================

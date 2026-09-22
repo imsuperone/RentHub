@@ -10,7 +10,7 @@ export function renderAppHtml(username: string): string {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>房东管家 · 出租记账与水电抄表</title>
+  <title>RentHub</title>
   <!-- 异步轻量字体，绝不阻塞国内网络渲染 -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
   <script src="https://cdn.tailwindcss.com"></script>
@@ -259,20 +259,9 @@ export function renderAppHtml(username: string): string {
 <body class="min-h-screen flex flex-col pb-28 md:pb-12">
 
   <!-- ==================== 顶部品牌与导航栏 ==================== -->
-  <header class="sticky top-0 z-30 bg-[#F1F5F2]/95 dark:bg-[#0F1512]/95 border-b border-[#D7DED9]/60 dark:border-[#26312B]/60 px-4 md:px-8 py-3 flex items-center justify-between transition-colors shadow-sm">
-    <div class="flex items-center gap-2.5">
-      <div class="w-8 h-8 rounded-xl bg-[#0F5B38] dark:bg-[#1A402D] text-white flex items-center justify-center shadow-sm">
-        <svg class="w-4.5 h-4.5 text-[#A6F5B9]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1h-5a1 1 0 01-1-1v-5H9v5a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" />
-        </svg>
-      </div>
-      <div>
-        <div class="flex items-center gap-1.5">
-          <h1 class="text-base font-extrabold tracking-tight">房东管家</h1>
-          <span class="text-[10px] font-bold px-1.5 py-0.2 rounded-md bg-[#C4EED0] dark:bg-[#1A402D] text-[#002111] dark:text-[#A6F5B9] font-mono">RentHub</span>
-        </div>
-        <p class="text-[10px] text-neutral-400 font-medium">出租记账 · 水电抄表 · 简单好用</p>
-      </div>
+  <header class="sticky top-0 z-30 bg-[#F1F5F2]/95 dark:bg-[#0F1512]/95 border-b border-[#D7DED9]/60 dark:border-[#26312B]/60 px-4 md:px-8 py-3.5 flex items-center justify-between transition-colors shadow-sm">
+    <div class="flex items-center">
+      <h1 class="text-xl font-black tracking-tight text-[#0F5B38] dark:text-[#7CDCA0] font-mono">RentHub</h1>
     </div>
     
     <!-- 右侧：桌面端胶囊标签页 + 显示密度切换 + 2FA 盾牌胶囊 + 退出 -->
@@ -1051,13 +1040,14 @@ export function renderAppHtml(username: string): string {
                     <div class="flex items-center justify-between mb-1">
                       <label class="text-xs font-bold text-neutral-600 dark:text-neutral-400">邮件 HTML 正文</label>
                       <div class="flex items-center gap-1 flex-wrap text-[10px]">
-                        <span class="text-neutral-400">插入变量：</span>
-                        <button type="button" onclick="insertTplVar('notifyTemplateRentBody', '{{房源名称}}')" class="px-1.5 py-0.5 bg-[#E8EDE9] dark:bg-[#161D1A] rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 font-mono">{{房源名称}}</button>
-                        <button type="button" onclick="insertTplVar('notifyTemplateRentBody', '{{承租人}}')" class="px-1.5 py-0.5 bg-[#E8EDE9] dark:bg-[#161D1A] rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 font-mono">{{承租人}}</button>
-                        <button type="button" onclick="insertTplVar('notifyTemplateRentBody', '{{应交租金}}')" class="px-1.5 py-0.5 bg-[#E8EDE9] dark:bg-[#161D1A] rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 font-mono">{{应交租金}}</button>
-                        <button type="button" onclick="insertTplVar('notifyTemplateRentBody', '{{交租截止日}}')" class="px-1.5 py-0.5 bg-[#E8EDE9] dark:bg-[#161D1A] rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 font-mono">{{交租截止日}}</button>
-                        <button type="button" onclick="insertTplVar('notifyTemplateRentBody', '{{状态描述}}')" class="px-1.5 py-0.5 bg-[#E8EDE9] dark:bg-[#161D1A] rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 font-mono">{{状态描述}}</button>
-                        <button type="button" onclick="insertTplVar('notifyTemplateRentBody', '{{房东电话}}')" class="px-1.5 py-0.5 bg-[#E8EDE9] dark:bg-[#161D1A] rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 font-mono">{{房东电话}}</button>
+                        <span class="text-neutral-400">Variables:</span>
+                        <button type="button" onclick="insertTplVar('notifyTemplateRentBody', '{{property_title}}')" class="px-1.5 py-0.5 bg-[#E8EDE9] dark:bg-[#161D1A] rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 font-mono">{{property_title}}</button>
+                        <button type="button" onclick="insertTplVar('notifyTemplateRentBody', '{{tenant_name}}')" class="px-1.5 py-0.5 bg-[#E8EDE9] dark:bg-[#161D1A] rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 font-mono">{{tenant_name}}</button>
+                        <button type="button" onclick="insertTplVar('notifyTemplateRentBody', '{{rent_amount}}')" class="px-1.5 py-0.5 bg-[#E8EDE9] dark:bg-[#161D1A] rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 font-mono">{{rent_amount}}</button>
+                        <button type="button" onclick="insertTplVar('notifyTemplateRentBody', '{{due_date}}')" class="px-1.5 py-0.5 bg-[#E8EDE9] dark:bg-[#161D1A] rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 font-mono">{{due_date}}</button>
+                        <button type="button" onclick="insertTplVar('notifyTemplateRentBody', '{{status_desc}}')" class="px-1.5 py-0.5 bg-[#E8EDE9] dark:bg-[#161D1A] rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 font-mono">{{status_desc}}</button>
+                        <button type="button" onclick="insertTplVar('notifyTemplateRentBody', '{{lease_period}}')" class="px-1.5 py-0.5 bg-[#E8EDE9] dark:bg-[#161D1A] rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 font-mono">{{lease_period}}</button>
+                        <button type="button" onclick="insertTplVar('notifyTemplateRentBody', '{{address}}')" class="px-1.5 py-0.5 bg-[#E8EDE9] dark:bg-[#161D1A] rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 font-mono">{{address}}</button>
                       </div>
                     </div>
                     <textarea id="notifyTemplateRentBody" rows="7" class="m3-input w-full text-xs font-mono" oninput="updateTemplatePreview()"></textarea>
@@ -1074,11 +1064,11 @@ export function renderAppHtml(username: string): string {
                     <div class="flex items-center justify-between mb-1">
                       <label class="text-xs font-bold text-neutral-600 dark:text-neutral-400">邮件 HTML 正文</label>
                       <div class="flex items-center gap-1 flex-wrap text-[10px]">
-                        <span class="text-neutral-400">插入变量：</span>
-                        <button type="button" onclick="insertTplVar('notifyTemplateUtilityBody', '{{房源名称}}')" class="px-1.5 py-0.5 bg-[#E8EDE9] dark:bg-[#161D1A] rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 font-mono">{{房源名称}}</button>
-                        <button type="button" onclick="insertTplVar('notifyTemplateUtilityBody', '{{承租人}}')" class="px-1.5 py-0.5 bg-[#E8EDE9] dark:bg-[#161D1A] rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 font-mono">{{承租人}}</button>
-                        <button type="button" onclick="insertTplVar('notifyTemplateUtilityBody', '{{欠款金额}}')" class="px-1.5 py-0.5 bg-[#E8EDE9] dark:bg-[#161D1A] rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 font-mono">{{欠款金额}}</button>
-                        <button type="button" onclick="insertTplVar('notifyTemplateUtilityBody', '{{用量明细}}')" class="px-1.5 py-0.5 bg-[#E8EDE9] dark:bg-[#161D1A] rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 font-mono">{{用量明细}}</button>
+                        <span class="text-neutral-400">Variables:</span>
+                        <button type="button" onclick="insertTplVar('notifyTemplateUtilityBody', '{{property_title}}')" class="px-1.5 py-0.5 bg-[#E8EDE9] dark:bg-[#161D1A] rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 font-mono">{{property_title}}</button>
+                        <button type="button" onclick="insertTplVar('notifyTemplateUtilityBody', '{{tenant_name}}')" class="px-1.5 py-0.5 bg-[#E8EDE9] dark:bg-[#161D1A] rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 font-mono">{{tenant_name}}</button>
+                        <button type="button" onclick="insertTplVar('notifyTemplateUtilityBody', '{{unpaid_amount}}')" class="px-1.5 py-0.5 bg-[#E8EDE9] dark:bg-[#161D1A] rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 font-mono">{{unpaid_amount}}</button>
+                        <button type="button" onclick="insertTplVar('notifyTemplateUtilityBody', '{{usage_details}}')" class="px-1.5 py-0.5 bg-[#E8EDE9] dark:bg-[#161D1A] rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 font-mono">{{usage_details}}</button>
                       </div>
                     </div>
                     <textarea id="notifyTemplateUtilityBody" rows="7" class="m3-input w-full text-xs font-mono" oninput="updateTemplatePreview()"></textarea>
@@ -1129,6 +1119,19 @@ export function renderAppHtml(username: string): string {
                   <p id="settings2FADesc" class="text-neutral-400 mt-0.5">开启后登录需输入手机验证码，提升账号安全性</p>
                 </div>
                 <div class="flex items-center gap-2" id="settings2FAActionBtns"></div>
+              </div>
+
+              <!-- 安全与通知邮箱 -->
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between py-3 border-b border-[#E8EDE9] dark:border-[#26312B]/60 text-xs gap-3">
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span class="font-bold">安全与通知邮箱：<span id="settingsSecurityEmailDisplay" class="text-[#0F5B38] dark:text-[#7CDCA0] font-mono">加载中...</span></span>
+                  </div>
+                  <p class="text-neutral-400 mt-0.5">用于接收每日交租提醒、水电账单及密码找回</p>
+                </div>
+                <button type="button" onclick="openUpdateSecurityEmailModal()" class="m3-pill px-4 py-2 bg-[#E8EDE9] dark:bg-[#161D1A] hover:opacity-90 font-bold transition-all self-start sm:self-auto">
+                  查看 / 换绑邮箱
+                </button>
               </div>
 
               <div class="flex items-center justify-between py-2 text-xs">
@@ -1915,6 +1918,36 @@ export function renderAppHtml(username: string): string {
 
       <button onclick="submitChangePassword()" id="changePassBtn" class="m3-pill w-full py-3.5 bg-[#0F5B38] dark:bg-[#7CDCA0] text-white dark:text-[#00391F] font-bold text-xs shadow-md hover:opacity-95">
         确认修改
+      </button>
+    </div>
+  </div>
+
+  <!-- ==================== 弹窗：查看 / 换绑安全邮箱 ==================== -->
+  <div id="updateSecurityEmailModal" class="hidden fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="m3-sheet bg-white dark:bg-[#1A211D] w-full max-w-lg sm:max-w-xl rounded-t-[36px] sm:rounded-[36px] p-6 sm:p-9 space-y-5 shadow-2xl">
+      <div class="w-12 h-1.5 rounded-full bg-neutral-300 dark:bg-neutral-600 mx-auto"></div>
+      <div class="flex items-center justify-between pb-1 border-b border-[#E8EDE9] dark:border-[#26312B]/60">
+        <h3 class="text-sm font-extrabold">安全与通知邮箱</h3>
+        <button onclick="closeModal('updateSecurityEmailModal')" class="w-7 h-7 rounded-full bg-[#E8EDE9] dark:bg-[#161D1A] text-neutral-400 font-bold flex items-center justify-center text-xs">✕</button>
+      </div>
+
+      <div class="p-3.5 rounded-2xl bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-200/50 dark:border-emerald-900/30 text-emerald-900 dark:text-emerald-200 text-xs leading-relaxed">
+        <strong>说明：</strong>绑定此邮箱后，系统将自动向该邮箱投递每日交租提醒、水电欠费催缴，并在忘记密码时作为接收验证凭据的通道。
+      </div>
+
+      <div class="space-y-3.5 text-xs">
+        <div>
+          <label class="block font-bold text-neutral-600 dark:text-neutral-300 mb-1 px-1">安全与提醒接收邮箱</label>
+          <input type="email" id="secNewEmailInput" placeholder="例如: landlord@example.com" class="m3-input w-full text-sm font-semibold">
+        </div>
+        <div>
+          <label class="block font-bold text-neutral-600 dark:text-neutral-300 mb-1 px-1">管理员登录密码</label>
+          <input type="password" id="secPasswordInput" placeholder="输入当前登录密码以核验身份" class="m3-input w-full text-sm">
+        </div>
+      </div>
+
+      <button onclick="submitUpdateSecurityEmail()" id="secEmailSubmitBtn" class="m3-pill w-full py-3.5 bg-[#0F5B38] dark:bg-[#7CDCA0] text-white dark:text-[#00391F] font-bold text-xs shadow-md hover:opacity-95">
+        确认保存邮箱
       </button>
     </div>
   </div>
@@ -2756,7 +2789,24 @@ export function renderAppHtml(username: string): string {
       const l = appData.leases.find(item => item.id === leaseId);
       if (!l) return;
       const cycleText = l.pay_cycle_months == 12 ? '年付' : l.pay_cycle_months == 6 ? '半年付' : l.pay_cycle_months == 1 ? '月付' : '季付';
-      const text = \`【房租交费提醒】\\n\${l.tenant_name || '租客'}您好，近期房租即将到期，提醒您注意交租，明细如下：\\n・ 房源：\${l.title}\\n・ 租金标准：¥\${l.rent_amount} / 月 (\${cycleText})\\n・ 交租日期：\${l.next_pay_date || '近期到期'}\\n・ 水电标准：电费 ¥\${l.meter_electric_price || 1.0}/度，水费 ¥\${l.meter_water_price || 3.5}/吨\\n转账后麻烦发一下截图方便记账核销，祝生活愉快，谢谢配合！\`;
+      let statusHint = '提醒您注意交租';
+      if (l.next_pay_date) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const pDate = new Date(l.next_pay_date);
+        pDate.setHours(0, 0, 0, 0);
+        const diffDays = Math.round((pDate.getTime() - today.getTime()) / 86400000);
+        if (diffDays < 0) {
+          statusHint = \`您的房租已逾期 \${Math.abs(diffDays)} 天，请尽快补缴\`;
+        } else if (diffDays === 0) {
+          statusHint = '今日为交租截止日，提醒您注意交租';
+        } else if (diffDays <= 7) {
+          statusHint = \`房租还剩 \${diffDays} 天到期，提醒您注意交租\`;
+        } else {
+          statusHint = \`下期交租日为 \${l.next_pay_date}（距今约 \${diffDays} 天），特此同步租约明细\`;
+        }
+      }
+      const text = \`【房租交费提醒】\\n\${l.tenant_name || '租客'}您好，\${statusHint}，明细如下：\\n・ 房源：\${l.title}\\n・ 租金标准：¥\${l.rent_amount} / 月 (\${cycleText})\\n・ 交租日期：\${l.next_pay_date || '未设置'}\\n・ 水电标准：电费 ¥\${l.meter_electric_price || 1.0}/度，水费 ¥\${l.meter_water_price || 3.5}/吨\\n转账后麻烦发一下截图方便记账核销，祝生活愉快，谢谢配合！\`;
       
       navigator.clipboard.writeText(text).then(() => {
         alert('✓ 已复制交租提醒！可以直接粘贴发送给租客。');
@@ -2800,8 +2850,13 @@ export function renderAppHtml(username: string): string {
         const d = String(newEnd.getDate()).padStart(2, '0');
         document.getElementById('renewNewEndDate').value = \`\${y}-\${m}-\${d}\`;
 
-        // 下次收租日默认设为原到期日或当天
-        document.getElementById('renewNewPayDate').value = l.end_date;
+        // 计算续约后的下次收租日：若原下次收租日在未来则保持，若已过期则合理推算
+        const todayStr = new Date().toISOString().slice(0, 10);
+        let targetPayDate = l.next_pay_date;
+        if (!targetPayDate || targetPayDate < todayStr) {
+          targetPayDate = (l.end_date && l.end_date >= todayStr) ? l.end_date : todayStr;
+        }
+        document.getElementById('renewNewPayDate').value = targetPayDate;
       }
     }
 
@@ -4087,18 +4142,30 @@ export function renderAppHtml(username: string): string {
       if (!previewFrame) return;
 
       const sampleVars = {
-        '房源名称': '望京SOHO 3-2-501',
-        '房源地址': '北京市朝阳区阜通东大街 1 号院',
-        '承租人': '张三先生',
+        '房源名称': 'No.302 Sunshine Garden',
+        '房源地址': '128 Haidian St, Beijing',
+        '承租人': 'Alex Smith',
         '承租人手机': '13800138000',
         '租期范围': '2026-01-01 ~ 2027-01-01',
         '应交租金': '3800.00',
         '交租截止日': '2026-10-01',
-        '状态描述': '距交租还有 8 天',
+        '状态描述': 'Due in 8 days',
         '房东电话': '13988886666',
         '欠款金额': '168.50',
         '结算日期': new Date().toISOString().slice(0, 10),
-        '用量明细': '电费抄表：上次 1200 度，实抄 1350 度 (用量 150 度 × ¥1.0/度)'
+        '用量明细': 'Electricity 150 kWh × ¥1.0; Water ¥18.50',
+        'property_title': 'No.302 Sunshine Garden',
+        'address': '128 Haidian St, Beijing',
+        'tenant_name': 'Alex Smith',
+        'tenant_phone': '13800138000',
+        'lease_period': '2026-01-01 ~ 2027-01-01',
+        'rent_amount': '3800.00',
+        'due_date': '2026-10-01',
+        'status_desc': 'Due in 8 days',
+        'landlord_phone': '13988886666',
+        'unpaid_amount': '168.50',
+        'settle_date': new Date().toISOString().slice(0, 10),
+        'usage_details': 'Electricity 150 kWh × ¥1.0; Water ¥18.50'
       };
 
       const rawHtml = (currentTplTab === 'rent'
@@ -4114,13 +4181,13 @@ export function renderAppHtml(username: string): string {
     }
 
     const SETTINGS_SMTP_PRESETS = {
-      qq: { host: 'smtp.qq.com', port: 465, secure: true, fromName: '房东管家' },
-      '163': { host: 'smtp.163.com', port: 465, secure: true, fromName: '房东管家' },
-      '126': { host: 'smtp.126.com', port: 465, secure: true, fromName: '房东管家' },
-      foxmail: { host: 'smtp.exmail.qq.com', port: 465, secure: true, fromName: '房东管家' },
-      qiye163: { host: 'smtphz.qiye.163.com', port: 465, secure: true, fromName: '房东管家' },
-      gmail: { host: 'smtp.gmail.com', port: 465, secure: true, fromName: '房东管家' },
-      outlook: { host: 'smtp.office365.com', port: 587, secure: false, fromName: '房东管家' }
+      qq: { host: 'smtp.qq.com', port: 465, secure: true, fromName: 'RentHub' },
+      '163': { host: 'smtp.163.com', port: 465, secure: true, fromName: 'RentHub' },
+      '126': { host: 'smtp.126.com', port: 465, secure: true, fromName: 'RentHub' },
+      foxmail: { host: 'smtp.exmail.qq.com', port: 465, secure: true, fromName: 'RentHub' },
+      qiye163: { host: 'smtphz.qiye.163.com', port: 465, secure: true, fromName: 'RentHub' },
+      gmail: { host: 'smtp.gmail.com', port: 465, secure: true, fromName: 'RentHub' },
+      outlook: { host: 'smtp.office365.com', port: 587, secure: false, fromName: 'RentHub' }
     };
 
     function applySettingsSmtpPreset(key) {
@@ -4797,6 +4864,61 @@ export function renderAppHtml(username: string): string {
       }
     }
 
+    function openUpdateSecurityEmailModal() {
+      const cur = document.getElementById('settingsSecurityEmailDisplay')?.innerText;
+      document.getElementById('secNewEmailInput').value = (cur && cur !== '未绑定' && !cur.includes('...')) ? cur : '';
+      document.getElementById('secPasswordInput').value = '';
+      openModal('updateSecurityEmailModal');
+    }
+
+    async function submitUpdateSecurityEmail() {
+      const newEmail = document.getElementById('secNewEmailInput').value.trim();
+      const currentPassword = document.getElementById('secPasswordInput').value;
+      if (!newEmail) return alert('请输入有效的安全与通知邮箱');
+      if (!currentPassword) return alert('请输入管理员密码以核验身份');
+
+      const btn = document.getElementById('secEmailSubmitBtn');
+      btn.innerText = '正在保存...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/auth/update-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ newEmail, currentPassword })
+        });
+        const json = await res.json();
+        if (json.code === 0) {
+          alert('🎉 安全与通知邮箱已成功保存并同步！');
+          closeModal('updateSecurityEmailModal');
+          const disp = document.getElementById('settingsSecurityEmailDisplay');
+          if (disp) disp.innerText = newEmail;
+          const notifyRec = document.getElementById('notifyRecipientEmail');
+          if (notifyRec) notifyRec.value = newEmail;
+        } else {
+          alert(json.message || '保存失败');
+        }
+      } catch (err) {
+        alert('保存失败: ' + err.message);
+      } finally {
+        btn.innerText = '确认保存邮箱';
+        btn.disabled = false;
+      }
+    }
+
+    async function loadSecurityDetails() {
+      try {
+        const res = await fetch('/api/auth/2fa-details');
+        const json = await res.json();
+        if (json.code === 0 && json.data) {
+          const emailEl = document.getElementById('settingsSecurityEmailDisplay');
+          if (emailEl) {
+            emailEl.innerText = json.data.recovery_email || '未绑定';
+          }
+        }
+      } catch (_) {}
+    }
+
     async function view2FADetails() {
       try {
         const res = await fetch('/api/auth/2fa-info');
@@ -4837,6 +4959,7 @@ export function renderAppHtml(username: string): string {
     let currentBindSecret = '';
 
     function render2FAStatusUI() {
+      loadSecurityDetails();
       const badge = document.getElementById('settings2FABadge');
       const desc = document.getElementById('settings2FADesc');
       const actionBox = document.getElementById('settings2FAActionBtns');
@@ -5070,6 +5193,9 @@ export function renderAppHtml(username: string): string {
         }
       });
 
+      if (secId === 'security') {
+        loadSecurityDetails();
+      }
       if (secId === 'database') {
         inspectDatabaseTable(currentInspectTable || 'leases');
       }
@@ -5144,6 +5270,10 @@ export function renderAppHtml(username: string): string {
     }
 
     window.addEventListener('DOMContentLoaded', () => {
+      if ('scrollRestoration' in history) {
+        history.scrollRestoration = 'manual';
+      }
+      window.scrollTo(0, 0);
       initDensity();
       switchTab('dashboard');
       loadDashboard();

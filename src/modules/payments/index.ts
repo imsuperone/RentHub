@@ -92,10 +92,20 @@ export async function handleCreatePayment(env: Env, body: any) {
 
   const batchStmts = [insertStmt];
 
-  // 如果传入了新的下次交租日期，原子同步更新租约
+  // 如果传入了新的下次交租日期，原子同步更新租约：
+  // 1. 同步更新下次收租日
+  // 2. 若下次收租日已超过原合同到期日，自动将合同到期日顺延至下次交租日，彻底避免收租后出现“合同超期/到期”的逻辑冲突
+  // 3. 将房源状态确保恢复为 ACTIVE (在租)
   if (next_pay_date) {
     batchStmts.push(
-      env.DB.prepare('UPDATE leases SET next_pay_date = ? WHERE id = ?').bind(next_pay_date, lease_id)
+      env.DB.prepare(
+        `UPDATE leases 
+         SET next_pay_date = ?,
+             end_date = CASE WHEN end_date < ? THEN ? ELSE end_date END,
+             status = CASE WHEN status = 'TERMINATED' THEN 'TERMINATED' ELSE 'ACTIVE' END,
+             updated_at = datetime('now')
+         WHERE id = ?`
+      ).bind(next_pay_date, next_pay_date, next_pay_date, lease_id)
     );
   }
 

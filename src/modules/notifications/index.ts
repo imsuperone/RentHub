@@ -22,41 +22,42 @@ const DEFAULT_SETTINGS: NotificationSettings = {
   notifyDaysBefore: '7,3,1',
   notifyOnDueDay: true,
   notifyOnOverdue: true,
-  templateRentTitle: '【待收租提醒】您的房源「{{房源名称}}」租金即将到期 ({{状态描述}})',
+  templateRentTitle: '[RentHub] Rent Due Notice: {{property_title}} ({{status_desc}})',
   templateRentBody: `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 580px; margin: 0 auto; padding: 24px; border: 1px solid #e0e0e0; border-radius: 16px; background-color: #ffffff;">
   <div style="border-bottom: 2px solid #0F5B38; padding-bottom: 12px; margin-bottom: 18px;">
-    <h2 style="color: #0F5B38; margin: 0; font-size: 20px;">🏠 待收房租提醒</h2>
-    <p style="color: #888; font-size: 12px; margin: 4px 0 0 0;">房东收租提醒 · 账目清晰</p>
+    <h2 style="color: #0F5B38; margin: 0; font-size: 20px;">🏠 Rent Due Reminder</h2>
+    <p style="color: #888; font-size: 12px; margin: 4px 0 0 0;">RentHub · Property Management</p>
   </div>
-  <p style="font-size: 15px; color: #333;">房东您好：</p>
-  <p style="font-size: 14px; color: #555; line-height: 1.6;">您的出租房源 <strong>{{房源名称}}</strong>（地址：{{房源地址}}）即将到达交租日，请注意查收租金：</p>
+  <p style="font-size: 14px; color: #333;">Hello Landlord,</p>
+  <p style="font-size: 14px; color: #555; line-height: 1.6;">Rent collection for <strong>{{property_title}}</strong> ({{address}}) is due:</p>
   <div style="background-color: #f1f8f4; border-radius: 12px; padding: 16px; margin: 16px 0; text-align: center;">
-    <div style="font-size: 13px; color: #666;">本期应收租金</div>
-    <div style="font-size: 28px; font-weight: 800; color: #0F5B38; margin: 4px 0;">¥ {{应交租金}}</div>
-    <div style="font-size: 13px; font-weight: bold; color: #c5221f;">交租日期：{{交租截止日}} ({{状态描述}})</div>
+    <div style="font-size: 12px; color: #666;">Amount Due</div>
+    <div style="font-size: 28px; font-weight: 800; color: #0F5B38; margin: 4px 0;">¥ {{rent_amount}}</div>
+    <div style="font-size: 13px; font-weight: bold; color: #c5221f;">Due Date: {{due_date}} ({{status_desc}})</div>
   </div>
   <table style="width: 100%; font-size: 13px; color: #666; border-collapse: collapse; margin: 16px 0;">
-    <tr><td style="padding: 6px 0; width: 80px;">租客：</td><td style="color: #333; font-weight: bold;">{{承租人}} ({{承租人手机}})</td></tr>
-    <tr><td style="padding: 6px 0;">租期：</td><td style="color: #333;">{{租期范围}}</td></tr>
+    <tr><td style="padding: 6px 0; width: 100px;">Tenant:</td><td style="color: #333; font-weight: bold;">{{tenant_name}} ({{tenant_phone}})</td></tr>
+    <tr><td style="padding: 6px 0;">Lease Period:</td><td style="color: #333;">{{lease_period}}</td></tr>
   </table>
   <div style="border-top: 1px dashed #ddd; padding-top: 14px; font-size: 12px; color: #888; line-height: 1.5;">
-    • 收到租金后，可在系统中点击【收房租】进行记录并顺延下次交租日。
+    • Once received, mark as collected in RentHub to roll over to the next billing cycle.
   </div>
 </div>`,
-  templateUtilityTitle: '【水电待收提醒】您的房源「{{房源名称}}」有未结清费用',
+  templateUtilityTitle: '[RentHub] Utility Bill Notice: {{property_title}} Outstanding Fees',
   templateUtilityBody: `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 580px; margin: 0 auto; padding: 24px; border: 1px solid #e0e0e0; border-radius: 16px; background-color: #ffffff;">
   <div style="border-bottom: 2px solid #0F5B38; padding-bottom: 12px; margin-bottom: 18px;">
-    <h2 style="color: #0F5B38; margin: 0; font-size: 20px;">⚡ 水电杂费待收提醒</h2>
+    <h2 style="color: #0F5B38; margin: 0; font-size: 20px;">⚡ Utility Bill Reminder</h2>
+    <p style="color: #888; font-size: 12px; margin: 4px 0 0 0;">RentHub · Property Management</p>
   </div>
-  <p style="font-size: 15px; color: #333;">房东您好：</p>
-  <p style="font-size: 14px; color: #555; line-height: 1.6;">您的出租房源 <strong>{{房源名称}}</strong> 产生了待结清的水电杂费，请注意跟进：</p>
+  <p style="font-size: 14px; color: #333;">Hello Landlord,</p>
+  <p style="font-size: 14px; color: #555; line-height: 1.6;">There is an outstanding utility fee for <strong>{{property_title}}</strong>:</p>
   <div style="background-color: #fff8f6; border-radius: 12px; padding: 16px; margin: 16px 0; border: 1px solid #fed7d7;">
-    <div style="font-size: 13px; color: #742a2a;">待收金额合计</div>
-    <div style="font-size: 26px; font-weight: 800; color: #c53030; margin: 4px 0;">¥ {{欠款金额}}</div>
-    <div style="font-size: 13px; color: #4a5568;">租客：{{承租人}} | 明细：{{用量明细}}</div>
+    <div style="font-size: 12px; color: #742a2a;">Unpaid Amount</div>
+    <div style="font-size: 26px; font-weight: 800; color: #c53030; margin: 4px 0;">¥ {{unpaid_amount}}</div>
+    <div style="font-size: 13px; color: #4a5568;">Tenant: {{tenant_name}} | Details: {{usage_details}}</div>
   </div>
   <div style="border-top: 1px dashed #ddd; padding-top: 14px; font-size: 12px; color: #888; line-height: 1.5;">
-    • 租客付款后，在账单列表中点击【结清】即可完成记录。
+    • Once tenant settles the payment, mark as settled in RentHub.
   </div>
 </div>`
 };
@@ -287,18 +288,30 @@ export async function handleSendTestNotification(env: Env, body: any) {
   }
 
   const sampleVars = {
-    房源名称: '望京SOHO 3-2-501',
-    房源地址: '北京市朝阳区阜通东大街 1 号',
-    承租人: '李先生',
+    房源名称: 'No.302 Sunshine Garden',
+    房源地址: '128 Haidian St, Beijing',
+    承租人: 'Alex Smith',
     承租人手机: '13800138000',
     租期范围: '2026-01-01 ~ 2027-01-01',
     应交租金: '6500',
     交租截止日: '2026-10-01',
-    状态描述: '距交租还有 8 天',
+    状态描述: 'Due in 8 days',
     房东电话: '13988886666',
     欠款金额: '168.50',
     结算日期: new Date().toISOString().slice(0, 10),
-    用量明细: '电表上次 100 度，本次 250 度 (用量 150度 × ¥1.0)；水费 18.5元',
+    用量明细: 'Electricity 150 kWh × ¥1.0; Water ¥18.50',
+    property_title: 'No.302 Sunshine Garden',
+    address: '128 Haidian St, Beijing',
+    tenant_name: 'Alex Smith',
+    tenant_phone: '13800138000',
+    lease_period: '2026-01-01 ~ 2027-01-01',
+    rent_amount: '6500',
+    due_date: '2026-10-01',
+    status_desc: 'Due in 8 days',
+    landlord_phone: '13988886666',
+    unpaid_amount: '168.50',
+    settle_date: new Date().toISOString().slice(0, 10),
+    usage_details: 'Electricity 150 kWh × ¥1.0; Water ¥18.50',
   };
 
   const isUtility = type === 'utility';
@@ -381,6 +394,15 @@ export async function handleTriggerNotificationCheck(env: Env) {
         交租截止日: lease.next_pay_date || '',
         状态描述: statusDesc,
         房东电话: lease.landlord_phone || '见租房合同',
+        property_title: lease.title || '',
+        address: lease.address || 'N/A',
+        tenant_name: lease.tenant_name || 'Tenant',
+        tenant_phone: lease.tenant_phone || '',
+        lease_period: `${lease.start_date} ~ ${lease.end_date}`,
+        rent_amount: String(lease.rent_amount || 0),
+        due_date: lease.next_pay_date || '',
+        status_desc: statusDesc,
+        landlord_phone: lease.landlord_phone || 'See Lease Agreement',
       };
 
       const title = renderTemplate(settings.templateRentTitle, vars);
@@ -411,6 +433,10 @@ export async function handleTriggerNotificationCheck(env: Env) {
         承租人: pmt.tenant_name || '租客',
         欠款金额: String(pmt.amount || 0),
         用量明细: pmt.remark || '抄表结算费用',
+        property_title: pmt.lease_title || 'Property',
+        tenant_name: pmt.tenant_name || 'Tenant',
+        unpaid_amount: String(pmt.amount || 0),
+        usage_details: pmt.remark || 'Utility settlement fees',
       };
 
       const title = renderTemplate(settings.templateUtilityTitle, vars);
