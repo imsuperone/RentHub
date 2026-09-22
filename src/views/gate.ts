@@ -305,7 +305,7 @@ export function renderGateHtml(isInitialized: boolean): string {
         </div>
       </div>
 
-      <!-- 📧 安全找回凭据 2: SMTP 邮箱服务配置与实测 (折叠可选，配置项全) -->
+      <!-- 📧 安全找回凭据 2: 邮件服务配置与实测 (支持 Resend API 与 SMTP) -->
       <details id="initEmailDetails" class="p-4 rounded-[24px] bg-[#E8EDE9]/50 dark:bg-[#161D1A]/50 border border-[#D7DED9]/70 dark:border-[#26312B]/70 text-xs">
         <summary class="font-bold flex items-center justify-between cursor-pointer select-none text-neutral-800 dark:text-neutral-200">
           <span class="flex items-center gap-1.5">
@@ -319,68 +319,116 @@ export function renderGateHtml(isInitialized: boolean): string {
             配置发信邮箱后，系统可在房租/水电到期时给您发邮件提醒，忘记密码时也可向您的邮箱发送验证码找回。
           </p>
 
-          <!-- 主流邮箱快捷预设芯片 -->
-          <div>
-            <div class="flex items-center justify-between mb-1.5 px-0.5">
-              <label class="text-[10px] font-bold text-neutral-500 dark:text-neutral-400">一键预设主流邮箱：</label>
-              <span class="text-[10px] text-neutral-400">点击自动填充服务器与端口</span>
-            </div>
-            <div class="flex items-center gap-1.5 flex-wrap">
-              <button type="button" onclick="applyInitSmtpPreset('qq')" class="px-2.5 py-1 rounded-full bg-[#E8EDE9] dark:bg-[#242C27] text-neutral-700 dark:text-neutral-200 hover:bg-[#DFE5E0] font-bold text-[11px] transition-colors">QQ邮箱</button>
-              <button type="button" onclick="applyInitSmtpPreset('163')" class="px-2.5 py-1 rounded-full bg-[#E8EDE9] dark:bg-[#242C27] text-neutral-700 dark:text-neutral-200 hover:bg-[#DFE5E0] font-bold text-[11px] transition-colors">163网易</button>
-              <button type="button" onclick="applyInitSmtpPreset('126')" class="px-2.5 py-1 rounded-full bg-[#E8EDE9] dark:bg-[#242C27] text-neutral-700 dark:text-neutral-200 hover:bg-[#DFE5E0] font-bold text-[11px] transition-colors">126邮箱</button>
-              <button type="button" onclick="applyInitSmtpPreset('foxmail')" class="px-2.5 py-1 rounded-full bg-[#E8EDE9] dark:bg-[#242C27] text-neutral-700 dark:text-neutral-200 hover:bg-[#DFE5E0] font-bold text-[11px] transition-colors">腾讯企业邮</button>
-              <button type="button" onclick="applyInitSmtpPreset('qiye163')" class="px-2.5 py-1 rounded-full bg-[#E8EDE9] dark:bg-[#242C27] text-neutral-700 dark:text-neutral-200 hover:bg-[#DFE5E0] font-bold text-[11px] transition-colors">网易企业邮</button>
-              <button type="button" onclick="applyInitSmtpPreset('gmail')" class="px-2.5 py-1 rounded-full bg-[#E8EDE9] dark:bg-[#242C27] text-neutral-700 dark:text-neutral-200 hover:bg-[#DFE5E0] font-bold text-[11px] transition-colors">Gmail</button>
-              <button type="button" onclick="applyInitSmtpPreset('outlook')" class="px-2.5 py-1 rounded-full bg-[#E8EDE9] dark:bg-[#242C27] text-neutral-700 dark:text-neutral-200 hover:bg-[#DFE5E0] font-bold text-[11px] transition-colors">Outlook</button>
-            </div>
-          </div>
-
-          <!-- SMTP Host & Port -->
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-            <div class="sm:col-span-2">
-              <label class="block text-[10px] font-bold text-neutral-500 dark:text-neutral-400 mb-1 px-1">SMTP 服务器主机</label>
-              <input id="initSmtpHost" type="text" placeholder="如 smtp.qq.com" class="m3-field w-full px-3 py-2 text-xs font-mono font-semibold text-neutral-800 dark:text-neutral-200 outline-none">
-            </div>
-            <div>
-              <label class="block text-[10px] font-bold text-neutral-500 dark:text-neutral-400 mb-1 px-1">端口</label>
-              <input id="initSmtpPort" type="number" placeholder="465" value="465" class="m3-field w-full px-3 py-2 text-xs font-mono font-semibold text-neutral-800 dark:text-neutral-200 outline-none">
+          <!-- 发信渠道切换药丸/卡片 (Resend API vs 自定义 SMTP) -->
+          <div class="space-y-1.5">
+            <label class="block text-[10px] font-bold text-neutral-500 dark:text-neutral-400 px-0.5">选择发信通道</label>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <label class="flex items-start gap-2.5 p-2.5 rounded-2xl bg-[#E8EDE9]/60 dark:bg-[#161D1A] border-2 border-[#006C4C] dark:border-[#2EE59D] cursor-pointer transition-all" id="labelInitProviderResend">
+                <input type="radio" name="initMailProvider" id="initProvider_resend" value="resend" checked onchange="toggleInitMailProviderUI('resend')" class="accent-[#006C4C] mt-0.5">
+                <div>
+                  <div class="text-xs font-bold text-neutral-800 dark:text-neutral-100 flex items-center gap-1">
+                    <span>⚡ Resend API</span>
+                    <span class="text-[9px] px-1.5 py-0.2 rounded-full bg-[#C4EED0] dark:bg-[#1A402D] text-[#002111] dark:text-[#A6F5B9] font-bold">推荐 · 零端口限制</span>
+                  </div>
+                  <div class="text-[10px] text-neutral-400 mt-0.5">现代 HTTP 发信，边缘 Workers 极速稳定</div>
+                </div>
+              </label>
+              <label class="flex items-start gap-2.5 p-2.5 rounded-2xl bg-[#E8EDE9]/60 dark:bg-[#161D1A] border-2 border-[#D7DED9]/60 dark:border-[#26312B]/60 cursor-pointer transition-all" id="labelInitProviderSmtp">
+                <input type="radio" name="initMailProvider" id="initProvider_smtp" value="smtp" onchange="toggleInitMailProviderUI('smtp')" class="accent-[#006C4C] mt-0.5">
+                <div>
+                  <div class="text-xs font-bold text-neutral-800 dark:text-neutral-100">📧 自定义 SMTP</div>
+                  <div class="text-[10px] text-neutral-400 mt-0.5">QQ / 163 / 企业邮等传统邮箱</div>
+                </div>
+              </label>
             </div>
           </div>
 
-          <!-- SSL/TLS 开关 -->
-          <div class="flex items-center justify-between px-1 py-0.5">
-            <label class="flex items-center gap-2 cursor-pointer font-bold text-[11px] text-neutral-700 dark:text-neutral-300">
-              <input type="checkbox" id="initSmtpSecure" checked class="w-3.5 h-3.5 rounded text-[#006C4C] dark:text-[#2EE59D] accent-[#006C4C]">
-              <span>启用 SSL/TLS 安全加密 (端口 465 开启，端口 587/STARTTLS 关闭)</span>
-            </label>
-          </div>
-
-          <!-- User & Password (授权码) -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-            <div>
-              <label class="block text-[10px] font-bold text-neutral-500 dark:text-neutral-400 mb-1 px-1">SMTP 账号 / 发件人邮箱</label>
-              <input id="initSmtpUser" type="text" placeholder="如 your@qq.com" class="m3-field w-full px-3 py-2 text-xs font-mono font-semibold text-neutral-800 dark:text-neutral-200 outline-none">
-            </div>
+          <!-- 渠道 1: Resend API 配置 -->
+          <div id="initResendSection" class="space-y-2.5">
             <div>
               <div class="flex items-center justify-between mb-1 px-1">
-                <label class="text-[10px] font-bold text-neutral-500 dark:text-neutral-400">授权码 / 密码</label>
-                <span class="text-[9px] text-amber-600 dark:text-amber-400 font-bold">请填专有授权码</span>
+                <label class="text-[10px] font-bold text-neutral-500 dark:text-neutral-400">Resend API Key</label>
+                <a href="https://resend.com/api-keys" target="_blank" rel="noopener noreferrer" class="text-[10px] font-bold text-[#006C4C] dark:text-[#2EE59D] hover:underline">获取 API Key ↗</a>
               </div>
-              <input id="initSmtpPass" type="password" placeholder="邮箱授权码" class="m3-field w-full px-3 py-2 text-xs font-mono font-semibold text-neutral-800 dark:text-neutral-200 outline-none">
+              <input id="initResendApiKey" type="password" placeholder="填入 Resend API Key (以 re_ 开头)" class="m3-field w-full px-3 py-2 text-xs font-mono font-semibold text-neutral-800 dark:text-neutral-200 outline-none">
+              <span class="text-[9px] text-neutral-400 mt-0.5 block px-1">在 resend.com 免费申请（例如 re_123456789...）</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div>
+                <label class="block text-[10px] font-bold text-neutral-500 dark:text-neutral-400 mb-1 px-1">发件人邮箱 (From Email)</label>
+                <input id="initResendFromEmail" type="text" placeholder="例如 onboarding@resend.dev 或已验证域名" class="m3-field w-full px-3 py-2 text-xs font-mono font-semibold text-neutral-800 dark:text-neutral-200 outline-none">
+              </div>
+              <div>
+                <label class="block text-[10px] font-bold text-neutral-500 dark:text-neutral-400 mb-1 px-1">发件人显示名称</label>
+                <input id="initResendFromName" type="text" placeholder="房东管家" class="m3-field w-full px-3 py-2 text-xs font-semibold text-neutral-800 dark:text-neutral-200 outline-none">
+              </div>
             </div>
           </div>
 
-          <!-- 发件人名称与安全找回目标邮箱 -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <!-- 渠道 2: SMTP 配置 (默认隐藏) -->
+          <div id="initSmtpSection" class="hidden space-y-2.5">
+            <!-- 主流邮箱快捷预设芯片 -->
+            <div>
+              <div class="flex items-center justify-between mb-1.5 px-0.5">
+                <label class="text-[10px] font-bold text-neutral-500 dark:text-neutral-400">一键预设主流邮箱：</label>
+                <span class="text-[10px] text-neutral-400">点击自动填充服务器与端口</span>
+              </div>
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <button type="button" onclick="applyInitSmtpPreset('qq')" class="px-2.5 py-1 rounded-full bg-[#E8EDE9] dark:bg-[#242C27] text-neutral-700 dark:text-neutral-200 hover:bg-[#DFE5E0] font-bold text-[11px] transition-colors">QQ邮箱</button>
+                <button type="button" onclick="applyInitSmtpPreset('163')" class="px-2.5 py-1 rounded-full bg-[#E8EDE9] dark:bg-[#242C27] text-neutral-700 dark:text-neutral-200 hover:bg-[#DFE5E0] font-bold text-[11px] transition-colors">163网易</button>
+                <button type="button" onclick="applyInitSmtpPreset('126')" class="px-2.5 py-1 rounded-full bg-[#E8EDE9] dark:bg-[#242C27] text-neutral-700 dark:text-neutral-200 hover:bg-[#DFE5E0] font-bold text-[11px] transition-colors">126邮箱</button>
+                <button type="button" onclick="applyInitSmtpPreset('foxmail')" class="px-2.5 py-1 rounded-full bg-[#E8EDE9] dark:bg-[#242C27] text-neutral-700 dark:text-neutral-200 hover:bg-[#DFE5E0] font-bold text-[11px] transition-colors">腾讯企业邮</button>
+                <button type="button" onclick="applyInitSmtpPreset('qiye163')" class="px-2.5 py-1 rounded-full bg-[#E8EDE9] dark:bg-[#242C27] text-neutral-700 dark:text-neutral-200 hover:bg-[#DFE5E0] font-bold text-[11px] transition-colors">网易企业邮</button>
+                <button type="button" onclick="applyInitSmtpPreset('gmail')" class="px-2.5 py-1 rounded-full bg-[#E8EDE9] dark:bg-[#242C27] text-neutral-700 dark:text-neutral-200 hover:bg-[#DFE5E0] font-bold text-[11px] transition-colors">Gmail</button>
+                <button type="button" onclick="applyInitSmtpPreset('outlook')" class="px-2.5 py-1 rounded-full bg-[#E8EDE9] dark:bg-[#242C27] text-neutral-700 dark:text-neutral-200 hover:bg-[#DFE5E0] font-bold text-[11px] transition-colors">Outlook</button>
+              </div>
+            </div>
+
+            <!-- SMTP Host & Port -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+              <div class="sm:col-span-2">
+                <label class="block text-[10px] font-bold text-neutral-500 dark:text-neutral-400 mb-1 px-1">SMTP 服务器主机</label>
+                <input id="initSmtpHost" type="text" placeholder="如 smtp.qq.com" class="m3-field w-full px-3 py-2 text-xs font-mono font-semibold text-neutral-800 dark:text-neutral-200 outline-none">
+              </div>
+              <div>
+                <label class="block text-[10px] font-bold text-neutral-500 dark:text-neutral-400 mb-1 px-1">端口</label>
+                <input id="initSmtpPort" type="number" placeholder="465" value="465" class="m3-field w-full px-3 py-2 text-xs font-mono font-semibold text-neutral-800 dark:text-neutral-200 outline-none">
+              </div>
+            </div>
+
+            <!-- SSL/TLS 开关 -->
+            <div class="flex items-center justify-between px-1 py-0.5">
+              <label class="flex items-center gap-2 cursor-pointer font-bold text-[11px] text-neutral-700 dark:text-neutral-300">
+                <input type="checkbox" id="initSmtpSecure" checked class="w-3.5 h-3.5 rounded text-[#006C4C] dark:text-[#2EE59D] accent-[#006C4C]">
+                <span>启用 SSL/TLS 安全加密 (端口 465 开启，端口 587 关闭)</span>
+              </label>
+            </div>
+
+            <!-- User & Password (授权码) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div>
+                <label class="block text-[10px] font-bold text-neutral-500 dark:text-neutral-400 mb-1 px-1">SMTP 账号 / 发件人邮箱</label>
+                <input id="initSmtpUser" type="text" placeholder="如 your@qq.com" class="m3-field w-full px-3 py-2 text-xs font-mono font-semibold text-neutral-800 dark:text-neutral-200 outline-none">
+              </div>
+              <div>
+                <div class="flex items-center justify-between mb-1 px-1">
+                  <label class="text-[10px] font-bold text-neutral-500 dark:text-neutral-400">授权码 / 密码</label>
+                  <span class="text-[9px] text-amber-600 dark:text-amber-400 font-bold">请填专有授权码</span>
+                </div>
+                <input id="initSmtpPass" type="password" placeholder="邮箱授权码" class="m3-field w-full px-3 py-2 text-xs font-mono font-semibold text-neutral-800 dark:text-neutral-200 outline-none">
+              </div>
+            </div>
+
             <div>
               <label class="block text-[10px] font-bold text-neutral-500 dark:text-neutral-400 mb-1 px-1">发信人显示名称</label>
-              <input id="initSmtpFromName" type="text" placeholder="房东管家" value="房东管家" class="m3-field w-full px-3 py-2 text-xs font-semibold text-neutral-800 dark:text-neutral-200 outline-none">
+              <input id="initSmtpFromName" type="text" placeholder="房东管家" class="m3-field w-full px-3 py-2 text-xs font-semibold text-neutral-800 dark:text-neutral-200 outline-none">
             </div>
-            <div>
-              <label class="block text-[10px] font-bold text-neutral-500 dark:text-neutral-400 mb-1 px-1">安全找回邮箱 (接收验证码)</label>
-              <input id="initRecoveryEmail" type="email" placeholder="如 admin@yourdomain.com" class="m3-field w-full px-3 py-2 text-xs font-semibold text-neutral-800 dark:text-neutral-200 outline-none">
-            </div>
+          </div>
+
+          <!-- 通用接收安全邮箱 -->
+          <div>
+            <label class="block text-[10px] font-bold text-neutral-500 dark:text-neutral-400 mb-1 px-1">安全找回邮箱 (接收测试验证码与收租提醒)</label>
+            <input id="initRecoveryEmail" type="email" placeholder="如 admin@yourdomain.com" class="m3-field w-full px-3 py-2 text-xs font-semibold text-neutral-800 dark:text-neutral-200 outline-none">
           </div>
 
           <!-- ⚡ 实机测通按钮与验证码 -->
@@ -735,9 +783,45 @@ export function renderGateHtml(isInitialized: boolean): string {
       outlook: { host: 'smtp.office365.com', port: 587, secure: false, fromName: '房东管家' }
     };
 
+    function toggleInitMailProviderUI(provider) {
+      const isResend = provider === 'resend';
+      const resendSec = document.getElementById('initResendSection');
+      const smtpSec = document.getElementById('initSmtpSection');
+      const lblResend = document.getElementById('labelInitProviderResend');
+      const lblSmtp = document.getElementById('labelInitProviderSmtp');
+
+      if (resendSec) {
+        if (isResend) resendSec.classList.remove('hidden');
+        else resendSec.classList.add('hidden');
+      }
+      if (smtpSec) {
+        if (isResend) smtpSec.classList.add('hidden');
+        else smtpSec.classList.remove('hidden');
+      }
+      if (lblResend) {
+        if (isResend) {
+          lblResend.className = 'flex items-start gap-2.5 p-2.5 rounded-2xl bg-[#E8EDE9]/60 dark:bg-[#161D1A] border-2 border-[#006C4C] dark:border-[#2EE59D] cursor-pointer transition-all';
+        } else {
+          lblResend.className = 'flex items-start gap-2.5 p-2.5 rounded-2xl bg-[#E8EDE9]/60 dark:bg-[#161D1A] border-2 border-transparent cursor-pointer transition-all';
+        }
+      }
+      if (lblSmtp) {
+        if (!isResend) {
+          lblSmtp.className = 'flex items-start gap-2.5 p-2.5 rounded-2xl bg-[#E8EDE9]/60 dark:bg-[#161D1A] border-2 border-[#006C4C] dark:border-[#2EE59D] cursor-pointer transition-all';
+        } else {
+          lblSmtp.className = 'flex items-start gap-2.5 p-2.5 rounded-2xl bg-[#E8EDE9]/60 dark:bg-[#161D1A] border-2 border-transparent cursor-pointer transition-all';
+        }
+      }
+    }
+
     function applyInitSmtpPreset(key) {
       const p = SMTP_PRESETS[key];
       if (!p) return;
+      const smtpRadio = document.getElementById('initProvider_smtp');
+      if (smtpRadio) {
+        smtpRadio.checked = true;
+        toggleInitMailProviderUI('smtp');
+      }
       const hostEl = document.getElementById('initSmtpHost');
       const portEl = document.getElementById('initSmtpPort');
       const secEl = document.getElementById('initSmtpSecure');
@@ -751,6 +835,11 @@ export function renderGateHtml(isInitialized: boolean): string {
     async function sendInitVerifyCode() {
       clearError();
       const email = document.getElementById('initRecoveryEmail')?.value.trim();
+      const mailProvider = document.getElementById('initProvider_resend')?.checked ? 'resend' : 'smtp';
+      const resendApiKey = document.getElementById('initResendApiKey')?.value.trim();
+      const resendFromEmail = document.getElementById('initResendFromEmail')?.value.trim();
+      const resendFromName = document.getElementById('initResendFromName')?.value.trim();
+
       const smtpHost = document.getElementById('initSmtpHost')?.value.trim();
       const smtpPort = document.getElementById('initSmtpPort')?.value.trim();
       const smtpSecure = !!document.getElementById('initSmtpSecure')?.checked;
@@ -758,15 +847,22 @@ export function renderGateHtml(isInitialized: boolean): string {
       const smtpPass = document.getElementById('initSmtpPass')?.value.trim();
       const smtpFromName = document.getElementById('initSmtpFromName')?.value.trim();
 
-      if (!smtpHost || !smtpPort) {
-        return showError('请填写 SMTP 服务器主机与端口');
-      }
       if (!email || !email.includes('@')) {
         return showError('请填写接收实测验证码的安全邮箱');
       }
 
+      if (mailProvider === 'resend') {
+        if (!resendApiKey) {
+          return showError('请填写 Resend API Key (以 re_ 开头)');
+        }
+      } else {
+        if (!smtpHost || !smtpPort) {
+          return showError('请填写 SMTP 服务器主机与端口');
+        }
+      }
+
       const btn = document.getElementById('btnSendInitCode');
-      btn.innerText = '正在连接 SMTP 服务器测通发信...';
+      btn.innerText = mailProvider === 'resend' ? '正在调用 Resend API 实测发信...' : '正在连接 SMTP 服务器测通发信...';
       btn.disabled = true;
 
       try {
@@ -775,6 +871,10 @@ export function renderGateHtml(isInitialized: boolean): string {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             email,
+            mailProvider,
+            resendApiKey,
+            resendFromEmail,
+            resendFromName,
             smtpHost,
             smtpPort,
             smtpSecure,
@@ -791,7 +891,7 @@ export function renderGateHtml(isInitialized: boolean): string {
         document.getElementById('initVerifyCodeInput')?.focus();
         alert('✓ ' + data.message);
       } catch (err) {
-        showError(err.message || 'SMTP 发信失败');
+        showError(err.message || (mailProvider === 'resend' ? 'Resend API 发信失败' : 'SMTP 发信失败'));
       } finally {
         btn.innerText = '⚡ 重新发送验证码';
         btn.disabled = false;
@@ -862,6 +962,12 @@ export function renderGateHtml(isInitialized: boolean): string {
       const securityAnswer = ansEl ? ansEl.value.trim() : '';
       const emailEl = document.getElementById('initRecoveryEmail');
       const recoveryEmail = emailEl ? emailEl.value.trim() : '';
+
+      const mailProvider = document.getElementById('initProvider_resend')?.checked ? 'resend' : 'smtp';
+      const resendApiKey = document.getElementById('initResendApiKey')?.value.trim() || '';
+      const resendFromEmail = document.getElementById('initResendFromEmail')?.value.trim() || '';
+      const resendFromName = document.getElementById('initResendFromName')?.value.trim() || '';
+
       const smtpHost = document.getElementById('initSmtpHost')?.value.trim() || '';
       const smtpPort = document.getElementById('initSmtpPort')?.value.trim() || '';
       const smtpSecure = !!document.getElementById('initSmtpSecure')?.checked;
@@ -883,6 +989,10 @@ export function renderGateHtml(isInitialized: boolean): string {
             securityQuestion,
             securityAnswer,
             recoveryEmail,
+            mailProvider,
+            resendApiKey,
+            resendFromEmail,
+            resendFromName,
             smtpHost,
             smtpPort,
             smtpSecure,

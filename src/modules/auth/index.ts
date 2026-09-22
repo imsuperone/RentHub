@@ -113,18 +113,31 @@ export async function handleInitAdmin(env: Env, body: any) {
     )
     .run();
 
-  // 5. 如果用户配置了 SMTP 邮箱发信通道，同步写入系统设置
-  if (effectiveRecoveryEmail && smtpHost) {
-    const entries = [
+  // 5. 如果用户配置了邮箱发信通道（Resend 或 SMTP），同步写入系统设置
+  const effectiveMailProvider = body.mailProvider || (body.resendApiKey ? 'resend' : (body.smtpHost ? 'smtp' : null));
+  if (effectiveRecoveryEmail && effectiveMailProvider) {
+    const entries: [string, string][] = [
       ['notify_recipient_email', String(effectiveRecoveryEmail).trim()],
-      ['notify_smtp_host', String(smtpHost).trim()],
-      ['notify_smtp_port', String(smtpPort || 465).trim()],
-      ['notify_smtp_secure', String(smtpSecure ?? true)],
-      ['notify_smtp_user', String(smtpUser || '').trim()],
-      ['notify_smtp_pass', String(smtpPass || '').trim()],
-      ['notify_smtp_from_name', String(smtpFromName || '房东管家').trim()],
-      ['notify_smtp_from_email', String(smtpFromEmail || smtpUser || '').trim()],
+      ['notify_mail_provider', effectiveMailProvider],
     ];
+    if (body.resendApiKey) {
+      entries.push(
+        ['notify_resend_api_key', String(body.resendApiKey).trim()],
+        ['notify_resend_from_email', String(body.resendFromEmail || 'onboarding@resend.dev').trim()],
+        ['notify_resend_from_name', String(body.resendFromName || '房东管家').trim()]
+      );
+    }
+    if (body.smtpHost) {
+      entries.push(
+        ['notify_smtp_host', String(body.smtpHost).trim()],
+        ['notify_smtp_port', String(body.smtpPort || 465).trim()],
+        ['notify_smtp_secure', String(body.smtpSecure ?? true)],
+        ['notify_smtp_user', String(body.smtpUser || '').trim()],
+        ['notify_smtp_pass', String(body.smtpPass || '').trim()],
+        ['notify_smtp_from_name', String(body.smtpFromName || '房东管家').trim()],
+        ['notify_smtp_from_email', String(body.smtpFromEmail || body.smtpUser || '').trim()]
+      );
+    }
     for (const [k, v] of entries) {
       await env.DB.prepare(
         'INSERT INTO system_settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value'
@@ -558,19 +571,45 @@ export async function checkSessionFromCookie(cookieHeader: string | null): Promi
  * 首次初始化：实机测试发送安全邮箱验证码
  */
 export async function handleSendInitVerifyCode(env: Env, body: any) {
-  const { email, smtpHost, smtpPort, smtpSecure, smtpUser, smtpPass, smtpFromName, smtpFromEmail } = body;
+  const {
+    email,
+    mailProvider = 'resend',
+    resendApiKey,
+    resendFromEmail,
+    resendFromName,
+    smtpHost,
+    smtpPort,
+    smtpSecure,
+    smtpUser,
+    smtpPass,
+    smtpFromName,
+    smtpFromEmail
+  } = body;
+
   if (!email || !email.includes('@')) {
     return jsonError('请填写有效的安全邮箱地址', 400);
   }
 
-  if (!smtpHost || !smtpPort) {
-    return jsonError('请填写完整的 SMTP 服务器地址与端口', 400);
+  const effectiveProvider = mailProvider === 'smtp' ? 'smtp' : 'resend';
+
+  if (effectiveProvider === 'resend') {
+    if (!resendApiKey || !String(resendApiKey).trim()) {
+      return jsonError('请填写有效的 Resend API Key (以 re_ 开头)', 400);
+    }
+  } else {
+    if (!smtpHost || !smtpPort) {
+      return jsonError('请填写完整的 SMTP 服务器地址与端口', 400);
+    }
   }
 
   const code = Math.floor(100000 + Math.random() * 900000).toString();
   const tempSettings: NotificationSettings = {
     recipientEmail: email.trim(),
-    smtpHost: String(smtpHost).trim(),
+    mailProvider: effectiveProvider,
+    resendApiKey: String(resendApiKey || '').trim(),
+    resendFromEmail: String(resendFromEmail || 'onboarding@resend.dev').trim(),
+    resendFromName: String(resendFromName || '房东管家').trim(),
+    smtpHost: String(smtpHost || '').trim(),
     smtpPort: parseInt(String(smtpPort), 10) || 465,
     smtpSecure: Boolean(smtpSecure),
     smtpUser: String(smtpUser || '').trim(),
@@ -605,7 +644,7 @@ export async function handleSendInitVerifyCode(env: Env, body: any) {
 
   const sendResult = await sendEmailMessage(tempSettings, email.trim(), title, html);
   if (!sendResult.success) {
-    return jsonError(`SMTP 实测发信失败: ${sendResult.message}`, 400);
+    return jsonError(`${effectiveProvider === 'resend' ? 'Resend API' : 'SMTP'} 实测发信失败: ${sendResult.message}`, 400);
   }
 
   const verifyData = {
@@ -727,8 +766,15 @@ export async function handleSendRecoveryEmail(env: Env, body: any) {
   }
 
   const notifySettings = await getNotificationSettings(env);
-  if (!notifySettings.smtpHost || !notifySettings.smtpPort) {
-    return jsonError('发信服务尚未配置有效 SMTP 服务器，请使用密保问题或紧急恢复码找回', 400);
+  const isResend = notifySettings.mailProvider === 'resend';
+  if (isResend) {
+    if (!notifySettings.resendApiKey) {
+      return jsonError('发信服务尚未配置有效 Resend API Key，请使用密保问题或紧急恢复码找回', 400);
+    }
+  } else {
+    if (!notifySettings.smtpHost || !notifySettings.smtpPort) {
+      return jsonError('发信服务尚未配置有效 SMTP 服务器，请使用密保问题或紧急恢复码找回', 400);
+    }
   }
 
   const code = Math.floor(100000 + Math.random() * 900000).toString();
