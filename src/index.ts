@@ -4,7 +4,7 @@
 
 import { Hono } from 'hono';
 import { Env } from './types';
-import { jsonError } from './utils/response';
+import { jsonOk, jsonError } from './utils/response';
 import {
   handleAuthStatus,
   handleInitAdmin,
@@ -300,6 +300,20 @@ app.get('/api/database/inspect', async (c) => {
   return handleInspectDatabase(c.env, table);
 });
 app.get('/api/database/dump', async (c) => handleDumpDatabase(c.env));
+
+// ==================== 系统测试与初装重置路由 ====================
+app.post('/api/admin/reset-system', async (c) => {
+  try {
+    await c.env.DB.prepare('DELETE FROM payments').run();
+    await c.env.DB.prepare('DELETE FROM attachments').run();
+    await c.env.DB.prepare('DELETE FROM leases').run();
+    await c.env.DB.prepare('DELETE FROM users').run();
+    await c.env.DB.prepare("UPDATE system_settings SET value = 'false' WHERE key = 'init_completed'").run();
+    return jsonOk({ reset: true, message: '系统已成功重置为初装状态' });
+  } catch (err: any) {
+    return jsonError('重置失败: ' + err.message, 500);
+  }
+});
 
 export default {
   fetch: app.fetch,

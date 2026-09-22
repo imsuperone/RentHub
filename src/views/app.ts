@@ -178,24 +178,105 @@ export function renderAppHtml(username: string): string {
       from { transform: translateY(100%) scale(0.98); opacity: 0.6; }
       to { transform: translateY(0) scale(1); opacity: 1; }
     }
+
+    /* 智能高度自适应：针对小屏幕笔记本 (高度 <= 820px)，自动收紧内边距与留白，但字号 100% 保持舒适原样 */
+    @media (max-height: 820px) {
+      body {
+        padding-bottom: 2.5rem !important;
+      }
+      header {
+        padding-top: 0.45rem !important;
+        padding-bottom: 0.45rem !important;
+      }
+      main {
+        padding-top: 0.75rem !important;
+        padding-bottom: 2rem !important;
+      }
+      .m3-card {
+        padding: 1.15rem 1.25rem !important;
+        border-radius: 20px !important;
+      }
+      .m3-subcard {
+        padding: 0.75rem 1rem !important;
+      }
+      .m3-input {
+        padding: 0.5rem 0.85rem !important;
+        border-radius: 14px !important;
+      }
+      .space-y-6 > :not([hidden]) ~ :not([hidden]) {
+        --tw-space-y-reverse: 0;
+        margin-top: calc(0.85rem * calc(1 - var(--tw-space-y-reverse))) !important;
+        margin-bottom: calc(0.85rem * var(--tw-space-y-reverse)) !important;
+      }
+      .space-y-5 > :not([hidden]) ~ :not([hidden]) {
+        --tw-space-y-reverse: 0;
+        margin-top: calc(0.75rem * calc(1 - var(--tw-space-y-reverse))) !important;
+        margin-bottom: calc(0.75rem * var(--tw-space-y-reverse)) !important;
+      }
+    }
+
+    /* ⚡ 紧凑模式：极致空间利用率，每屏展示更多有效信息，字号保持完全不变，极度舒适护眼 */
+    body.density-compact {
+      padding-bottom: 2rem !important;
+    }
+    body.density-compact header {
+      padding-top: 0.35rem !important;
+      padding-bottom: 0.35rem !important;
+    }
+    body.density-compact main {
+      padding-top: 0.5rem !important;
+      padding-bottom: 2rem !important;
+    }
+    body.density-compact .m3-card {
+      padding: 0.875rem 1.15rem !important;
+      border-radius: 18px !important;
+    }
+    body.density-compact .m3-subcard {
+      padding: 0.65rem 0.9rem !important;
+      border-radius: 14px !important;
+    }
+    body.density-compact .m3-input {
+      padding: 0.42rem 0.75rem !important;
+      border-radius: 12px !important;
+    }
+    body.density-compact .space-y-6 > :not([hidden]) ~ :not([hidden]) {
+      --tw-space-y-reverse: 0;
+      margin-top: calc(0.75rem * calc(1 - var(--tw-space-y-reverse))) !important;
+      margin-bottom: calc(0.75rem * var(--tw-space-y-reverse)) !important;
+    }
+    body.density-compact .space-y-5 > :not([hidden]) ~ :not([hidden]) {
+      --tw-space-y-reverse: 0;
+      margin-top: calc(0.6rem * calc(1 - var(--tw-space-y-reverse))) !important;
+      margin-bottom: calc(0.6rem * var(--tw-space-y-reverse)) !important;
+    }
+    body.density-compact .space-y-4 > :not([hidden]) ~ :not([hidden]) {
+      --tw-space-y-reverse: 0;
+      margin-top: calc(0.45rem * calc(1 - var(--tw-space-y-reverse))) !important;
+      margin-bottom: calc(0.45rem * var(--tw-space-y-reverse)) !important;
+    }
   </style>
 </head>
 <body class="min-h-screen flex flex-col pb-28 md:pb-12">
 
-  <!-- ==================== 顶部 Android 16 M3 导航栏 ==================== -->
-  <header class="sticky top-0 z-30 bg-[#F1F5F2]/95 dark:bg-[#0F1512]/95 border-b border-[#D7DED9]/60 dark:border-[#26312B]/60 px-4 md:px-8 py-3.5 flex items-center justify-between transition-colors shadow-sm">
-    <div class="flex items-center gap-2">
+  <!-- ==================== 顶部品牌与导航栏 ==================== -->
+  <header class="sticky top-0 z-30 bg-[#F1F5F2]/95 dark:bg-[#0F1512]/95 border-b border-[#D7DED9]/60 dark:border-[#26312B]/60 px-4 md:px-8 py-3 flex items-center justify-between transition-colors shadow-sm">
+    <div class="flex items-center gap-2.5">
+      <div class="w-8 h-8 rounded-xl bg-[#0F5B38] dark:bg-[#1A402D] text-white flex items-center justify-center shadow-sm">
+        <svg class="w-4.5 h-4.5 text-[#A6F5B9]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1h-5a1 1 0 01-1-1v-5H9v5a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" />
+        </svg>
+      </div>
       <div>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-1.5">
           <h1 class="text-base font-extrabold tracking-tight">房东管家</h1>
-          <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#C4EED0] dark:bg-[#1A402D] text-[#002111] dark:text-[#A6F5B9]">极速版</span>
+          <span class="text-[10px] font-bold px-1.5 py-0.2 rounded-md bg-[#C4EED0] dark:bg-[#1A402D] text-[#002111] dark:text-[#A6F5B9] font-mono">RentHub</span>
         </div>
-        <p class="text-[11px] text-neutral-400 font-medium">出租记账 · 水电抄表 · 简单好用</p>
+        <p class="text-[10px] text-neutral-400 font-medium">出租记账 · 水电抄表 · 简单好用</p>
       </div>
     </div>
     
-    <!-- 右侧：桌面端胶囊标签页 + 2FA 盾牌胶囊 + 退出 -->
-    <div class="flex items-center gap-2.5">
+    <!-- 右侧：桌面端胶囊标签页 + 显示密度切换 + 2FA 盾牌胶囊 + 退出 -->
+    <div class="flex items-center gap-2">
       <!-- 桌面端 M3 导航胶囊条 -->
       <nav class="hidden md:flex items-center bg-[#E8EDE9] dark:bg-[#161D1A] p-1 rounded-full text-xs font-semibold text-neutral-600 dark:text-neutral-400">
         <button onclick="switchTab('dashboard')" class="desktop-tab-btn px-4 py-2 rounded-full transition-all" data-tab="dashboard">🏠 概览</button>
@@ -205,8 +286,14 @@ export function renderAppHtml(username: string): string {
         <button onclick="switchTab('settings')" class="desktop-tab-btn px-4 py-2 rounded-full transition-all" data-tab="settings">⚙️ 设置</button>
       </nav>
 
+      <!-- 显示密度切换胶囊 (舒享 / 紧凑) -->
+      <button id="densityToggleBtn" onclick="toggleDensity()" class="m3-pill px-2.5 py-1.5 text-[11px] font-bold flex items-center gap-1.5 transition-all bg-[#E8EDE9] dark:bg-[#161D1A] text-neutral-700 dark:text-neutral-300 hover:opacity-85" title="切换界面显示密度 (舒享 / 紧凑)">
+        <span id="densityIcon">🌿</span>
+        <span id="densityLabel">舒享模式</span>
+      </button>
+
       <!-- 2FA 安全状态指示胶囊 (点击直达 2FA 设置) -->
-      <button id="header2FABadge" onclick="switchTab('settings')" class="m3-pill px-3 py-1.5 text-[11px] font-bold flex items-center gap-1.5 transition-all bg-[#E8EDE9] dark:bg-[#161D1A] text-neutral-600 dark:text-neutral-300 hover:opacity-85" title="点击查看二次验证详情">
+      <button id="header2FABadge" onclick="switchTab('settings'); switchSettingsSection('security');" class="m3-pill px-3 py-1.5 text-[11px] font-bold flex items-center gap-1.5 transition-all bg-[#E8EDE9] dark:bg-[#161D1A] text-neutral-600 dark:text-neutral-300 hover:opacity-85" title="点击查看二次验证详情">
         <span class="w-2 h-2 rounded-full bg-neutral-400 animate-pulse"></span>
         <span>二次验证检测中</span>
       </button>
@@ -525,544 +612,618 @@ export function renderAppHtml(username: string): string {
     </section>
 
     <!-- ==================== TAB 5: 系统设置 & 云端存储 ==================== -->
-    <section id="tab-settings" class="tab-content hidden space-y-6">
-      <div>
-        <h2 class="text-xl font-extrabold tracking-tight">系统设置 & 存储备份</h2>
-        <p class="text-xs text-neutral-400 mt-0.5">文件加密存储渠道 (本地D1 / WebDAV / 阿里云OSS / 腾讯云COS / R2)、邮箱通知及安全二次验证</p>
-      </div>
-
-      <!-- 全局文件存储与云端异地备份卡片 -->
-      <div class="m3-card bg-white dark:bg-[#1A211D] border border-[#D7DED9]/50 dark:border-[#26312B]/60 p-6 md:p-8 space-y-5 shadow-sm">
-        <div class="flex items-center justify-between pb-3 border-b border-[#E8EDE9] dark:border-[#26312B]/60">
-          <div>
-            <h3 class="text-sm font-bold flex items-center gap-2">
-              <span>📁 文件存储渠道与异地备份</span>
-              <span class="text-[10px] px-2 py-0.5 rounded-full bg-[#C4EED0] dark:bg-[#1A402D] text-[#002111] dark:text-[#A6F5B9] font-bold">本地基石 + 云端二选一</span>
-            </h3>
-            <p class="text-xs text-neutral-400 mt-0.5">本地 SQLite 数据库为底层基础存储，始终保存；云端异地备份支持 WebDAV 与 S3 二选一</p>
-          </div>
-          <button onclick="saveDefaultStorageSetting()" id="saveDefaultStorageBtn" class="m3-pill px-4 py-2 bg-[#0F5B38] dark:bg-[#7CDCA0] text-white dark:text-[#00391F] text-xs font-bold shadow-sm">
-            保存存储模式
-          </button>
-        </div>
-
-        <!-- 1. 本地存储 (常驻基石 · 无法取消) -->
-        <div class="p-3.5 rounded-2xl bg-[#E8EDE9]/40 dark:bg-[#161D1A]/60 border border-[#D7DED9]/60 dark:border-[#26312B]/60 flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-xl bg-[#0F5B38]/10 dark:bg-[#7CDCA0]/10 text-[#0F5B38] dark:text-[#7CDCA0] flex items-center justify-center font-bold text-base flex-shrink-0">
-              💾
-            </div>
-            <div>
-              <div class="text-xs font-bold text-neutral-800 dark:text-neutral-100 flex items-center gap-2">
-                <span>本地 D1 数据库存储</span>
-                <span class="text-[10px] px-2 py-0.2 rounded-full bg-[#C4EED0] dark:bg-[#1A402D] text-[#002111] dark:text-[#A6F5B9] font-bold">系统基础 · 默认保存</span>
-              </div>
-              <div class="text-[11px] text-neutral-400 mt-0.5">合同原件与记账单据端到端加密保存在本地 SQLite 数据库中，始终保存无法取消</div>
-            </div>
-          </div>
-          <div class="flex items-center gap-1 text-[11px] font-bold text-[#0F5B38] dark:text-[#7CDCA0] px-3 py-1.5 rounded-full bg-[#0F5B38]/10 dark:bg-[#7CDCA0]/10 cursor-not-allowed select-none flex-shrink-0" title="系统基础存储，永久启用无法取消">
-            <span>✓ 始终保存</span>
-          </div>
-        </div>
-
-        <!-- 2. 云端异地备份通道 (二选一 / 可关闭) -->
-        <div class="space-y-2">
-          <div class="flex items-center justify-between">
-            <label class="block text-xs font-bold text-neutral-700 dark:text-neutral-300 px-1">
-              云端异地备份通道 (二选一)
-            </label>
-            <span class="text-[11px] text-neutral-400">选择后在下方展开配置服务</span>
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-            <!-- 选项 A: 关 / 不开启云备份 -->
-            <label class="flex items-start gap-2.5 p-3.5 rounded-2xl bg-[#E8EDE9]/40 dark:bg-[#161D1A]/60 border border-[#D7DED9]/60 dark:border-[#26312B]/60 cursor-pointer hover:border-[#0F5B38] transition-all">
-              <input type="radio" name="cloudBackupProvider" id="cloudBackup_none" value="NONE" checked onchange="toggleCloudBackupUI('NONE')" class="accent-[#0F5B38] mt-0.5">
-              <div>
-                <div class="text-xs font-bold text-neutral-800 dark:text-neutral-100">🚫 不开启云备份</div>
-                <div class="text-[11px] text-neutral-400 mt-0.5 leading-relaxed">仅保存在本地 D1 数据库，不占用任何外部网盘或对象存储</div>
-              </div>
-            </label>
-
-            <!-- 选项 B: WebDAV / 网盘 -->
-            <label class="flex items-start gap-2.5 p-3.5 rounded-2xl bg-[#E8EDE9]/40 dark:bg-[#161D1A]/60 border border-[#D7DED9]/60 dark:border-[#26312B]/60 cursor-pointer hover:border-[#0F5B38] transition-all">
-              <input type="radio" name="cloudBackupProvider" id="cloudBackup_webdav" value="WEBDAV" onchange="toggleCloudBackupUI('WEBDAV')" class="accent-[#0F5B38] mt-0.5">
-              <div>
-                <div class="text-xs font-bold text-neutral-800 dark:text-neutral-100 flex items-center gap-1.5">
-                  <span>☁️ WebDAV / 网盘</span>
-                  <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-800 dark:text-indigo-300 font-bold">国内网盘</span>
-                </div>
-                <div class="text-[11px] text-neutral-400 mt-0.5 leading-relaxed">坚果云直连，或经 AList 备份至阿里云盘、百度网盘、天翼云</div>
-              </div>
-            </label>
-
-            <!-- 选项 C: S3 兼容对象存储 -->
-            <label class="flex items-start gap-2.5 p-3.5 rounded-2xl bg-[#E8EDE9]/40 dark:bg-[#161D1A]/60 border border-[#D7DED9]/60 dark:border-[#26312B]/60 cursor-pointer hover:border-[#0F5B38] transition-all">
-              <input type="radio" name="cloudBackupProvider" id="cloudBackup_s3" value="S3" onchange="toggleCloudBackupUI('S3')" class="accent-[#0F5B38] mt-0.5">
-              <div>
-                <div class="text-xs font-bold text-neutral-800 dark:text-neutral-100 flex items-center gap-1.5">
-                  <span>🪣 S3 兼容对象存储</span>
-                  <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-sky-100 dark:bg-sky-950 text-sky-800 dark:text-sky-300 font-bold">高可用</span>
-                </div>
-                <div class="text-[11px] text-neutral-400 mt-0.5 leading-relaxed">阿里云 OSS、腾讯云 COS、Cloudflare R2、自建 MinIO</div>
-              </div>
-            </label>
-          </div>
-        </div>
-
-        <div id="defaultStorageFeedback" class="text-xs font-semibold px-1"></div>
-      </div>
-
-      <!-- S3 兼容对象存储配置卡片 (按需展开，无丑陋开关) -->
-      <div id="s3ConfigCard" class="hidden m3-card bg-white dark:bg-[#1A211D] border border-[#D7DED9]/50 dark:border-[#26312B]/60 p-6 md:p-8 space-y-5 shadow-sm">
-        <div class="flex items-center justify-between pb-2 border-b border-[#E8EDE9] dark:border-[#26312B]/60">
-          <div>
-            <h3 class="text-sm font-bold flex items-center gap-2">
-              <span>🪣 S3 兼容对象存储 (阿里云 OSS / 腾讯云 COS / R2 / MinIO)</span>
-              <span class="text-[10px] px-2 py-0.5 rounded-full bg-sky-100 dark:bg-sky-950 text-sky-800 dark:text-sky-300 font-bold">零 SDK 依赖</span>
-            </h3>
-            <p class="text-xs text-neutral-400 mt-0.5">原生 WebCrypto 实现 AWS SigV4 认证，支持国内主流云厂商与自建 MinIO 异地容灾</p>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
-          <div class="md:col-span-2">
-            <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">对象存储服务地址 (Endpoint)</label>
-            <input type="text" id="s3Endpoint" placeholder="例如 https://oss-cn-hangzhou.aliyuncs.com 或 https://cos.ap-guangzhou.myqcloud.com" class="m3-input w-full text-sm font-mono">
-            <div class="flex items-center flex-wrap gap-2.5 mt-2 px-1">
-              <span class="text-[11px] text-neutral-400">快速填入预设：</span>
-              <button onclick="fillS3Preset('aliyun')" class="text-[11px] text-orange-600 dark:text-orange-400 font-bold hover:underline">阿里云 OSS</button>
-              <button onclick="fillS3Preset('tencent')" class="text-[11px] text-blue-600 dark:text-blue-400 font-bold hover:underline">腾讯云 COS</button>
-              <button onclick="fillS3Preset('r2')" class="text-[11px] text-amber-600 dark:text-amber-400 font-bold hover:underline">Cloudflare R2</button>
-              <button onclick="fillS3Preset('qiniu')" class="text-[11px] text-cyan-600 dark:text-cyan-400 font-bold hover:underline">七牛云 Kodo</button>
-              <button onclick="fillS3Preset('minio')" class="text-[11px] text-rose-600 dark:text-rose-400 font-bold hover:underline">自建 MinIO</button>
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">存储桶名称 (Bucket Name)</label>
-            <input type="text" id="s3Bucket" placeholder="填入 Bucket 名称" class="m3-input w-full text-sm font-mono">
-          </div>
-
-          <div>
-            <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">地域标识 (Region)</label>
-            <input type="text" id="s3Region" placeholder="例如 cn-hangzhou, ap-guangzhou, auto" class="m3-input w-full text-sm font-mono">
-          </div>
-
-          <div>
-            <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">AccessKey ID</label>
-            <input type="text" id="s3AccessKey" placeholder="对象存储访问密钥 ID" class="m3-input w-full text-sm font-mono">
-          </div>
-
-          <div>
-            <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">Secret Access Key</label>
-            <input type="password" id="s3SecretKey" placeholder="修改时填入，留空不修改" class="m3-input w-full text-sm font-mono">
-          </div>
-
-          <div class="md:col-span-2">
-            <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">存储根目录前缀 (Base Path)</label>
-            <input type="text" id="s3BasePath" placeholder="例如 RentHubFiles (留空存根目录)" class="m3-input w-full text-sm font-mono">
-          </div>
-        </div>
-
-        <div class="pt-4 border-t border-[#E8EDE9] dark:border-[#26312B]/60 flex flex-col sm:flex-row items-center gap-3">
-          <button onclick="testS3()" id="testS3Btn" class="m3-pill w-full sm:w-auto px-5 py-2.5 bg-[#E8EDE9] dark:bg-[#161D1A] hover:opacity-90 text-xs font-bold transition-all">
-            测试 S3 连通性
-          </button>
-          <button onclick="saveS3()" id="saveS3Btn" class="m3-pill w-full sm:w-auto px-5 py-2.5 bg-[#0F5B38] dark:bg-[#7CDCA0] text-white dark:text-[#00391F] text-xs font-bold shadow-sm transition-all">
-            保存 S3 配置
-          </button>
-          <span id="s3Feedback" class="text-xs font-semibold px-2"></span>
+    <!-- ==================== TAB 5: 系统设置中心 (SaaS 经典双栏布局) ==================== -->
+    <section id="tab-settings" class="tab-content hidden space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-1 gap-2">
+        <div>
+          <h2 class="text-xl font-extrabold tracking-tight">系统设置中心</h2>
+          <p class="text-xs text-neutral-400 mt-0.5">多通道存储备份、邮件待收提醒、账号安全验证与 SQLite 数据透视</p>
         </div>
       </div>
 
-      <!-- WebDAV 云盘挂载配置 (按需展开，无丑陋开关) -->
-      <div id="webdavConfigCard" class="hidden m3-card bg-white dark:bg-[#1A211D] border border-[#D7DED9]/50 dark:border-[#26312B]/60 p-6 md:p-8 space-y-5 shadow-sm">
-        <div class="flex items-center justify-between pb-2 border-b border-[#E8EDE9] dark:border-[#26312B]/60">
-          <div>
-            <h3 class="text-sm font-bold flex items-center gap-2">
-              <span>☁️ WebDAV 云盘存储 (坚果云 / AList 挂载阿里云盘·百度网盘 / 123云盘)</span>
-              <span class="text-[10px] px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-800 dark:text-indigo-300 font-bold">网盘利器</span>
-            </h3>
-            <p class="text-xs text-neutral-400 mt-0.5">支持坚果云直连；配合 AList 更可无感对接阿里云盘、百度网盘、天翼云、夸克等各种国内网盘</p>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
-          <div class="md:col-span-2">
-            <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">WebDAV 服务器地址 (Endpoint)</label>
-            <input type="text" id="webdavEndpoint" placeholder="例如 https://dav.jianguoyun.com/dav/ 或 http://your-alist-host:5244/dav/" class="m3-input w-full text-sm font-mono">
-            <div class="flex items-center flex-wrap gap-2.5 mt-2 px-1">
-              <span class="text-[11px] text-neutral-400">快速填入预设：</span>
-              <button onclick="fillPreset('jianguoyun')" class="text-[11px] text-[#0F5B38] dark:text-[#7CDCA0] font-bold hover:underline">坚果云预设</button>
-              <button onclick="fillPreset('alist')" class="text-[11px] text-indigo-600 dark:text-indigo-400 font-bold hover:underline">AList 网盘预设 (挂载阿里云盘/百度网盘)</button>
-              <button onclick="fillPreset('123pan')" class="text-[11px] text-blue-600 dark:text-blue-400 font-bold hover:underline">123 云盘预设</button>
-              <button onclick="fillPreset('openlist')" class="text-[11px] text-neutral-500 font-bold hover:underline">OpenList 预设</button>
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">用户名 / 账号</label>
-            <input type="text" id="webdavUsername" placeholder="坚果云注册邮箱或网盘用户名" class="m3-input w-full text-sm">
-          </div>
-
-          <div>
-            <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">应用专用密码</label>
-            <input type="password" id="webdavPassword" placeholder="修改时填入，留空不修改" class="m3-input w-full text-sm">
-          </div>
-
-          <div class="md:col-span-2">
-            <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">远端基础目录 (Base Path)</label>
-            <input type="text" id="webdavBasePath" placeholder="例如 /RentRecords (留空存根目录)" class="m3-input w-full text-sm font-mono">
-          </div>
-        </div>
-
-        <div class="pt-4 border-t border-[#E8EDE9] dark:border-[#26312B]/60 flex flex-col sm:flex-row items-center gap-3">
-          <button onclick="testWebdav()" id="testWebdavBtn" class="m3-pill w-full sm:w-auto px-5 py-2.5 bg-[#E8EDE9] dark:bg-[#161D1A] hover:opacity-90 text-xs font-bold transition-all">
-            测试连通性
-          </button>
-          <button onclick="saveWebdav()" id="saveWebdavBtn" class="m3-pill w-full sm:w-auto px-5 py-2.5 bg-[#0F5B38] dark:bg-[#7CDCA0] text-white dark:text-[#00391F] text-xs font-bold shadow-sm transition-all">
-            保存 WebDAV 配置
-          </button>
-          <span id="webdavFeedback" class="text-xs font-semibold px-2"></span>
-        </div>
-      </div>
-
-      <!-- 账号安全与 2FA 控制中心 -->
-      <div class="m3-card bg-white dark:bg-[#1A211D] border border-[#D7DED9]/50 dark:border-[#26312B]/60 p-6 space-y-4 shadow-sm">
-        <h3 class="text-sm font-bold">管理员账号与安全验证</h3>
-
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between py-3 border-b border-[#E8EDE9] dark:border-[#26312B]/60 text-xs gap-3">
-          <div>
-            <div class="flex items-center gap-2">
-              <span class="font-bold">当前登录账号：<span class="text-[#0F5B38] dark:text-[#7CDCA0] font-mono">${username}</span></span>
-              <span id="settings2FABadge" class="text-[10px] px-2.5 py-0.5 rounded-full font-bold">检测中...</span>
-            </div>
-            <p class="text-neutral-400 mt-1">当前设备登录状态正常</p>
-          </div>
-          <button onclick="logout()" class="m3-pill px-4 py-2 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 text-rose-600 dark:text-rose-400 font-bold transition-all self-start sm:self-auto">
-            退出当前登录
-          </button>
-        </div>
+      <!-- 双栏栅格容器 -->
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
         
-        <!-- 2FA 动态状态控制 -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between py-3 border-b border-[#E8EDE9] dark:border-[#26312B]/60 text-xs gap-3">
-          <div>
-            <span class="font-bold">手机二次验证 (动态口令)</span>
-            <p id="settings2FADesc" class="text-neutral-400 mt-0.5">开启后登录需输入手机验证码，提升账号安全性</p>
-          </div>
-          <div class="flex items-center gap-2" id="settings2FAActionBtns"></div>
-        </div>
-
-        <div class="flex items-center justify-between py-2 text-xs">
-          <div>
-            <span class="font-bold">修改登录密码</span>
-            <p class="text-neutral-400 mt-0.5">修改当前系统的登录密码</p>
-          </div>
-          <button onclick="openChangePasswordModal()" class="m3-pill px-4 py-2 bg-[#E8EDE9] dark:bg-[#161D1A] hover:opacity-90 font-bold">
-            修改密码
-          </button>
-        </div>
-      </div>
-
-      <!-- 📧 待收提醒与邮箱设置 -->
-      <div class="m3-card bg-white dark:bg-[#1A211D] border border-[#D7DED9]/50 dark:border-[#26312B]/60 p-6 md:p-8 space-y-5 shadow-sm">
-        <div class="flex items-center justify-between pb-3 border-b border-[#E8EDE9] dark:border-[#26312B]/60">
-          <div>
-            <h3 class="text-sm font-bold flex items-center gap-2">
-              <span>📧 待收提醒与邮箱设置</span>
-              <span class="text-[10px] px-2 py-0.5 rounded-full bg-[#C4EED0] dark:bg-[#1A402D] text-[#002111] dark:text-[#A6F5B9] font-bold">定时自动提醒</span>
-            </h3>
-            <p class="text-xs text-neutral-400 mt-0.5">支持交租提前发信提醒房东、水电欠费提醒，不错过任何应收账目</p>
-          </div>
-          <div class="flex items-center gap-2">
-            <button onclick="triggerNotificationCheck()" class="m3-pill px-3.5 py-1.5 bg-[#E8EDE9] dark:bg-[#161D1A] hover:opacity-90 text-xs font-semibold flex items-center gap-1">
-              ⚡ 立即检查待收账单
+        <!-- 左侧分类导航 (Desktop: 3 列吸顶，移动端: 横向滚动标签条) -->
+        <aside class="md:col-span-3">
+          <nav class="flex md:flex-col gap-1.5 p-1.5 bg-[#E8EDE9]/60 dark:bg-[#161D1A]/70 rounded-2xl border border-[#D7DED9]/60 dark:border-[#26312B]/60 sticky top-20 overflow-x-auto">
+            <button type="button" onclick="switchSettingsSection('storage')" id="setNav_storage" class="settings-nav-btn w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-bold text-left transition-all whitespace-nowrap bg-[#0F5B38] text-white dark:bg-[#7CDCA0] dark:text-[#00391F] shadow-sm">
+              <span class="text-base">📁</span>
+              <span class="flex-1">存储与备份</span>
             </button>
-          </div>
-        </div>
+            <button type="button" onclick="switchSettingsSection('notifications')" id="setNav_notifications" class="settings-nav-btn w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-left transition-all whitespace-nowrap text-neutral-700 dark:text-neutral-300 hover:bg-[#D7DED9]/60 dark:hover:bg-[#202923]">
+              <span class="text-base">📧</span>
+              <span class="flex-1">待收邮件提醒</span>
+            </button>
+            <button type="button" onclick="switchSettingsSection('security')" id="setNav_security" class="settings-nav-btn w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-left transition-all whitespace-nowrap text-neutral-700 dark:text-neutral-300 hover:bg-[#D7DED9]/60 dark:hover:bg-[#202923]">
+              <span class="text-base">🛡️</span>
+              <span class="flex-1">账号与安全</span>
+            </button>
+            <button type="button" onclick="switchSettingsSection('database')" id="setNav_database" class="settings-nav-btn w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-left transition-all whitespace-nowrap text-neutral-700 dark:text-neutral-300 hover:bg-[#D7DED9]/60 dark:hover:bg-[#202923]">
+              <span class="text-base">📊</span>
+              <span class="flex-1">数据库透视</span>
+            </button>
+            <button type="button" onclick="switchSettingsSection('reset')" id="setNav_reset" class="settings-nav-btn w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-left transition-all whitespace-nowrap text-rose-700 dark:text-rose-400 hover:bg-rose-100/70 dark:hover:bg-rose-950/40">
+              <span class="text-base">🧹</span>
+              <span class="flex-1">数据重置自测</span>
+            </button>
+          </nav>
+        </aside>
 
-        <!-- 发信渠道选择器 (Resend API vs 自定义 SMTP) -->
-        <div class="space-y-2">
-          <label class="block text-xs font-bold text-neutral-700 dark:text-neutral-300 px-1">发信服务通道</label>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-            <label class="flex items-start gap-2.5 p-3 rounded-2xl bg-[#E8EDE9]/60 dark:bg-[#161D1A] border border-[#D7DED9]/60 dark:border-[#26312B]/60 cursor-pointer hover:border-[#0F5B38] transition-all">
-              <input type="radio" name="notifyMailProvider" id="mailProvider_resend" value="resend" onchange="toggleMailProviderUI('resend')" class="accent-[#0F5B38] mt-0.5">
-              <div>
-                <div class="text-xs font-bold text-neutral-800 dark:text-neutral-100 flex items-center gap-1.5">
-                  <span>⚡ Resend API</span>
-                  <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-[#C4EED0] dark:bg-[#1A402D] text-[#002111] dark:text-[#A6F5B9] font-bold">推荐 · 零配置端口</span>
+        <!-- 右侧分类内容区域 (Desktop: 9 列) -->
+        <div class="md:col-span-9 space-y-4">
+          
+          <!-- ==================== 栏目 1: 存储与备份 ==================== -->
+          <div id="setSection_storage" class="settings-section space-y-4">
+            <!-- 全局文件存储与云端异地备份卡片 -->
+            <div class="m3-card bg-white dark:bg-[#1A211D] border border-[#D7DED9]/50 dark:border-[#26312B]/60 p-6 md:p-8 space-y-5 shadow-sm">
+              <div class="flex items-center justify-between pb-3 border-b border-[#E8EDE9] dark:border-[#26312B]/60">
+                <div>
+                  <h3 class="text-sm font-bold flex items-center gap-2">
+                    <span>📁 文件存储渠道与异地备份</span>
+                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-[#C4EED0] dark:bg-[#1A402D] text-[#002111] dark:text-[#A6F5B9] font-bold">本地基石 + 云端二选一</span>
+                  </h3>
+                  <p class="text-xs text-neutral-400 mt-0.5">本地 SQLite 数据库为底层基础存储，始终保存；云端异地备份支持 WebDAV 与 S3 二选一</p>
                 </div>
-                <div class="text-[11px] text-neutral-400 mt-0.5">现代 HTTP REST 发信，无需配置 SMTP 端口与授权码</div>
-              </div>
-            </label>
-            <label class="flex items-start gap-2.5 p-3 rounded-2xl bg-[#E8EDE9]/60 dark:bg-[#161D1A] border border-[#D7DED9]/60 dark:border-[#26312B]/60 cursor-pointer hover:border-[#0F5B38] transition-all">
-              <input type="radio" name="notifyMailProvider" id="mailProvider_smtp" value="smtp" checked onchange="toggleMailProviderUI('smtp')" class="accent-[#0F5B38] mt-0.5">
-              <div>
-                <div class="text-xs font-bold text-neutral-800 dark:text-neutral-100">📧 自定义 SMTP</div>
-                <div class="text-[11px] text-neutral-400 mt-0.5">支持 QQ / 163 / 谷歌 Gmail / 腾讯网易企业邮</div>
-              </div>
-            </label>
-          </div>
-        </div>
-
-        <!-- 渠道 1: Resend API 配置卡片 -->
-        <div id="resendConfigSection" class="hidden space-y-3.5 p-4 m3-subcard bg-[#E8EDE9]/40 dark:bg-[#161D1A]/60 border border-[#D7DED9]/50 dark:border-[#26312B]/60">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-neutral-800 dark:text-neutral-200">⚡ Resend 密钥与发件人</span>
-            <a href="https://resend.com/api-keys" target="_blank" rel="noopener noreferrer" class="text-[11px] font-bold text-[#0F5B38] dark:text-[#7CDCA0] hover:underline flex items-center gap-0.5">获取 Resend API Key ↗</a>
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1 px-1">Resend API Key</label>
-            <input type="password" id="notifyResendApiKey" placeholder="填入 Resend API Key (以 re_ 开头)" class="m3-input w-full text-xs font-mono">
-            <span class="text-[10px] text-neutral-400 mt-1 block px-1">在 resend.com 控制台免费申请（例如 <code>re_123456789...</code>）</span>
-          </div>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div>
-              <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1 px-1">发件人邮箱 (From Email)</label>
-              <input type="text" id="notifyResendFromEmail" placeholder="例如 onboarding@resend.dev 或已验证域名邮箱" class="m3-input w-full text-xs font-mono">
-              <span class="text-[10px] text-neutral-400 mt-1 block px-1">测试期可直接填入 <code>onboarding@resend.dev</code></span>
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1 px-1">发件人显示名称 (From Name)</label>
-              <input type="text" id="notifyResendFromName" placeholder="例如 房东管家" class="m3-input w-full text-xs font-bold">
-            </div>
-          </div>
-        </div>
-
-        <!-- 渠道 2: SMTP 发信服务配置 (完整配置项与主流邮箱一键预设) -->
-        <div id="smtpConfigSection" class="space-y-4">
-          <!-- 主流邮箱快捷预设芯片 -->
-          <div class="p-3.5 m3-subcard bg-[#E8EDE9]/40 dark:bg-[#161D1A]/60 space-y-2">
-            <div class="flex items-center justify-between">
-              <label class="text-xs font-bold text-neutral-700 dark:text-neutral-200">⚡ 一键填入主流邮箱设置：</label>
-              <span class="text-[11px] text-neutral-400">点击自动填入主机与端口</span>
-            </div>
-            <div class="flex items-center gap-2 flex-wrap">
-              <button type="button" onclick="applySettingsSmtpPreset('qq')" class="px-3 py-1.5 rounded-full bg-[#E8EDE9] dark:bg-[#242C27] hover:bg-[#DFE5E0] text-xs font-bold text-neutral-700 dark:text-neutral-200 transition-colors">QQ 邮箱 (465 SSL)</button>
-              <button type="button" onclick="applySettingsSmtpPreset('163')" class="px-3 py-1.5 rounded-full bg-[#E8EDE9] dark:bg-[#242C27] hover:bg-[#DFE5E0] text-xs font-bold text-neutral-700 dark:text-neutral-200 transition-colors">163 网易邮箱 (465 SSL)</button>
-              <button type="button" onclick="applySettingsSmtpPreset('126')" class="px-3 py-1.5 rounded-full bg-[#E8EDE9] dark:bg-[#242C27] hover:bg-[#DFE5E0] text-xs font-bold text-neutral-700 dark:text-neutral-200 transition-colors">126 邮箱 (465 SSL)</button>
-              <button type="button" onclick="applySettingsSmtpPreset('foxmail')" class="px-3 py-1.5 rounded-full bg-[#E8EDE9] dark:bg-[#242C27] hover:bg-[#DFE5E0] text-xs font-bold text-neutral-700 dark:text-neutral-200 transition-colors">腾讯企业邮 / Foxmail</button>
-              <button type="button" onclick="applySettingsSmtpPreset('qiye163')" class="px-3 py-1.5 rounded-full bg-[#E8EDE9] dark:bg-[#242C27] hover:bg-[#DFE5E0] text-xs font-bold text-neutral-700 dark:text-neutral-200 transition-colors">网易企业邮</button>
-              <button type="button" onclick="applySettingsSmtpPreset('gmail')" class="px-3 py-1.5 rounded-full bg-[#E8EDE9] dark:bg-[#242C27] hover:bg-[#DFE5E0] text-xs font-bold text-neutral-700 dark:text-neutral-200 transition-colors">Gmail</button>
-              <button type="button" onclick="applySettingsSmtpPreset('outlook')" class="px-3 py-1.5 rounded-full bg-[#E8EDE9] dark:bg-[#242C27] hover:bg-[#DFE5E0] text-xs font-bold text-neutral-700 dark:text-neutral-200 transition-colors">Outlook (587)</button>
-            </div>
-          </div>
-
-          <!-- SMTP Host, Port, Secure -->
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div class="sm:col-span-2">
-              <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">SMTP 服务器主机地址 (Host)</label>
-              <input type="text" id="notifySmtpHost" placeholder="例如 smtp.qq.com 或 smtp.163.com" class="m3-input w-full text-xs font-mono">
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">端口 (Port)</label>
-              <input type="number" id="notifySmtpPort" placeholder="465 或 587" class="m3-input w-full text-xs font-mono font-bold">
-            </div>
-          </div>
-
-          <!-- SSL/TLS 开关 -->
-          <div class="flex items-center justify-between px-1">
-            <label class="flex items-center gap-2 cursor-pointer font-bold text-xs text-neutral-700 dark:text-neutral-300">
-              <input type="checkbox" id="notifySmtpSecure" checked class="w-4 h-4 rounded text-[#0F5B38] accent-[#0F5B38]">
-              <span>启用 SSL/TLS 安全协议 (端口 465 推荐开启；端口 587 STARTTLS 请关闭)</span>
-            </label>
-          </div>
-
-          <!-- User, Pass -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">SMTP 账号 / 发信邮箱</label>
-              <input type="text" id="notifySmtpUser" placeholder="例如 your-email@qq.com" class="m3-input w-full text-xs font-mono">
-            </div>
-            <div>
-              <div class="flex items-center justify-between mb-1.5 px-1">
-                <label class="text-xs font-bold text-neutral-600 dark:text-neutral-400">发信授权码 / 密码</label>
-                <span class="text-[11px] text-amber-600 dark:text-amber-400 font-bold">QQ/网易请填专有授权码</span>
-              </div>
-              <input type="password" id="notifySmtpPass" placeholder="修改时填入授权码，留空不修改" class="m3-input w-full text-xs font-mono">
-            </div>
-          </div>
-
-          <!-- From Name, From Email -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">发信人显示名称</label>
-              <input type="text" id="notifySmtpFromName" placeholder="例如 房东管家" class="m3-input w-full text-xs font-bold">
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">发信人地址 (若空默认同账号)</label>
-              <input type="email" id="notifySmtpFromEmail" placeholder="例如 your-email@qq.com (留空同账号)" class="m3-input w-full text-xs font-mono">
-            </div>
-          </div>
-        </div>
-
-        <!-- 接收邮箱 (双渠道通用) -->
-        <div class="p-3.5 m3-subcard bg-[#E8EDE9]/50 dark:bg-[#161D1A]/60 border border-[#D7DED9]/60 dark:border-[#26312B]/60">
-          <label class="block text-xs font-bold text-neutral-700 dark:text-neutral-200 mb-1.5 px-1">📬 房东接收提醒邮箱 (双渠道通用)</label>
-          <input type="email" id="notifyRecipientEmail" placeholder="如 owner@domain.com (接收催租、水电欠费与数据库冷备)" class="m3-input w-full text-xs font-mono font-bold">
-        </div>
-          <!-- 触发时机与规则 -->
-          <div class="p-4 m3-subcard bg-[#E8EDE9]/40 dark:bg-[#161D1A]/60 space-y-3">
-            <span class="text-xs font-bold block text-neutral-700 dark:text-neutral-200">⏰ 提醒策略与发送时间</span>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-              <div>
-                <label class="block font-bold text-neutral-600 dark:text-neutral-400 mb-1">提前几天提醒 (逗号分隔天数)</label>
-                <input type="text" id="notifyDaysBefore" placeholder="7,3,1" class="m3-input w-full text-xs font-mono font-bold">
-                <div class="flex items-center gap-1.5 mt-1.5">
-                  <span class="text-[10px] text-neutral-400">快捷:</span>
-                  <button type="button" onclick="setNotifyDaysPreset('3,1')" class="text-[10px] text-[#0F5B38] dark:text-[#7CDCA0] font-bold underline">3天+1天</button>
-                  <button type="button" onclick="setNotifyDaysPreset('7,3,1')" class="text-[10px] text-[#0F5B38] dark:text-[#7CDCA0] font-bold underline">7+3+1天</button>
-                  <button type="button" onclick="setNotifyDaysPreset('5')" class="text-[10px] text-[#0F5B38] dark:text-[#7CDCA0] font-bold underline">提前5天</button>
-                </div>
-              </div>
-              <div class="flex flex-col justify-center">
-                <label class="flex items-center gap-2 cursor-pointer font-bold text-neutral-700 dark:text-neutral-300">
-                  <input type="checkbox" id="notifyOnDueDay" class="w-4 h-4 rounded text-[#0F5B38] accent-[#0F5B38]">
-                  <span>到期当天发信提醒</span>
-                </label>
-                <p class="text-[10px] text-neutral-400 mt-1">交租日当天早上 09:00 发送提醒邮件</p>
-              </div>
-              <div class="flex flex-col justify-center">
-                <label class="flex items-center gap-2 cursor-pointer font-bold text-neutral-700 dark:text-neutral-300">
-                  <input type="checkbox" id="notifyOnOverdue" class="w-4 h-4 rounded text-[#0F5B38] accent-[#0F5B38]">
-                  <span>超期未收房租每日提醒</span>
-                </label>
-                <p class="text-[10px] text-neutral-400 mt-1">有逾期未结清账单时每日发送提醒</p>
-              </div>
-            </div>
-            <div class="text-[11px] text-neutral-400 pt-1 border-t border-[#D7DED9]/60 dark:border-[#26312B]/60 flex items-center gap-2">
-              <span>⏱️ 定时检查规则：</span>
-              <span class="font-mono font-bold text-neutral-600 dark:text-neutral-300">每天早上 09:00 自动检查待收房租并给房东发邮件</span>
-            </div>
-          </div>
-
-          <!-- 自定义通知模板配置 (中文语境) -->
-          <div class="p-4 m3-subcard bg-[#E8EDE9]/40 dark:bg-[#161D1A]/60 space-y-3">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-bold text-neutral-700 dark:text-neutral-200">📝 提醒邮件通知内容</span>
-              <div class="flex items-center gap-1.5">
-                <button type="button" onclick="switchTemplateTab('rent')" id="tplTab_rent" class="tpl-tab-btn m3-pill px-3 py-1 text-xs font-bold bg-[#0F5B38] text-white dark:bg-[#7CDCA0] dark:text-[#00391F]">
-                  🏠 待收房租提醒
-                </button>
-                <button type="button" onclick="switchTemplateTab('utility')" id="tplTab_utility" class="tpl-tab-btn m3-pill px-3 py-1 text-xs font-medium bg-[#E8EDE9] text-neutral-600 dark:bg-[#161D1A] dark:text-neutral-300">
-                  ⚡ 水电待收提醒
+                <button onclick="saveDefaultStorageSetting()" id="saveDefaultStorageBtn" class="m3-pill px-4 py-2 bg-[#0F5B38] dark:bg-[#7CDCA0] text-white dark:text-[#00391F] text-xs font-bold shadow-sm">
+                  保存存储模式
                 </button>
               </div>
-            </div>
 
-            <!-- 房租模板编辑区域 -->
-            <div id="tplBoxRent" class="space-y-3">
-              <div>
-                <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1">邮件标题</label>
-                <input type="text" id="notifyTemplateRentTitle" class="m3-input w-full text-xs font-semibold">
-              </div>
-              <div>
-                <div class="flex items-center justify-between mb-1">
-                  <label class="text-xs font-bold text-neutral-600 dark:text-neutral-400">邮件 HTML 正文</label>
-                  <div class="flex items-center gap-1 flex-wrap text-[10px]">
-                    <span class="text-neutral-400">插入变量：</span>
-                    <button type="button" onclick="insertTplVar('notifyTemplateRentBody', '{{房源名称}}')" class="px-1.5 py-0.5 bg-[#E8EDE9] dark:bg-[#161D1A] rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 font-mono">{{房源名称}}</button>
-                    <button type="button" onclick="insertTplVar('notifyTemplateRentBody', '{{承租人}}')" class="px-1.5 py-0.5 bg-[#E8EDE9] dark:bg-[#161D1A] rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 font-mono">{{承租人}}</button>
-                    <button type="button" onclick="insertTplVar('notifyTemplateRentBody', '{{应交租金}}')" class="px-1.5 py-0.5 bg-[#E8EDE9] dark:bg-[#161D1A] rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 font-mono">{{应交租金}}</button>
-                    <button type="button" onclick="insertTplVar('notifyTemplateRentBody', '{{交租截止日}}')" class="px-1.5 py-0.5 bg-[#E8EDE9] dark:bg-[#161D1A] rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 font-mono">{{交租截止日}}</button>
-                    <button type="button" onclick="insertTplVar('notifyTemplateRentBody', '{{状态描述}}')" class="px-1.5 py-0.5 bg-[#E8EDE9] dark:bg-[#161D1A] rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 font-mono">{{状态描述}}</button>
-                    <button type="button" onclick="insertTplVar('notifyTemplateRentBody', '{{房东电话}}')" class="px-1.5 py-0.5 bg-[#E8EDE9] dark:bg-[#161D1A] rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 font-mono">{{房东电话}}</button>
+              <!-- 1. 本地存储 (常驻基石 · 无法取消) -->
+              <div class="p-3.5 rounded-2xl bg-[#E8EDE9]/40 dark:bg-[#161D1A]/60 border border-[#D7DED9]/60 dark:border-[#26312B]/60 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-9 h-9 rounded-xl bg-[#0F5B38]/10 dark:bg-[#7CDCA0]/10 text-[#0F5B38] dark:text-[#7CDCA0] flex items-center justify-center font-bold text-base flex-shrink-0">
+                    💾
+                  </div>
+                  <div>
+                    <div class="text-xs font-bold text-neutral-800 dark:text-neutral-100 flex items-center gap-2">
+                      <span>本地 D1 数据库存储</span>
+                      <span class="text-[10px] px-2 py-0.2 rounded-full bg-[#C4EED0] dark:bg-[#1A402D] text-[#002111] dark:text-[#A6F5B9] font-bold">系统基础 · 默认保存</span>
+                    </div>
+                    <div class="text-[11px] text-neutral-400 mt-0.5">合同原件与记账单据端到端加密保存在本地 SQLite 数据库中，始终保存无法取消</div>
                   </div>
                 </div>
-                <textarea id="notifyTemplateRentBody" rows="7" class="m3-input w-full text-xs font-mono" oninput="updateTemplatePreview()"></textarea>
+                <div class="flex items-center gap-1 text-[11px] font-bold text-[#0F5B38] dark:text-[#7CDCA0] px-3 py-1.5 rounded-full bg-[#0F5B38]/10 dark:bg-[#7CDCA0]/10 cursor-not-allowed select-none flex-shrink-0" title="系统基础存储，永久启用无法取消">
+                  <span>✓ 始终保存</span>
+                </div>
               </div>
+
+              <!-- 2. 云端异地备份通道 (二选一 / 可关闭) -->
+              <div class="space-y-2">
+                <div class="flex items-center justify-between">
+                  <label class="block text-xs font-bold text-neutral-700 dark:text-neutral-300 px-1">
+                    云端异地备份通道 (二选一)
+                  </label>
+                  <span class="text-[11px] text-neutral-400">选择后在下方展开配置服务</span>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  <!-- 选项 A: 关 / 不开启云备份 -->
+                  <label class="flex items-start gap-2.5 p-3.5 rounded-2xl bg-[#E8EDE9]/40 dark:bg-[#161D1A]/60 border border-[#D7DED9]/60 dark:border-[#26312B]/60 cursor-pointer hover:border-[#0F5B38] transition-all">
+                    <input type="radio" name="cloudBackupProvider" id="cloudBackup_none" value="NONE" checked onchange="toggleCloudBackupUI('NONE')" class="accent-[#0F5B38] mt-0.5">
+                    <div>
+                      <div class="text-xs font-bold text-neutral-800 dark:text-neutral-100">🚫 不开启云备份</div>
+                      <div class="text-[11px] text-neutral-400 mt-0.5 leading-relaxed">仅保存在本地 D1 数据库，不占用任何外部网盘或对象存储</div>
+                    </div>
+                  </label>
+
+                  <!-- 选项 B: WebDAV / 网盘 -->
+                  <label class="flex items-start gap-2.5 p-3.5 rounded-2xl bg-[#E8EDE9]/40 dark:bg-[#161D1A]/60 border border-[#D7DED9]/60 dark:border-[#26312B]/60 cursor-pointer hover:border-[#0F5B38] transition-all">
+                    <input type="radio" name="cloudBackupProvider" id="cloudBackup_webdav" value="WEBDAV" onchange="toggleCloudBackupUI('WEBDAV')" class="accent-[#0F5B38] mt-0.5">
+                    <div>
+                      <div class="text-xs font-bold text-neutral-800 dark:text-neutral-100 flex items-center gap-1.5">
+                        <span>☁️ WebDAV / 网盘</span>
+                        <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-800 dark:text-indigo-300 font-bold">国内网盘</span>
+                      </div>
+                      <div class="text-[11px] text-neutral-400 mt-0.5 leading-relaxed">坚果云直连，或经 AList 备份至阿里云盘、百度网盘、天翼云</div>
+                    </div>
+                  </label>
+
+                  <!-- 选项 C: S3 兼容对象存储 -->
+                  <label class="flex items-start gap-2.5 p-3.5 rounded-2xl bg-[#E8EDE9]/40 dark:bg-[#161D1A]/60 border border-[#D7DED9]/60 dark:border-[#26312B]/60 cursor-pointer hover:border-[#0F5B38] transition-all">
+                    <input type="radio" name="cloudBackupProvider" id="cloudBackup_s3" value="S3" onchange="toggleCloudBackupUI('S3')" class="accent-[#0F5B38] mt-0.5">
+                    <div>
+                      <div class="text-xs font-bold text-neutral-800 dark:text-neutral-100 flex items-center gap-1.5">
+                        <span>🪣 S3 兼容对象存储</span>
+                        <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-sky-100 dark:bg-sky-950 text-sky-800 dark:text-sky-300 font-bold">高可用</span>
+                      </div>
+                      <div class="text-[11px] text-neutral-400 mt-0.5 leading-relaxed">阿里云 OSS、腾讯云 COS、Cloudflare R2、自建 MinIO</div>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              <div id="defaultStorageFeedback" class="text-xs font-semibold px-1"></div>
             </div>
 
-            <!-- 水电模板编辑区域 -->
-            <div id="tplBoxUtility" class="hidden space-y-3">
-              <div>
-                <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1">邮件标题</label>
-                <input type="text" id="notifyTemplateUtilityTitle" class="m3-input w-full text-xs font-semibold">
+            <!-- S3 兼容对象存储配置卡片 (按需展开) -->
+            <div id="s3ConfigCard" class="hidden m3-card bg-white dark:bg-[#1A211D] border border-[#D7DED9]/50 dark:border-[#26312B]/60 p-6 md:p-8 space-y-5 shadow-sm">
+              <div class="flex items-center justify-between pb-2 border-b border-[#E8EDE9] dark:border-[#26312B]/60">
+                <div>
+                  <h3 class="text-sm font-bold flex items-center gap-2">
+                    <span>🪣 S3 兼容对象存储 (阿里云 OSS / 腾讯云 COS / R2 / MinIO)</span>
+                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-sky-100 dark:bg-sky-950 text-sky-800 dark:text-sky-300 font-bold">零 SDK 依赖</span>
+                  </h3>
+                  <p class="text-xs text-neutral-400 mt-0.5">原生 WebCrypto 实现 AWS SigV4 认证，支持国内主流云厂商与自建 MinIO 异地容灾</p>
+                </div>
               </div>
-              <div>
-                <div class="flex items-center justify-between mb-1">
-                  <label class="text-xs font-bold text-neutral-600 dark:text-neutral-400">邮件 HTML 正文</label>
-                  <div class="flex items-center gap-1 flex-wrap text-[10px]">
-                    <span class="text-neutral-400">插入变量：</span>
-                    <button type="button" onclick="insertTplVar('notifyTemplateUtilityBody', '{{房源名称}}')" class="px-1.5 py-0.5 bg-[#E8EDE9] dark:bg-[#161D1A] rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 font-mono">{{房源名称}}</button>
-                    <button type="button" onclick="insertTplVar('notifyTemplateUtilityBody', '{{承租人}}')" class="px-1.5 py-0.5 bg-[#E8EDE9] dark:bg-[#161D1A] rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 font-mono">{{承租人}}</button>
-                    <button type="button" onclick="insertTplVar('notifyTemplateUtilityBody', '{{欠款金额}}')" class="px-1.5 py-0.5 bg-[#E8EDE9] dark:bg-[#161D1A] rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 font-mono">{{欠款金额}}</button>
-                    <button type="button" onclick="insertTplVar('notifyTemplateUtilityBody', '{{用量明细}}')" class="px-1.5 py-0.5 bg-[#E8EDE9] dark:bg-[#161D1A] rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 font-mono">{{用量明细}}</button>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                <div class="md:col-span-2">
+                  <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">对象存储服务地址 (Endpoint)</label>
+                  <input type="text" id="s3Endpoint" placeholder="例如 https://oss-cn-hangzhou.aliyuncs.com 或 https://cos.ap-guangzhou.myqcloud.com" class="m3-input w-full text-sm font-mono">
+                  <div class="flex items-center flex-wrap gap-2.5 mt-2 px-1">
+                    <span class="text-[11px] text-neutral-400">快速填入预设：</span>
+                    <button type="button" onclick="fillS3Preset('aliyun')" class="text-[11px] text-orange-600 dark:text-orange-400 font-bold hover:underline">阿里云 OSS</button>
+                    <button type="button" onclick="fillS3Preset('tencent')" class="text-[11px] text-blue-600 dark:text-blue-400 font-bold hover:underline">腾讯云 COS</button>
+                    <button type="button" onclick="fillS3Preset('r2')" class="text-[11px] text-amber-600 dark:text-amber-400 font-bold hover:underline">Cloudflare R2</button>
+                    <button type="button" onclick="fillS3Preset('qiniu')" class="text-[11px] text-cyan-600 dark:text-cyan-400 font-bold hover:underline">七牛云 Kodo</button>
+                    <button type="button" onclick="fillS3Preset('minio')" class="text-[11px] text-rose-600 dark:text-rose-400 font-bold hover:underline">自建 MinIO</button>
                   </div>
                 </div>
-                <textarea id="notifyTemplateUtilityBody" rows="7" class="m3-input w-full text-xs font-mono" oninput="updateTemplatePreview()"></textarea>
+
+                <div>
+                  <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">存储桶名称 (Bucket Name)</label>
+                  <input type="text" id="s3Bucket" placeholder="填入 Bucket 名称" class="m3-input w-full text-sm font-mono">
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">地域标识 (Region)</label>
+                  <input type="text" id="s3Region" placeholder="例如 cn-hangzhou, ap-guangzhou, auto" class="m3-input w-full text-sm font-mono">
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">AccessKey ID</label>
+                  <input type="text" id="s3AccessKey" placeholder="对象存储访问密钥 ID" class="m3-input w-full text-sm font-mono">
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">Secret Access Key</label>
+                  <input type="password" id="s3SecretKey" placeholder="修改时填入，留空不修改" class="m3-input w-full text-sm font-mono">
+                </div>
+
+                <div class="md:col-span-2">
+                  <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">存储根目录前缀 (Base Path)</label>
+                  <input type="text" id="s3BasePath" placeholder="例如 RentHubFiles (留空存根目录)" class="m3-input w-full text-sm font-mono">
+                </div>
+              </div>
+
+              <div class="pt-4 border-t border-[#E8EDE9] dark:border-[#26312B]/60 flex flex-col sm:flex-row items-center gap-3">
+                <button type="button" onclick="testS3()" id="testS3Btn" class="m3-pill w-full sm:w-auto px-5 py-2.5 bg-[#E8EDE9] dark:bg-[#161D1A] hover:opacity-90 text-xs font-bold transition-all">
+                  测试 S3 连通性
+                </button>
+                <button type="button" onclick="saveS3()" id="saveS3Btn" class="m3-pill w-full sm:w-auto px-5 py-2.5 bg-[#0F5B38] dark:bg-[#7CDCA0] text-white dark:text-[#00391F] text-xs font-bold shadow-sm transition-all">
+                  保存 S3 配置
+                </button>
+                <span id="s3Feedback" class="text-xs font-semibold px-2"></span>
               </div>
             </div>
 
-            <!-- 实时预览框 -->
-            <div class="pt-2">
-              <span class="text-[11px] font-bold text-neutral-400 block mb-1">实时效果预览 (带入模拟数据)：</span>
-              <div id="tplPreviewFrame" class="p-3 bg-white dark:bg-[#121614] rounded-2xl border border-[#D7DED9]/60 dark:border-[#26312B]/60 max-h-56 overflow-y-auto text-xs"></div>
+            <!-- WebDAV 云盘挂载配置 (按需展开) -->
+            <div id="webdavConfigCard" class="hidden m3-card bg-white dark:bg-[#1A211D] border border-[#D7DED9]/50 dark:border-[#26312B]/60 p-6 md:p-8 space-y-5 shadow-sm">
+              <div class="flex items-center justify-between pb-2 border-b border-[#E8EDE9] dark:border-[#26312B]/60">
+                <div>
+                  <h3 class="text-sm font-bold flex items-center gap-2">
+                    <span>☁️ WebDAV 云盘存储 (坚果云 / AList 挂载阿里云盘·百度网盘 / 123云盘)</span>
+                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-800 dark:text-indigo-300 font-bold">网盘利器</span>
+                  </h3>
+                  <p class="text-xs text-neutral-400 mt-0.5">支持坚果云直连；配合 AList 更可无感对接阿里云盘、百度网盘、天翼云、夸克等各种国内网盘</p>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                <div class="md:col-span-2">
+                  <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">WebDAV 服务器地址 (Endpoint)</label>
+                  <input type="text" id="webdavEndpoint" placeholder="例如 https://dav.jianguoyun.com/dav/ 或 http://your-alist-host:5244/dav/" class="m3-input w-full text-sm font-mono">
+                  <div class="flex items-center flex-wrap gap-2.5 mt-2 px-1">
+                    <span class="text-[11px] text-neutral-400">快速填入预设：</span>
+                    <button type="button" onclick="fillPreset('jianguoyun')" class="text-[11px] text-[#0F5B38] dark:text-[#7CDCA0] font-bold hover:underline">坚果云预设</button>
+                    <button type="button" onclick="fillPreset('alist')" class="text-[11px] text-indigo-600 dark:text-indigo-400 font-bold hover:underline">AList 网盘预设 (挂载阿里云盘/百度网盘)</button>
+                    <button type="button" onclick="fillPreset('123pan')" class="text-[11px] text-blue-600 dark:text-blue-400 font-bold hover:underline">123 云盘预设</button>
+                    <button type="button" onclick="fillPreset('openlist')" class="text-[11px] text-neutral-500 font-bold hover:underline">OpenList 预设</button>
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">用户名 / 账号</label>
+                  <input type="text" id="webdavUsername" placeholder="坚果云注册邮箱或网盘用户名" class="m3-input w-full text-sm">
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">应用专用密码</label>
+                  <input type="password" id="webdavPassword" placeholder="修改时填入，留空不修改" class="m3-input w-full text-sm">
+                </div>
+
+                <div class="md:col-span-2">
+                  <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">远端基础目录 (Base Path)</label>
+                  <input type="text" id="webdavBasePath" placeholder="例如 /RentRecords (留空存根目录)" class="m3-input w-full text-sm font-mono">
+                </div>
+              </div>
+
+              <div class="pt-4 border-t border-[#E8EDE9] dark:border-[#26312B]/60 flex flex-col sm:flex-row items-center gap-3">
+                <button type="button" onclick="testWebdav()" id="testWebdavBtn" class="m3-pill w-full sm:w-auto px-5 py-2.5 bg-[#E8EDE9] dark:bg-[#161D1A] hover:opacity-90 text-xs font-bold transition-all">
+                  测试连通性
+                </button>
+                <button type="button" onclick="saveWebdav()" id="saveWebdavBtn" class="m3-pill w-full sm:w-auto px-5 py-2.5 bg-[#0F5B38] dark:bg-[#7CDCA0] text-white dark:text-[#00391F] text-xs font-bold shadow-sm transition-all">
+                  保存 WebDAV 配置
+                </button>
+                <span id="webdavFeedback" class="text-xs font-semibold px-2"></span>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="pt-4 border-t border-[#E8EDE9] dark:border-[#26312B]/60 flex flex-col sm:flex-row items-center gap-3">
-          <button onclick="sendTestEmail()" id="sendTestEmailBtn" class="m3-pill w-full sm:w-auto px-5 py-2.5 bg-[#E8EDE9] dark:bg-[#161D1A] hover:opacity-90 text-xs font-bold transition-all">
-            ✉️ 发送测试邮件
-          </button>
-          <button onclick="saveNotificationSettings()" id="saveNotifyBtn" class="m3-pill w-full sm:w-auto px-5 py-2.5 bg-[#0F5B38] dark:bg-[#7CDCA0] text-white dark:text-[#00391F] text-xs font-bold shadow-sm transition-all">
-            保存提醒设置
-          </button>
-          <span id="notifyFeedback" class="text-xs font-semibold px-2"></span>
-        </div>
-      </div>
+          <!-- ==================== 栏目 2: 待收邮件提醒 ==================== -->
+          <div id="setSection_notifications" class="settings-section hidden space-y-4">
+            <div class="m3-card bg-white dark:bg-[#1A211D] border border-[#D7DED9]/50 dark:border-[#26312B]/60 p-6 md:p-8 space-y-5 shadow-sm">
+              <div class="flex items-center justify-between pb-3 border-b border-[#E8EDE9] dark:border-[#26312B]/60">
+                <div>
+                  <h3 class="text-sm font-bold flex items-center gap-2">
+                    <span>📧 待收提醒与邮箱设置</span>
+                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-[#C4EED0] dark:bg-[#1A402D] text-[#002111] dark:text-[#A6F5B9] font-bold">定时自动提醒</span>
+                  </h3>
+                  <p class="text-xs text-neutral-400 mt-0.5">支持交租提前发信提醒房东、水电欠费提醒，不错过任何应收账目</p>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button type="button" onclick="triggerNotificationCheck()" class="m3-pill px-3.5 py-1.5 bg-[#E8EDE9] dark:bg-[#161D1A] hover:opacity-90 text-xs font-semibold flex items-center gap-1">
+                    ⚡ 立即检查待收账单
+                  </button>
+                </div>
+              </div>
 
-      <!-- D1 数据库透视与数据阅读 -->
-      <div class="m3-card bg-white dark:bg-[#1A211D] border border-[#D7DED9]/50 dark:border-[#26312B]/60 p-6 space-y-4 shadow-sm">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-[#E8EDE9] dark:border-[#26312B]/60">
-          <div>
-            <h3 class="text-sm font-bold flex items-center gap-2">
-              <span>🗄️ D1 数据库透视速览</span>
-              <span class="text-[10px] px-2 py-0.5 rounded-full bg-[#E8EDE9] dark:bg-[#161D1A] text-neutral-600 dark:text-neutral-400 font-mono">SQLite 边缘直读</span>
-            </h3>
-            <p class="text-xs text-neutral-400 mt-0.5">直接在网页中像 Excel 一样透视查阅底层所有数据表</p>
+              <!-- 发信渠道选择器 (Resend API vs 自定义 SMTP) -->
+              <div class="space-y-2">
+                <label class="block text-xs font-bold text-neutral-700 dark:text-neutral-300 px-1">发信服务通道</label>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <label class="flex items-start gap-2.5 p-3 rounded-2xl bg-[#E8EDE9]/60 dark:bg-[#161D1A] border border-[#D7DED9]/60 dark:border-[#26312B]/60 cursor-pointer hover:border-[#0F5B38] transition-all">
+                    <input type="radio" name="notifyMailProvider" id="mailProvider_resend" value="resend" onchange="toggleMailProviderUI('resend')" class="accent-[#0F5B38] mt-0.5">
+                    <div>
+                      <div class="text-xs font-bold text-neutral-800 dark:text-neutral-100 flex items-center gap-1.5">
+                        <span>⚡ Resend API</span>
+                        <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-[#C4EED0] dark:bg-[#1A402D] text-[#002111] dark:text-[#A6F5B9] font-bold">推荐 · 零配置端口</span>
+                      </div>
+                      <div class="text-[11px] text-neutral-400 mt-0.5">现代 HTTP REST 发信，无需配置 SMTP 端口与授权码</div>
+                    </div>
+                  </label>
+                  <label class="flex items-start gap-2.5 p-3 rounded-2xl bg-[#E8EDE9]/60 dark:bg-[#161D1A] border border-[#D7DED9]/60 dark:border-[#26312B]/60 cursor-pointer hover:border-[#0F5B38] transition-all">
+                    <input type="radio" name="notifyMailProvider" id="mailProvider_smtp" value="smtp" checked onchange="toggleMailProviderUI('smtp')" class="accent-[#0F5B38] mt-0.5">
+                    <div>
+                      <div class="text-xs font-bold text-neutral-800 dark:text-neutral-100">📧 自定义 SMTP</div>
+                      <div class="text-[11px] text-neutral-400 mt-0.5">支持 QQ / 163 / 谷歌 Gmail / 腾讯网易企业邮</div>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              <!-- 渠道 1: Resend API 配置卡片 -->
+              <div id="resendConfigSection" class="hidden space-y-3.5 p-4 m3-subcard bg-[#E8EDE9]/40 dark:bg-[#161D1A]/60 border border-[#D7DED9]/50 dark:border-[#26312B]/60">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-neutral-800 dark:text-neutral-200">⚡ Resend 密钥与发件人</span>
+                  <a href="https://resend.com/api-keys" target="_blank" rel="noopener noreferrer" class="text-[11px] font-bold text-[#0F5B38] dark:text-[#7CDCA0] hover:underline flex items-center gap-0.5">获取 Resend API Key ↗</a>
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1 px-1">Resend API Key</label>
+                  <input type="password" id="notifyResendApiKey" placeholder="填入 Resend API Key (以 re_ 开头)" class="m3-input w-full text-xs font-mono">
+                  <span class="text-[10px] text-neutral-400 mt-1 block px-1">在 resend.com 控制台免费申请（例如 <code>re_123456789...</code>）</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1 px-1">发件人邮箱 (From Email)</label>
+                    <input type="text" id="notifyResendFromEmail" placeholder="例如 onboarding@resend.dev 或已验证域名邮箱" class="m3-input w-full text-xs font-mono">
+                    <span class="text-[10px] text-neutral-400 mt-1 block px-1">测试期可直接填入 <code>onboarding@resend.dev</code></span>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1 px-1">发件人显示名称 (From Name)</label>
+                    <input type="text" id="notifyResendFromName" placeholder="例如 房东管家" class="m3-input w-full text-xs font-bold">
+                  </div>
+                </div>
+              </div>
+
+              <!-- 渠道 2: SMTP 发信服务配置 (完整配置项与主流邮箱一键预设) -->
+              <div id="smtpConfigSection" class="space-y-4">
+                <!-- 主流邮箱快捷预设芯片 -->
+                <div class="p-3.5 m3-subcard bg-[#E8EDE9]/40 dark:bg-[#161D1A]/60 space-y-2">
+                  <div class="flex items-center justify-between">
+                    <label class="text-xs font-bold text-neutral-700 dark:text-neutral-200">⚡ 一键填入主流邮箱设置：</label>
+                    <span class="text-[11px] text-neutral-400">点击自动填入主机与端口</span>
+                  </div>
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <button type="button" onclick="applySettingsSmtpPreset('qq')" class="px-3 py-1.5 rounded-full bg-[#E8EDE9] dark:bg-[#242C27] hover:bg-[#DFE5E0] text-xs font-bold text-neutral-700 dark:text-neutral-200 transition-colors">QQ 邮箱 (465 SSL)</button>
+                    <button type="button" onclick="applySettingsSmtpPreset('163')" class="px-3 py-1.5 rounded-full bg-[#E8EDE9] dark:bg-[#242C27] hover:bg-[#DFE5E0] text-xs font-bold text-neutral-700 dark:text-neutral-200 transition-colors">163 网易邮箱 (465 SSL)</button>
+                    <button type="button" onclick="applySettingsSmtpPreset('126')" class="px-3 py-1.5 rounded-full bg-[#E8EDE9] dark:bg-[#242C27] hover:bg-[#DFE5E0] text-xs font-bold text-neutral-700 dark:text-neutral-200 transition-colors">126 邮箱 (465 SSL)</button>
+                    <button type="button" onclick="applySettingsSmtpPreset('foxmail')" class="px-3 py-1.5 rounded-full bg-[#E8EDE9] dark:bg-[#242C27] hover:bg-[#DFE5E0] text-xs font-bold text-neutral-700 dark:text-neutral-200 transition-colors">腾讯企业邮 / Foxmail</button>
+                    <button type="button" onclick="applySettingsSmtpPreset('qiye163')" class="px-3 py-1.5 rounded-full bg-[#E8EDE9] dark:bg-[#242C27] hover:bg-[#DFE5E0] text-xs font-bold text-neutral-700 dark:text-neutral-200 transition-colors">网易企业邮</button>
+                    <button type="button" onclick="applySettingsSmtpPreset('gmail')" class="px-3 py-1.5 rounded-full bg-[#E8EDE9] dark:bg-[#242C27] hover:bg-[#DFE5E0] text-xs font-bold text-neutral-700 dark:text-neutral-200 transition-colors">Gmail</button>
+                    <button type="button" onclick="applySettingsSmtpPreset('outlook')" class="px-3 py-1.5 rounded-full bg-[#E8EDE9] dark:bg-[#242C27] hover:bg-[#DFE5E0] text-xs font-bold text-neutral-700 dark:text-neutral-200 transition-colors">Outlook (587)</button>
+                  </div>
+                </div>
+
+                <!-- SMTP Host, Port, Secure -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div class="sm:col-span-2">
+                    <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">SMTP 服务器主机地址 (Host)</label>
+                    <input type="text" id="notifySmtpHost" placeholder="例如 smtp.qq.com 或 smtp.163.com" class="m3-input w-full text-xs font-mono">
+                  </div>
+                  <div>
+                    <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">端口 (Port)</label>
+                    <input type="number" id="notifySmtpPort" placeholder="465 或 587" class="m3-input w-full text-xs font-mono font-bold">
+                  </div>
+                </div>
+
+                <!-- SSL/TLS 开关 -->
+                <div class="flex items-center justify-between px-1">
+                  <label class="flex items-center gap-2 cursor-pointer font-bold text-xs text-neutral-700 dark:text-neutral-300">
+                    <input type="checkbox" id="notifySmtpSecure" checked class="w-4 h-4 rounded text-[#0F5B38] accent-[#0F5B38]">
+                    <span>启用 SSL/TLS 安全协议 (端口 465 推荐开启；端口 587 STARTTLS 请关闭)</span>
+                  </label>
+                </div>
+
+                <!-- User, Pass -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">SMTP 账号 / 发信邮箱</label>
+                    <input type="text" id="notifySmtpUser" placeholder="例如 your-email@qq.com" class="m3-input w-full text-xs font-mono">
+                  </div>
+                  <div>
+                    <div class="flex items-center justify-between mb-1.5 px-1">
+                      <label class="text-xs font-bold text-neutral-600 dark:text-neutral-400">发信授权码 / 密码</label>
+                      <span class="text-[11px] text-amber-600 dark:text-amber-400 font-bold">QQ/网易请填专有授权码</span>
+                    </div>
+                    <input type="password" id="notifySmtpPass" placeholder="修改时填入授权码，留空不修改" class="m3-input w-full text-xs font-mono">
+                  </div>
+                </div>
+
+                <!-- From Name, From Email -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">发信人显示名称</label>
+                    <input type="text" id="notifySmtpFromName" placeholder="例如 房东管家" class="m3-input w-full text-xs font-bold">
+                  </div>
+                  <div>
+                    <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">发信人地址 (若空默认同账号)</label>
+                    <input type="email" id="notifySmtpFromEmail" placeholder="例如 your-email@qq.com (留空同账号)" class="m3-input w-full text-xs font-mono">
+                  </div>
+                </div>
+              </div>
+
+              <!-- 接收邮箱 (双渠道通用) -->
+              <div class="p-3.5 m3-subcard bg-[#E8EDE9]/50 dark:bg-[#161D1A]/60 border border-[#D7DED9]/60 dark:border-[#26312B]/60">
+                <label class="block text-xs font-bold text-neutral-700 dark:text-neutral-200 mb-1.5 px-1">📬 房东接收提醒邮箱 (双渠道通用)</label>
+                <input type="email" id="notifyRecipientEmail" placeholder="如 owner@domain.com (接收催租、水电欠费与数据库冷备)" class="m3-input w-full text-xs font-mono font-bold">
+              </div>
+
+              <!-- 触发时机与规则 -->
+              <div class="p-4 m3-subcard bg-[#E8EDE9]/40 dark:bg-[#161D1A]/60 space-y-3">
+                <span class="text-xs font-bold block text-neutral-700 dark:text-neutral-200">⏰ 提醒策略与发送时间</span>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                  <div>
+                    <label class="block font-bold text-neutral-600 dark:text-neutral-400 mb-1">提前几天提醒 (逗号分隔天数)</label>
+                    <input type="text" id="notifyDaysBefore" placeholder="7,3,1" class="m3-input w-full text-xs font-mono font-bold">
+                    <div class="flex items-center gap-1.5 mt-1.5">
+                      <span class="text-[10px] text-neutral-400">快捷:</span>
+                      <button type="button" onclick="setNotifyDaysPreset('3,1')" class="text-[10px] text-[#0F5B38] dark:text-[#7CDCA0] font-bold underline">3天+1天</button>
+                      <button type="button" onclick="setNotifyDaysPreset('7,3,1')" class="text-[10px] text-[#0F5B38] dark:text-[#7CDCA0] font-bold underline">7+3+1天</button>
+                      <button type="button" onclick="setNotifyDaysPreset('5')" class="text-[10px] text-[#0F5B38] dark:text-[#7CDCA0] font-bold underline">提前5天</button>
+                    </div>
+                  </div>
+                  <div class="flex flex-col justify-center">
+                    <label class="flex items-center gap-2 cursor-pointer font-bold text-neutral-700 dark:text-neutral-300">
+                      <input type="checkbox" id="notifyOnDueDay" class="w-4 h-4 rounded text-[#0F5B38] accent-[#0F5B38]">
+                      <span>到期当天发信提醒</span>
+                    </label>
+                    <p class="text-[10px] text-neutral-400 mt-1">交租日当天早上 09:00 发送提醒邮件</p>
+                  </div>
+                  <div class="flex flex-col justify-center">
+                    <label class="flex items-center gap-2 cursor-pointer font-bold text-neutral-700 dark:text-neutral-300">
+                      <input type="checkbox" id="notifyOnOverdue" class="w-4 h-4 rounded text-[#0F5B38] accent-[#0F5B38]">
+                      <span>超期未收房租每日提醒</span>
+                    </label>
+                    <p class="text-[10px] text-neutral-400 mt-1">有逾期未结清账单时每日发送提醒</p>
+                  </div>
+                </div>
+                <div class="text-[11px] text-neutral-400 pt-1 border-t border-[#D7DED9]/60 dark:border-[#26312B]/60 flex items-center gap-2">
+                  <span>⏱️ 定时检查规则：</span>
+                  <span class="font-mono font-bold text-neutral-600 dark:text-neutral-300">每天早上 09:00 自动检查待收房租并给房东发邮件</span>
+                </div>
+              </div>
+
+              <!-- 自定义通知模板配置 (中文语境) -->
+              <div class="p-4 m3-subcard bg-[#E8EDE9]/40 dark:bg-[#161D1A]/60 space-y-3">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-neutral-700 dark:text-neutral-200">📝 提醒邮件通知内容</span>
+                  <div class="flex items-center gap-1.5">
+                    <button type="button" onclick="switchTemplateTab('rent')" id="tplTab_rent" class="tpl-tab-btn m3-pill px-3 py-1 text-xs font-bold bg-[#0F5B38] text-white dark:bg-[#7CDCA0] dark:text-[#00391F]">
+                      🏠 待收房租提醒
+                    </button>
+                    <button type="button" onclick="switchTemplateTab('utility')" id="tplTab_utility" class="tpl-tab-btn m3-pill px-3 py-1 text-xs font-medium bg-[#E8EDE9] text-neutral-600 dark:bg-[#161D1A] dark:text-neutral-300">
+                      ⚡ 水电待收提醒
+                    </button>
+                  </div>
+                </div>
+
+                <!-- 房租模板编辑区域 -->
+                <div id="tplBoxRent" class="space-y-3">
+                  <div>
+                    <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1">邮件标题</label>
+                    <input type="text" id="notifyTemplateRentTitle" class="m3-input w-full text-xs font-semibold">
+                  </div>
+                  <div>
+                    <div class="flex items-center justify-between mb-1">
+                      <label class="text-xs font-bold text-neutral-600 dark:text-neutral-400">邮件 HTML 正文</label>
+                      <div class="flex items-center gap-1 flex-wrap text-[10px]">
+                        <span class="text-neutral-400">插入变量：</span>
+                        <button type="button" onclick="insertTplVar('notifyTemplateRentBody', '{{房源名称}}')" class="px-1.5 py-0.5 bg-[#E8EDE9] dark:bg-[#161D1A] rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 font-mono">{{房源名称}}</button>
+                        <button type="button" onclick="insertTplVar('notifyTemplateRentBody', '{{承租人}}')" class="px-1.5 py-0.5 bg-[#E8EDE9] dark:bg-[#161D1A] rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 font-mono">{{承租人}}</button>
+                        <button type="button" onclick="insertTplVar('notifyTemplateRentBody', '{{应交租金}}')" class="px-1.5 py-0.5 bg-[#E8EDE9] dark:bg-[#161D1A] rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 font-mono">{{应交租金}}</button>
+                        <button type="button" onclick="insertTplVar('notifyTemplateRentBody', '{{交租截止日}}')" class="px-1.5 py-0.5 bg-[#E8EDE9] dark:bg-[#161D1A] rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 font-mono">{{交租截止日}}</button>
+                        <button type="button" onclick="insertTplVar('notifyTemplateRentBody', '{{状态描述}}')" class="px-1.5 py-0.5 bg-[#E8EDE9] dark:bg-[#161D1A] rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 font-mono">{{状态描述}}</button>
+                        <button type="button" onclick="insertTplVar('notifyTemplateRentBody', '{{房东电话}}')" class="px-1.5 py-0.5 bg-[#E8EDE9] dark:bg-[#161D1A] rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 font-mono">{{房东电话}}</button>
+                      </div>
+                    </div>
+                    <textarea id="notifyTemplateRentBody" rows="7" class="m3-input w-full text-xs font-mono" oninput="updateTemplatePreview()"></textarea>
+                  </div>
+                </div>
+
+                <!-- 水电模板编辑区域 -->
+                <div id="tplBoxUtility" class="hidden space-y-3">
+                  <div>
+                    <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1">邮件标题</label>
+                    <input type="text" id="notifyTemplateUtilityTitle" class="m3-input w-full text-xs font-semibold">
+                  </div>
+                  <div>
+                    <div class="flex items-center justify-between mb-1">
+                      <label class="text-xs font-bold text-neutral-600 dark:text-neutral-400">邮件 HTML 正文</label>
+                      <div class="flex items-center gap-1 flex-wrap text-[10px]">
+                        <span class="text-neutral-400">插入变量：</span>
+                        <button type="button" onclick="insertTplVar('notifyTemplateUtilityBody', '{{房源名称}}')" class="px-1.5 py-0.5 bg-[#E8EDE9] dark:bg-[#161D1A] rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 font-mono">{{房源名称}}</button>
+                        <button type="button" onclick="insertTplVar('notifyTemplateUtilityBody', '{{承租人}}')" class="px-1.5 py-0.5 bg-[#E8EDE9] dark:bg-[#161D1A] rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 font-mono">{{承租人}}</button>
+                        <button type="button" onclick="insertTplVar('notifyTemplateUtilityBody', '{{欠款金额}}')" class="px-1.5 py-0.5 bg-[#E8EDE9] dark:bg-[#161D1A] rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 font-mono">{{欠款金额}}</button>
+                        <button type="button" onclick="insertTplVar('notifyTemplateUtilityBody', '{{用量明细}}')" class="px-1.5 py-0.5 bg-[#E8EDE9] dark:bg-[#161D1A] rounded hover:bg-neutral-200 dark:hover:bg-neutral-700 font-mono">{{用量明细}}</button>
+                      </div>
+                    </div>
+                    <textarea id="notifyTemplateUtilityBody" rows="7" class="m3-input w-full text-xs font-mono" oninput="updateTemplatePreview()"></textarea>
+                  </div>
+                </div>
+
+                <!-- 实时预览框 -->
+                <div class="pt-2">
+                  <span class="text-[11px] font-bold text-neutral-400 block mb-1">实时效果预览 (带入模拟数据)：</span>
+                  <div id="tplPreviewFrame" class="p-3 bg-white dark:bg-[#121614] rounded-2xl border border-[#D7DED9]/60 dark:border-[#26312B]/60 max-h-56 overflow-y-auto text-xs"></div>
+                </div>
+              </div>
+
+              <div class="pt-4 border-t border-[#E8EDE9] dark:border-[#26312B]/60 flex flex-col sm:flex-row items-center gap-3">
+                <button type="button" onclick="sendTestEmail()" id="sendTestEmailBtn" class="m3-pill w-full sm:w-auto px-5 py-2.5 bg-[#E8EDE9] dark:bg-[#161D1A] hover:opacity-90 text-xs font-bold transition-all">
+                  ✉️ 发送测试邮件
+                </button>
+                <button type="button" onclick="saveNotificationSettings()" id="saveNotifyBtn" class="m3-pill w-full sm:w-auto px-5 py-2.5 bg-[#0F5B38] dark:bg-[#7CDCA0] text-white dark:text-[#00391F] text-xs font-bold shadow-sm transition-all">
+                  保存提醒设置
+                </button>
+                <span id="notifyFeedback" class="text-xs font-semibold px-2"></span>
+              </div>
+            </div>
           </div>
-          <div class="flex items-center gap-2 flex-wrap">
-            <button onclick="sendEmailBackup()" id="emailBackupBtn" class="m3-pill px-3.5 py-1.5 bg-[#C4EED0] dark:bg-[#1A402D] text-[#002111] dark:text-[#A6F5B9] hover:opacity-90 text-xs font-bold flex items-center gap-1">
-              📧 发送备份至邮箱
-            </button>
-            <button onclick="dumpDatabaseJson()" class="m3-pill px-3.5 py-1.5 bg-[#E8EDE9] dark:bg-[#161D1A] hover:opacity-90 text-xs font-semibold flex items-center gap-1">
-              📥 导出全量 JSON
-            </button>
-            <button onclick="inspectDatabaseTable(currentInspectTable)" class="m3-pill px-3.5 py-1.5 bg-[#E8EDE9] dark:bg-[#161D1A] hover:opacity-90 text-xs font-semibold">
-              🔄 刷新当前表
-            </button>
+
+          <!-- ==================== 栏目 3: 账号与安全 ==================== -->
+          <div id="setSection_security" class="settings-section hidden space-y-4">
+            <div class="m3-card bg-white dark:bg-[#1A211D] border border-[#D7DED9]/50 dark:border-[#26312B]/60 p-6 space-y-4 shadow-sm">
+              <h3 class="text-sm font-bold">管理员账号与安全验证</h3>
+
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between py-3 border-b border-[#E8EDE9] dark:border-[#26312B]/60 text-xs gap-3">
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span class="font-bold">当前登录账号：<span class="text-[#0F5B38] dark:text-[#7CDCA0] font-mono">${username}</span></span>
+                    <span id="settings2FABadge" class="text-[10px] px-2.5 py-0.5 rounded-full font-bold">检测中...</span>
+                  </div>
+                  <p class="text-neutral-400 mt-1">当前设备登录状态正常</p>
+                </div>
+                <button type="button" onclick="logout()" class="m3-pill px-4 py-2 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 text-rose-600 dark:text-rose-400 font-bold transition-all self-start sm:self-auto">
+                  退出当前登录
+                </button>
+              </div>
+              
+              <!-- 2FA 动态状态控制 -->
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between py-3 border-b border-[#E8EDE9] dark:border-[#26312B]/60 text-xs gap-3">
+                <div>
+                  <span class="font-bold">手机二次验证 (动态口令)</span>
+                  <p id="settings2FADesc" class="text-neutral-400 mt-0.5">开启后登录需输入手机验证码，提升账号安全性</p>
+                </div>
+                <div class="flex items-center gap-2" id="settings2FAActionBtns"></div>
+              </div>
+
+              <div class="flex items-center justify-between py-2 text-xs">
+                <div>
+                  <span class="font-bold">修改登录密码</span>
+                  <p class="text-neutral-400 mt-0.5">修改当前系统的登录密码</p>
+                </div>
+                <button type="button" onclick="openChangePasswordModal()" class="m3-pill px-4 py-2 bg-[#E8EDE9] dark:bg-[#161D1A] hover:opacity-90 font-bold">
+                  修改密码
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
 
-        <!-- 数据表切换选项卡 -->
-        <div class="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
-          <button onclick="inspectDatabaseTable('leases')" id="tab_table_leases" class="inspect-tab-btn m3-pill px-3.5 py-1.5 font-bold bg-[#0F5B38] text-white dark:bg-[#7CDCA0] dark:text-[#00391F] transition-all">
-            🏠 房源租约 (leases)
-          </button>
-          <button onclick="inspectDatabaseTable('payments')" id="tab_table_payments" class="inspect-tab-btn m3-pill px-3.5 py-1.5 font-medium bg-[#E8EDE9] text-neutral-600 dark:bg-[#161D1A] dark:text-neutral-400 transition-all">
-            💰 记账明细 (payments)
-          </button>
-          <button onclick="inspectDatabaseTable('attachments')" id="tab_table_attachments" class="inspect-tab-btn m3-pill px-3.5 py-1.5 font-medium bg-[#E8EDE9] text-neutral-600 dark:bg-[#161D1A] dark:text-neutral-400 transition-all">
-            📎 单据文件 (attachments)
-          </button>
-          <button onclick="inspectDatabaseTable('users')" id="tab_table_users" class="inspect-tab-btn m3-pill px-3.5 py-1.5 font-medium bg-[#E8EDE9] text-neutral-600 dark:bg-[#161D1A] dark:text-neutral-400 transition-all">
-            👤 管理账号 (users)
-          </button>
-          <button onclick="inspectDatabaseTable('system_settings')" id="tab_table_system_settings" class="inspect-tab-btn m3-pill px-3.5 py-1.5 font-medium bg-[#E8EDE9] text-neutral-600 dark:bg-[#161D1A] dark:text-neutral-400 transition-all">
-            ⚙️ 系统配置 (system_settings)
-          </button>
-        </div>
+          <!-- ==================== 栏目 4: 数据库透视 ==================== -->
+          <div id="setSection_database" class="settings-section hidden space-y-4">
+            <div class="m3-card bg-white dark:bg-[#1A211D] border border-[#D7DED9]/50 dark:border-[#26312B]/60 p-6 space-y-4 shadow-sm">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-[#E8EDE9] dark:border-[#26312B]/60">
+                <div>
+                  <h3 class="text-sm font-bold flex items-center gap-2">
+                    <span>🗄️ D1 数据库透视速览</span>
+                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-[#E8EDE9] dark:bg-[#161D1A] text-neutral-600 dark:text-neutral-400 font-mono">SQLite 边缘直读</span>
+                  </h3>
+                  <p class="text-xs text-neutral-400 mt-0.5">直接在网页中像 Excel 一样透视查阅底层所有数据表</p>
+                </div>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <button type="button" onclick="sendEmailBackup()" id="emailBackupBtn" class="m3-pill px-3.5 py-1.5 bg-[#C4EED0] dark:bg-[#1A402D] text-[#002111] dark:text-[#A6F5B9] hover:opacity-90 text-xs font-bold flex items-center gap-1">
+                    📧 发送备份至邮箱
+                  </button>
+                  <button type="button" onclick="dumpDatabaseJson()" class="m3-pill px-3.5 py-1.5 bg-[#E8EDE9] dark:bg-[#161D1A] hover:opacity-90 text-xs font-semibold flex items-center gap-1">
+                    📥 导出全量 JSON
+                  </button>
+                  <button type="button" onclick="inspectDatabaseTable(currentInspectTable)" class="m3-pill px-3.5 py-1.5 bg-[#E8EDE9] dark:bg-[#161D1A] hover:opacity-90 text-xs font-semibold">
+                    🔄 刷新当前表
+                  </button>
+                </div>
+              </div>
 
-        <!-- 表格实时渲染区 -->
-        <div class="overflow-x-auto border border-[#D7DED9]/60 dark:border-[#26312B]/60 rounded-2xl max-h-96">
-          <div id="dbInspectLoading" class="hidden p-8 text-center text-xs text-neutral-400">正在实时查询 D1 数据库...</div>
-          <table id="dbInspectTable" class="w-full text-left text-xs font-mono border-collapse">
-            <thead id="dbInspectThead" class="bg-[#E8EDE9]/60 dark:bg-[#161D1A] text-neutral-500 uppercase tracking-wider text-[10px] border-b border-[#D7DED9]/60 dark:border-[#26312B]/60 sticky top-0"></thead>
-            <tbody id="dbInspectTbody" class="divide-y divide-[#E8EDE9]/60 dark:divide-[#26312B]/60"></tbody>
-          </table>
+              <!-- 数据表切换选项卡 -->
+              <div class="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
+                <button type="button" onclick="inspectDatabaseTable('leases')" id="tab_table_leases" class="inspect-tab-btn m3-pill px-3.5 py-1.5 font-bold bg-[#0F5B38] text-white dark:bg-[#7CDCA0] dark:text-[#00391F] transition-all">
+                  🏠 房源租约 (leases)
+                </button>
+                <button type="button" onclick="inspectDatabaseTable('payments')" id="tab_table_payments" class="inspect-tab-btn m3-pill px-3.5 py-1.5 font-medium bg-[#E8EDE9] text-neutral-600 dark:bg-[#161D1A] dark:text-neutral-400 transition-all">
+                  💰 记账明细 (payments)
+                </button>
+                <button type="button" onclick="inspectDatabaseTable('attachments')" id="tab_table_attachments" class="inspect-tab-btn m3-pill px-3.5 py-1.5 font-medium bg-[#E8EDE9] text-neutral-600 dark:bg-[#161D1A] dark:text-neutral-400 transition-all">
+                  📎 单据文件 (attachments)
+                </button>
+                <button type="button" onclick="inspectDatabaseTable('users')" id="tab_table_users" class="inspect-tab-btn m3-pill px-3.5 py-1.5 font-medium bg-[#E8EDE9] text-neutral-600 dark:bg-[#161D1A] dark:text-neutral-400 transition-all">
+                  👤 管理账号 (users)
+                </button>
+                <button type="button" onclick="inspectDatabaseTable('system_settings')" id="tab_table_system_settings" class="inspect-tab-btn m3-pill px-3.5 py-1.5 font-medium bg-[#E8EDE9] text-neutral-600 dark:bg-[#161D1A] dark:text-neutral-400 transition-all">
+                  ⚙️ 系统配置 (system_settings)
+                </button>
+              </div>
+
+              <!-- 表格实时渲染区 -->
+              <div class="overflow-x-auto border border-[#D7DED9]/60 dark:border-[#26312B]/60 rounded-2xl max-h-96">
+                <div id="dbInspectLoading" class="hidden p-8 text-center text-xs text-neutral-400">正在实时查询 D1 数据库...</div>
+                <table id="dbInspectTable" class="w-full text-left text-xs font-mono border-collapse">
+                  <thead id="dbInspectThead" class="bg-[#E8EDE9]/60 dark:bg-[#161D1A] text-neutral-500 uppercase tracking-wider text-[10px] border-b border-[#D7DED9]/60 dark:border-[#26312B]/60 sticky top-0"></thead>
+                  <tbody id="dbInspectTbody" class="divide-y divide-[#E8EDE9]/60 dark:divide-[#26312B]/60"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- ==================== 栏目 5: 数据重置与测试 ==================== -->
+          <div id="setSection_reset" class="settings-section hidden space-y-4">
+            <div class="m3-card bg-white dark:bg-[#1A211D] border border-rose-200/80 dark:border-rose-900/60 p-6 md:p-8 space-y-5 shadow-sm">
+              <div class="flex items-center justify-between pb-3 border-b border-rose-100 dark:border-rose-950">
+                <div>
+                  <h3 class="text-sm font-bold flex items-center gap-2 text-rose-700 dark:text-rose-400">
+                    <span>🧹 测试数据重置与清理</span>
+                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-300 font-bold">初装自测专用</span>
+                  </h3>
+                  <p class="text-xs text-neutral-400 mt-0.5">清空本地全部房源、记账、单据附件及当前管理员，将系统重置到全新未安装状态</p>
+                </div>
+              </div>
+
+              <div class="p-4 rounded-2xl bg-rose-50/70 dark:bg-rose-950/30 border border-rose-200/50 dark:border-rose-900/40 text-xs text-rose-900 dark:text-rose-200 leading-relaxed space-y-2">
+                <p><strong>💡 功能说明：</strong>如果您想重新跑一遍完整的系统初装初始化流程（设置账号、配置邮箱、绑定手机 TOTP 二次验证），点击下方按钮即可一键重置。</p>
+                <p class="text-[11px] text-rose-600 dark:text-rose-400">⚠️ 执行后 payments、leases、attachments、users 表数据将全部清空，页面将直接刷新并跳转至系统初装向导页。</p>
+              </div>
+
+              <div class="pt-2 flex items-center gap-3">
+                <button type="button" onclick="confirmResetSystem()" id="btnResetSystem" class="m3-pill px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-md shadow-rose-600/20 transition-all flex items-center gap-2">
+                  <span>🧹 一键清空系统并重置 (进入初装向导)</span>
+                </button>
+                <span id="resetSystemFeedback" class="text-xs font-semibold"></span>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
     </section>
@@ -4886,6 +5047,94 @@ export function renderAppHtml(username: string): string {
       }
     });
 
+    // ==================== SaaS 设置中心双栏切换 ====================
+    function switchSettingsSection(secId) {
+      document.querySelectorAll('.settings-section').forEach(sec => sec.classList.add('hidden'));
+      const target = document.getElementById('setSection_' + secId);
+      if (target) target.classList.remove('hidden');
+
+      document.querySelectorAll('.settings-nav-btn').forEach(btn => {
+        const isActive = btn.id === 'setNav_' + secId;
+        if (isActive) {
+          if (secId === 'reset') {
+            btn.className = 'settings-nav-btn w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-bold text-left transition-all whitespace-nowrap bg-rose-600 text-white shadow-sm';
+          } else {
+            btn.className = 'settings-nav-btn w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-bold text-left transition-all whitespace-nowrap bg-[#0F5B38] text-white dark:bg-[#7CDCA0] dark:text-[#00391F] shadow-sm';
+          }
+        } else {
+          if (btn.id === 'setNav_reset') {
+            btn.className = 'settings-nav-btn w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-left transition-all whitespace-nowrap text-rose-700 dark:text-rose-400 hover:bg-rose-100/70 dark:hover:bg-rose-950/40';
+          } else {
+            btn.className = 'settings-nav-btn w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-left transition-all whitespace-nowrap text-neutral-700 dark:text-neutral-300 hover:bg-[#D7DED9]/60 dark:hover:bg-[#202923]';
+          }
+        }
+      });
+
+      if (secId === 'database') {
+        inspectDatabaseTable(currentInspectTable || 'leases');
+      }
+    }
+
+    // ==================== 显示密度双模式切换 (舒享 / 紧凑) ====================
+    function toggleDensity() {
+      const isCompact = document.body.classList.toggle('density-compact');
+      const mode = isCompact ? 'compact' : 'comfortable';
+      localStorage.setItem('renthub_density', mode);
+      updateDensityUI(mode);
+    }
+
+    function updateDensityUI(mode) {
+      const icon = document.getElementById('densityIcon');
+      const label = document.getElementById('densityLabel');
+      if (mode === 'compact') {
+        document.body.classList.add('density-compact');
+        if (icon) icon.innerText = '⚡';
+        if (label) label.innerText = '紧凑模式';
+      } else {
+        document.body.classList.remove('density-compact');
+        if (icon) icon.innerText = '🌿';
+        if (label) label.innerText = '舒享模式';
+      }
+    }
+
+    function initDensity() {
+      const saved = localStorage.getItem('renthub_density') || 'comfortable';
+      updateDensityUI(saved);
+    }
+
+    // ==================== 一键清空系统测试数据 ====================
+    async function confirmResetSystem() {
+      const confirmed = confirm('⚠️ 危险操作警告：\\n\\n确定要清空所有测试数据并重置系统吗？\\n\\n执行后：\\n1. 所有的房源 (leases)、记账 (payments)、单据附件 (attachments) 将被全部清除。\\n2. 管理员账号与会话将被清除，直接返回系统初装向导。\\n\\n是否立即执行？');
+      if (!confirmed) return;
+
+      const btn = document.getElementById('btnResetSystem');
+      const fb = document.getElementById('resetSystemFeedback');
+      if (btn) btn.disabled = true;
+      if (fb) {
+        fb.className = 'text-xs font-semibold text-amber-600 animate-pulse';
+        fb.innerText = '正在清空系统数据...';
+      }
+
+      try {
+        const res = await fetch('/api/admin/reset-system', { method: 'POST' });
+        const json = await res.json();
+        if (json.code !== 0) throw new Error(json.message);
+        if (fb) {
+          fb.className = 'text-xs font-semibold text-emerald-600';
+          fb.innerText = '清空成功！正在进入初始化向导...';
+        }
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 800);
+      } catch (err) {
+        if (fb) {
+          fb.className = 'text-xs font-semibold text-rose-600';
+          fb.innerText = '重置失败: ' + (err.message || '未知错误');
+        }
+        if (btn) btn.disabled = false;
+      }
+    }
+
     async function logout() {
       if (!confirm('确定安全退出登录吗？退出后需要重新输入密码与 2FA 动态码。')) return;
       try {
@@ -4895,6 +5144,7 @@ export function renderAppHtml(username: string): string {
     }
 
     window.addEventListener('DOMContentLoaded', () => {
+      initDensity();
       switchTab('dashboard');
       loadDashboard();
     });

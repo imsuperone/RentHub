@@ -198,28 +198,35 @@ export function renderGateHtml(isInitialized: boolean): string {
       30%, 50%, 70% { transform: translate3d(-5px, 0, 0); }
       40%, 60% { transform: translate3d(5px, 0, 0); }
     }
+
+    /* 智能小屏自适应 (高 <= 820px): 紧凑外留白与内衬，字号保持完全不变 */
+    @media (max-height: 820px) {
+      body { padding: 1rem !important; }
+      .m3-expressive-card { padding: 1.25rem 1.5rem !important; border-radius: 24px !important; }
+      .m3-btn-primary { height: 46px !important; }
+      .m3-field { padding-top: 0.45rem !important; padding-bottom: 0.45rem !important; }
+      #brandHeader { margin-bottom: 1rem !important; }
+      .space-y-4 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.65rem !important; }
+    }
   </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4 sm:p-6">
   
-  <!-- 核心门禁容器 (Android 16 Expressive Card) -->
-  <div id="gateCard" class="m3-expressive-card w-full max-w-[560px] p-6 sm:p-9 relative overflow-hidden">
-    
-    <!-- Android 16 胶囊抓手 (Top Sheet Handle) -->
-    <div class="w-12 h-1.5 rounded-full bg-neutral-300 dark:bg-neutral-700/80 mx-auto mb-6"></div>
+  <!-- 核心门禁容器 -->
+  <div id="gateCard" class="m3-expressive-card w-full max-w-[540px] p-6 sm:p-8 relative overflow-hidden shadow-2xl">
 
-    <!-- 品牌与 M3 自适应图标 -->
-    <div id="brandHeader" class="flex flex-col items-center mb-6">
-      <div class="w-16 h-16 rounded-[24px] bg-gradient-to-tr from-[#006C4C] to-[#2EE59D] text-white shadow-xl shadow-[#006C4C]/25 flex items-center justify-center mb-3.5 ring-4 ring-emerald-50 dark:ring-emerald-950/40">
-        <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/>
+    <!-- 品牌与精致现代图标 (房东管家 RentHub) -->
+    <div id="brandHeader" class="flex flex-col items-center mb-5">
+      <div class="w-14 h-14 rounded-2xl bg-[#0F5B38] dark:bg-[#1A402D] text-white shadow-lg shadow-[#0F5B38]/20 flex items-center justify-center mb-2.5 ring-4 ring-emerald-100/60 dark:ring-emerald-950/50 transition-transform hover:scale-105">
+        <svg class="w-7 h-7 text-[#A6F5B9] dark:text-[#7CDCA0]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1h-5a1 1 0 01-1-1v-5H9v5a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" />
         </svg>
       </div>
-      <h1 class="text-2xl font-extrabold tracking-tight text-neutral-900 dark:text-neutral-50">房东管家</h1>
-      <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100/70 dark:bg-emerald-950/50 text-[#006C4C] dark:text-[#2EE59D] text-xs font-bold mt-1.5">
-        <span class="w-1.5 h-1.5 rounded-full bg-[#006C4C] dark:bg-[#2EE59D] animate-pulse"></span>
-        出租记账 · 水电抄表 · 简单好用
+      <div class="flex items-center gap-2">
+        <h1 class="text-2xl font-black tracking-tight text-neutral-900 dark:text-neutral-50">房东管家</h1>
+        <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#C4EED0] dark:bg-[#1A402D] text-[#002111] dark:text-[#A6F5B9] font-mono">RentHub</span>
       </div>
+      <p class="text-xs text-neutral-400 font-medium mt-1">出租记账 · 水电抄表 · 简单好用</p>
     </div>
 
     <!-- 动态错误提示胶囊 (Material 3 Expressive Tonal Banner) -->
@@ -235,7 +242,7 @@ export function renderGateHtml(isInitialized: boolean): string {
     <!-- ==================== 流程 1: 首次初始化 (仅无用户时) ==================== -->
     <div id="initSection" class="${isInitialized ? 'hidden' : ''} space-y-4">
       
-      <!-- Android 16 步骤指示胶囊 -->
+      <!-- 步骤指示胶囊 -->
       <div class="flex items-center justify-between px-1 py-1 mb-1">
         <div class="flex items-center gap-2">
           <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#006C4C] text-white text-[11px] font-extrabold">1</span>
