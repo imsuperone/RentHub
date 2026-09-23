@@ -126,7 +126,7 @@ export async function handleSaveNotificationSettings(env: Env, body: any) {
   const recipientEmail = body.recipientEmail !== undefined ? String(body.recipientEmail).trim() : current.recipientEmail;
   const mailProvider = (body.mailProvider === 'resend' || body.mailProvider === 'smtp') ? body.mailProvider : current.mailProvider;
   
-  const resendApiKey = (body.resendApiKey !== undefined && body.resendApiKey !== '****' && !body.resendApiKey.includes('****')) 
+  const resendApiKey = (body.resendApiKey && String(body.resendApiKey).trim() !== '' && !body.resendApiKey.includes('****')) 
     ? String(body.resendApiKey).trim() 
     : current.resendApiKey;
 
@@ -138,7 +138,7 @@ export async function handleSaveNotificationSettings(env: Env, body: any) {
   const smtpSecure = body.smtpSecure !== undefined ? String(body.smtpSecure) : String(current.smtpSecure);
   const smtpUser = body.smtpUser !== undefined ? String(body.smtpUser).trim() : current.smtpUser;
   
-  const smtpPass = (body.smtpPass !== undefined && body.smtpPass !== '****' && !body.smtpPass.includes('****')) 
+  const smtpPass = (body.smtpPass && String(body.smtpPass).trim() !== '' && !body.smtpPass.includes('****')) 
     ? String(body.smtpPass).trim() 
     : current.smtpPass;
 
@@ -289,30 +289,30 @@ export async function handleSendTestNotification(env: Env, body: any) {
   }
 
   const sampleVars = {
-    房源名称: 'No.302 Sunshine Garden',
-    房源地址: '128 Haidian St, Beijing',
-    承租人: 'Alex Smith',
+    房源名称: '望京SOHO 3-2-501',
+    房源地址: '北京市朝阳区阜通东大街1号',
+    承租人: '张三',
     承租人手机: '13800138000',
     租期范围: '2026-01-01 ~ 2027-01-01',
-    应交租金: '6500',
+    应交租金: '6500.00',
     交租截止日: '2026-10-01',
-    状态描述: 'Due in 8 days',
+    状态描述: '距交租还剩 8 天',
     房东电话: '13988886666',
     欠款金额: '168.50',
     结算日期: new Date().toISOString().slice(0, 10),
-    用量明细: 'Electricity 150 kWh × ¥1.0; Water ¥18.50',
-    property_title: 'No.302 Sunshine Garden',
-    address: '128 Haidian St, Beijing',
-    tenant_name: 'Alex Smith',
+    用量明细: '用电 150 度 × ¥1.0；用水 5 吨 × ¥3.5',
+    property_title: '望京SOHO 3-2-501',
+    address: '北京市朝阳区阜通东大街1号',
+    tenant_name: '张三',
     tenant_phone: '13800138000',
     lease_period: '2026-01-01 ~ 2027-01-01',
-    rent_amount: '6500',
+    rent_amount: '6500.00',
     due_date: '2026-10-01',
-    status_desc: 'Due in 8 days',
+    status_desc: '距交租还剩 8 天',
     landlord_phone: '13988886666',
     unpaid_amount: '168.50',
     settle_date: new Date().toISOString().slice(0, 10),
-    usage_details: 'Electricity 150 kWh × ¥1.0; Water ¥18.50',
+    usage_details: '用电 150 度 × ¥1.0；用水 5 吨 × ¥3.5',
   };
 
   const isUtility = type === 'utility';
@@ -396,14 +396,14 @@ export async function handleTriggerNotificationCheck(env: Env) {
         状态描述: statusDesc,
         房东电话: lease.landlord_phone || '见租房合同',
         property_title: lease.title || '',
-        address: lease.address || 'N/A',
-        tenant_name: lease.tenant_name || 'Tenant',
+        address: lease.address || '未填写',
+        tenant_name: lease.tenant_name || '租客',
         tenant_phone: lease.tenant_phone || '',
         lease_period: `${lease.start_date} ~ ${lease.end_date}`,
         rent_amount: String(lease.rent_amount || 0),
         due_date: lease.next_pay_date || '',
         status_desc: statusDesc,
-        landlord_phone: lease.landlord_phone || 'See Lease Agreement',
+        landlord_phone: lease.landlord_phone || '见租房合同',
       };
 
       const title = renderTemplate(settings.templateRentTitle, vars);
@@ -434,10 +434,10 @@ export async function handleTriggerNotificationCheck(env: Env) {
         承租人: pmt.tenant_name || '租客',
         欠款金额: String(pmt.amount || 0),
         用量明细: pmt.remark || '抄表结算费用',
-        property_title: pmt.lease_title || 'Property',
-        tenant_name: pmt.tenant_name || 'Tenant',
+        property_title: pmt.lease_title || '关联房屋',
+        tenant_name: pmt.tenant_name || '租客',
         unpaid_amount: String(pmt.amount || 0),
-        usage_details: pmt.remark || 'Utility settlement fees',
+        usage_details: pmt.remark || '抄表结算费用',
       };
 
       const title = renderTemplate(settings.templateUtilityTitle, vars);

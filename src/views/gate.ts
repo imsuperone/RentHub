@@ -341,7 +341,7 @@ export function renderGateHtml(isInitialized: boolean): string {
                 <label class="text-[10px] font-bold text-neutral-500 dark:text-neutral-400">Resend API Key</label>
                 <a href="https://resend.com/api-keys" target="_blank" rel="noopener noreferrer" class="text-[10px] font-bold text-[#006C4C] dark:text-[#2EE59D] hover:underline">获取 API Key ↗</a>
               </div>
-              <input id="initResendApiKey" type="password" placeholder="" class="m3-field w-full px-3 py-2 text-xs font-mono font-semibold text-neutral-800 dark:text-neutral-200 outline-none">
+              <input id="initResendApiKey" type="password" placeholder="例如 re_123456789... (在 resend.com 申请)" class="m3-field w-full px-3 py-2 text-xs font-mono font-semibold text-neutral-800 dark:text-neutral-200 outline-none">
               <span class="text-[9px] text-neutral-400 mt-0.5 block px-1">在 resend.com 免费申请（例如 re_123456789...）</span>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -353,6 +353,9 @@ export function renderGateHtml(isInitialized: boolean): string {
                 <label class="block text-[10px] font-bold text-neutral-500 dark:text-neutral-400 mb-1 px-1">发件人显示名称</label>
                 <input id="initResendFromName" type="text" placeholder="RentHub" class="m3-field w-full px-3 py-2 text-xs font-semibold text-neutral-800 dark:text-neutral-200 outline-none">
               </div>
+            </div>
+            <div class="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[10px] text-amber-700 dark:text-amber-300 leading-relaxed">
+              💡 <strong>查收提示：</strong>使用默认测试域名 <code>onboarding@resend.dev</code> 发往 <strong>Gmail</strong> / QQ 等邮箱时，极易被判定分入<strong>「垃圾箱/Spam」</strong>，若收件箱未看到邮件请在垃圾箱中查收。如需提高到达率，建议在 Resend 控制台添加并验证您自己的独立域名。
             </div>
           </div>
 
@@ -419,7 +422,7 @@ export function renderGateHtml(isInitialized: boolean): string {
           <!-- 通用接收安全邮箱 -->
           <div>
             <label class="block text-[10px] font-bold text-neutral-500 dark:text-neutral-400 mb-1 px-1">安全找回邮箱 (接收测试验证码与收租提醒)</label>
-            <input id="initRecoveryEmail" type="email" placeholder="如 admin@yourdomain.com" class="m3-field w-full px-3 py-2 text-xs font-semibold text-neutral-800 dark:text-neutral-200 outline-none">
+            <input id="initRecoveryEmail" type="email" placeholder="如 admin@yourdomain.com" oninput="isInitEmailVerified = false; document.getElementById('initEmailStatusBadge')?.classList.add('hidden'); document.getElementById('btnSendInitCode')?.classList.remove('hidden');" class="m3-field w-full px-3 py-2 text-xs font-semibold text-neutral-800 dark:text-neutral-200 outline-none">
           </div>
 
           <!-- ⚡ 实机测通按钮与验证码 -->
@@ -823,6 +826,29 @@ export function renderGateHtml(isInitialized: boolean): string {
       if (fromNameEl && !fromNameEl.value) fromNameEl.value = p.fromName;
     }
 
+    let isInitEmailVerified = false;
+    let initCodeCooldownTimer = null;
+
+    function startInitCodeCooldown(seconds = 60) {
+      const btn = document.getElementById('btnSendInitCode');
+      if (!btn) return;
+      let remaining = seconds;
+      btn.disabled = true;
+      btn.innerText = '重新发送 (' + remaining + 's)';
+      if (initCodeCooldownTimer) clearInterval(initCodeCooldownTimer);
+      initCodeCooldownTimer = setInterval(() => {
+        remaining--;
+        if (remaining <= 0) {
+          clearInterval(initCodeCooldownTimer);
+          initCodeCooldownTimer = null;
+          btn.disabled = false;
+          btn.innerText = '⚡ 重新发送验证码';
+        } else {
+          btn.innerText = '重新发送 (' + remaining + 's)';
+        }
+      }, 1000);
+    }
+
     async function sendInitVerifyCode() {
       clearError();
       const email = document.getElementById('initRecoveryEmail')?.value.trim();
@@ -886,11 +912,11 @@ export function renderGateHtml(isInitialized: boolean): string {
 
         document.getElementById('initCodeVerifyBox')?.classList.remove('hidden');
         document.getElementById('initVerifyCodeInput')?.focus();
+        startInitCodeCooldown(60);
         alert('✓ ' + data.message);
       } catch (err) {
         showError(err.message || (mailProvider === 'resend' ? 'Resend API 发信失败' : 'SMTP 发信失败'));
-      } finally {
-        btn.innerText = '⚡ 重新发送验证码';
+        btn.innerText = '⚡ 发送实测验证码';
         btn.disabled = false;
       }
     }
@@ -922,6 +948,11 @@ export function renderGateHtml(isInitialized: boolean): string {
         }
         if (data.code !== 0) throw new Error(data.message);
 
+        isInitEmailVerified = true;
+        if (initCodeCooldownTimer) {
+          clearInterval(initCodeCooldownTimer);
+          initCodeCooldownTimer = null;
+        }
         document.getElementById('initCodeVerifyBox')?.classList.add('hidden');
         document.getElementById('btnSendInitCode')?.classList.add('hidden');
         const badge = document.getElementById('initEmailStatusBadge');
@@ -964,19 +995,19 @@ export function renderGateHtml(isInitialized: boolean): string {
       const ansEl = document.getElementById('initSecurityAnswer');
       const securityAnswer = ansEl ? ansEl.value.trim() : '';
       const emailEl = document.getElementById('initRecoveryEmail');
-      const recoveryEmail = emailEl ? emailEl.value.trim() : '';
+      const recoveryEmail = (isInitEmailVerified && emailEl) ? emailEl.value.trim() : '';
 
       const mailProvider = document.getElementById('initProvider_resend')?.checked ? 'resend' : 'smtp';
-      const resendApiKey = document.getElementById('initResendApiKey')?.value.trim() || '';
-      const resendFromEmail = document.getElementById('initResendFromEmail')?.value.trim() || '';
-      const resendFromName = document.getElementById('initResendFromName')?.value.trim() || '';
+      const resendApiKey = isInitEmailVerified ? (document.getElementById('initResendApiKey')?.value.trim() || '') : '';
+      const resendFromEmail = isInitEmailVerified ? (document.getElementById('initResendFromEmail')?.value.trim() || '') : '';
+      const resendFromName = isInitEmailVerified ? (document.getElementById('initResendFromName')?.value.trim() || '') : '';
 
-      const smtpHost = document.getElementById('initSmtpHost')?.value.trim() || '';
-      const smtpPort = document.getElementById('initSmtpPort')?.value.trim() || '';
-      const smtpSecure = !!document.getElementById('initSmtpSecure')?.checked;
-      const smtpUser = document.getElementById('initSmtpUser')?.value.trim() || '';
-      const smtpPass = document.getElementById('initSmtpPass')?.value.trim() || '';
-      const smtpFromName = document.getElementById('initSmtpFromName')?.value.trim() || '';
+      const smtpHost = isInitEmailVerified ? (document.getElementById('initSmtpHost')?.value.trim() || '') : '';
+      const smtpPort = isInitEmailVerified ? (document.getElementById('initSmtpPort')?.value.trim() || '') : '';
+      const smtpSecure = isInitEmailVerified ? !!document.getElementById('initSmtpSecure')?.checked : false;
+      const smtpUser = isInitEmailVerified ? (document.getElementById('initSmtpUser')?.value.trim() || '') : '';
+      const smtpPass = isInitEmailVerified ? (document.getElementById('initSmtpPass')?.value.trim() || '') : '';
+      const smtpFromName = isInitEmailVerified ? (document.getElementById('initSmtpFromName')?.value.trim() || '') : '';
 
       const btn = document.getElementById('initBtn');
       btn.innerText = '正在生成二维码...';

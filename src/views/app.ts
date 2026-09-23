@@ -897,7 +897,7 @@ export function renderAppHtml(username: string): string {
                 </div>
                 <div>
                   <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1 px-1">Resend API Key</label>
-                  <input type="password" id="notifyResendApiKey" placeholder="" class="m3-input w-full text-xs font-mono">
+                  <input type="password" id="notifyResendApiKey" placeholder="例如 re_123456789... (在 resend.com 申请)" class="m3-input w-full text-xs font-mono">
                   <span class="text-[10px] text-neutral-400 mt-1 block px-1">在 resend.com 控制台免费申请（例如 <code>re_123456789...</code>）</span>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -910,6 +910,9 @@ export function renderAppHtml(username: string): string {
                     <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1 px-1">发件人显示名称 (From Name)</label>
                     <input type="text" id="notifyResendFromName" placeholder="例如 RentHub" class="m3-input w-full text-xs font-bold">
                   </div>
+                </div>
+                <div class="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-700 dark:text-amber-300 leading-relaxed">
+                  💡 <strong>查收提示：</strong>使用默认测试域名 <code>onboarding@resend.dev</code> 发往 <strong>Gmail</strong> / QQ 等邮箱时，极易被判定分入<strong>「垃圾箱/Spam」</strong>，若收件箱未看到邮件请在垃圾箱中查收。如需提高到达率，建议在 Resend 控制台添加并验证您自己的独立域名。
                 </div>
               </div>
 
@@ -4354,30 +4357,30 @@ export function renderAppHtml(username: string): string {
       if (!previewFrame) return;
 
       const sampleVars = {
-        '房源名称': 'No.302 Sunshine Garden',
-        '房源地址': '128 Haidian St, Beijing',
-        '承租人': 'Alex Smith',
+        '房源名称': '望京SOHO 3-2-501',
+        '房源地址': '北京市朝阳区阜通东大街1号',
+        '承租人': '张三',
         '承租人手机': '13800138000',
         '租期范围': '2026-01-01 ~ 2027-01-01',
         '应交租金': '3800.00',
         '交租截止日': '2026-10-01',
-        '状态描述': 'Due in 8 days',
+        '状态描述': '距交租还剩 8 天',
         '房东电话': '13988886666',
         '欠款金额': '168.50',
         '结算日期': new Date().toISOString().slice(0, 10),
-        '用量明细': 'Electricity 150 kWh × ¥1.0; Water ¥18.50',
-        'property_title': 'No.302 Sunshine Garden',
-        'address': '128 Haidian St, Beijing',
-        'tenant_name': 'Alex Smith',
+        '用量明细': '用电 150 度 × ¥1.0；用水 5 吨 × ¥3.5',
+        'property_title': '望京SOHO 3-2-501',
+        'address': '北京市朝阳区阜通东大街1号',
+        'tenant_name': '张三',
         'tenant_phone': '13800138000',
         'lease_period': '2026-01-01 ~ 2027-01-01',
         'rent_amount': '3800.00',
         'due_date': '2026-10-01',
-        'status_desc': 'Due in 8 days',
+        'status_desc': '距交租还剩 8 天',
         'landlord_phone': '13988886666',
         'unpaid_amount': '168.50',
         'settle_date': new Date().toISOString().slice(0, 10),
-        'usage_details': 'Electricity 150 kWh × ¥1.0; Water ¥18.50'
+        'usage_details': '用电 150 度 × ¥1.0；用水 5 吨 × ¥3.5'
       };
 
       const rawHtml = (currentTplTab === 'rent'
@@ -4461,7 +4464,10 @@ export function renderAppHtml(username: string): string {
           const resendKeyEl = document.getElementById('notifyResendApiKey');
           const resendFromEl = document.getElementById('notifyResendFromEmail');
           const resendNameEl = document.getElementById('notifyResendFromName');
-          if (resendKeyEl) resendKeyEl.value = d.resendApiKeyMasked || '';
+          if (resendKeyEl) {
+            resendKeyEl.value = '';
+            resendKeyEl.placeholder = d.hasResendApiKey ? ('已配置密钥 (' + d.resendApiKeyMasked + ')，留空保持不变') : '例如 re_123456789... (在 resend.com 申请)';
+          }
           if (resendFromEl) resendFromEl.value = d.resendFromEmail || '';
           if (resendNameEl) resendNameEl.value = d.resendFromName || '';
 
@@ -4485,7 +4491,10 @@ export function renderAppHtml(username: string): string {
           if (portEl) portEl.value = d.smtpPort || '';
           if (secEl) secEl.checked = d.smtpSecure !== false;
           if (userEl) userEl.value = d.smtpUser || '';
-          if (passEl) passEl.value = d.smtpPassMasked || '';
+          if (passEl) {
+            passEl.value = '';
+            passEl.placeholder = d.hasSmtpPass ? '已配置授权码，留空保持不变' : '邮箱授权码 / 密码';
+          }
           if (nameEl) nameEl.value = d.smtpFromName || '';
           if (fromEl) fromEl.value = d.smtpFromEmail || '';
           if (rcptEl) rcptEl.value = d.recipientEmail || '';
@@ -4574,9 +4583,11 @@ export function renderAppHtml(username: string): string {
 
       if (!targetEmail) return alert('请先填写房东接收提醒邮箱以接收测试邮件');
       if (mailProvider === 'resend') {
-        if (!resendApiKey) return alert('请先填写 Resend API Key (以 re_ 开头)');
+        const isConfigured = document.getElementById('notifyResendApiKey')?.placeholder?.includes('已配置');
+        if (!resendApiKey && !isConfigured) return alert('请填写 Resend API Key (以 re_ 开头)');
       } else {
-        if (!smtpHost || !smtpPort) return alert('请先填写 SMTP 主机与端口');
+        const isConfigured = document.getElementById('notifySmtpPass')?.placeholder?.includes('已配置');
+        if ((!smtpHost || !smtpPort) && !isConfigured) return alert('请填写完整的 SMTP 主机与端口');
       }
       btn.innerText = '正在发信...';
       btn.disabled = true;

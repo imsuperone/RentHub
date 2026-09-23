@@ -42,10 +42,11 @@ export async function sendResendEmail(
       to: [mail.to.trim()],
       subject: mail.subject,
       html: mail.html,
+      text: mail.text || mail.html.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+                                  .replace(/<[^>]+>/g, ' ')
+                                  .replace(/\s+/g, ' ')
+                                  .trim(),
     };
-    if (mail.text) {
-      payload.text = mail.text;
-    }
 
     const resp = await fetch('https://api.resend.com/emails', {
       method: 'POST',

@@ -93,7 +93,19 @@ export async function handleInitAdmin(env: Env, body: any) {
   let effectiveRecoveryEmail: string | null = null;
   const rawEmail = recoveryEmail || (body as any).recipientEmail;
   if (rawEmail && String(rawEmail).trim() !== '' && String(rawEmail).trim().toLowerCase() !== 'null') {
-    effectiveRecoveryEmail = String(rawEmail).trim();
+    const checkEmail = String(rawEmail).trim().toLowerCase();
+    // 关键安全校验：核验该邮箱是否在初始化过程中真正通过了 6 位验证码实测激活
+    const verifiedRow = (await env.DB.prepare(
+      "SELECT value FROM system_settings WHERE key = 'init_verified_email' LIMIT 1"
+    ).first()) as { value: string } | null;
+
+    if (verifiedRow && verifiedRow.value === checkEmail) {
+      effectiveRecoveryEmail = String(rawEmail).trim();
+      await env.DB.prepare("DELETE FROM system_settings WHERE key = 'init_verified_email'").run();
+    } else {
+      // 未通过实测验证码激活，坚决不予绑定为安全邮箱！
+      effectiveRecoveryEmail = null;
+    }
   }
 
   // 4. 写入 D1 用户表
@@ -568,9 +580,23 @@ export async function handleSendUpdateEmailCode(env: Env, userId: string, body: 
     return jsonError('系统尚未配置可用邮件发信服务（Resend 或 SMTP），无法发送验证码。请先在系统设置中完成发信配置。', 400);
   }
 
+  // 防频繁点击冷却校验 (60秒)
+  const existingVerify = (await env.DB.prepare(
+    "SELECT value FROM system_settings WHERE key = ?"
+  ).bind(`update_email_verify_${userId}`).first()) as any;
+  if (existingVerify && existingVerify.value) {
+    try {
+      const parsed = JSON.parse(existingVerify.value);
+      if (parsed.sentAt && (Date.now() - parsed.sentAt < 60 * 1000)) {
+        const waitSec = Math.ceil((60 * 1000 - (Date.now() - parsed.sentAt)) / 1000);
+        return jsonError(`发送过于频繁，请等待 ${waitSec} 秒后重试`, 429);
+      }
+    } catch {}
+  }
+
   const code = Math.floor(100000 + Math.random() * 900000).toString();
-  const expiresAt = Date.now() + 10 * 60 * 1000;
-  const verifyData = JSON.stringify({ code, expiresAt, email: cleanEmail, userId });
+  const expiresAt = Date.now() + 5 * 60 * 1000;
+  const verifyData = JSON.stringify({ code, expiresAt, sentAt: Date.now(), email: cleanEmail, userId });
 
   await env.DB.prepare(
     "INSERT INTO system_settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value"
@@ -585,7 +611,7 @@ export async function handleSendUpdateEmailCode(env: Env, userId: string, body: 
     <p style="font-size: 14px; color: #333;">您正在申请换绑 RentHub 管理员安全与通知邮箱，本次验证码为：</p>
     <div style="background-color: #f1f8f4; border-radius: 12px; padding: 20px; margin: 20px 0; text-align: center;">
       <div style="font-size: 34px; font-weight: 800; letter-spacing: 6px; color: #0F5B38; font-family: monospace;">${code}</div>
-      <div style="font-size: 12px; color: #666; margin-top: 6px;">验证码 10 分钟内有效，请在网页换绑面板输入</div>
+      <div style="font-size: 12px; color: #666; margin-top: 6px;">验证码 5 分钟内有效，请在网页换绑面板输入</div>
     </div>
     <p style="font-size: 12px; color: #888; line-height: 1.5; border-top: 1px dashed #ddd; padding-top: 12px;">
       • 此邮件为安全验证邮件。如非您本人操作，请立刻检查账号密码安全。<br>
@@ -598,7 +624,7 @@ export async function handleSendUpdateEmailCode(env: Env, userId: string, body: 
     return jsonError(`发送换绑验证码失败: ${sendResult.message}`, 400);
   }
 
-  return jsonOk(null, '✓ 换绑验证码已成功发送至新邮箱，请在 10 分钟内填写');
+  return jsonOk(null, '✓ 换绑验证码已成功发送至新邮箱，请在 5 分钟内填写');
 }
 
 /**
@@ -739,6 +765,21 @@ export async function handleSendInitVerifyCode(env: Env, body: any) {
     }
   }
 
+  // 防频繁点击冷却校验 (60秒)
+  const existingInit = (await env.DB.prepare(
+    "SELECT value FROM system_settings WHERE key = 'init_temp_verify_code' LIMIT 1"
+  ).first()) as { value: string } | null;
+
+  if (existingInit && existingInit.value) {
+    try {
+      const parsed = JSON.parse(existingInit.value);
+      if (parsed.sentAt && (Date.now() - parsed.sentAt < 60 * 1000)) {
+        const waitSec = Math.ceil((60 * 1000 - (Date.now() - parsed.sentAt)) / 1000);
+        return jsonError(`发送过于频繁，请等待 ${waitSec} 秒后重新获取验证码`, 429);
+      }
+    } catch {}
+  }
+
   const code = Math.floor(100000 + Math.random() * 900000).toString();
   const tempSettings: NotificationSettings = {
     recipientEmail: email.trim(),
@@ -771,7 +812,7 @@ export async function handleSendInitVerifyCode(env: Env, body: any) {
     <p style="font-size: 14px; color: #333;">您正在为 RentHub 配置安全邮箱，本次测试验证码为：</p>
     <div style="background-color: #E8F5E9; border-radius: 12px; padding: 20px; margin: 20px 0; text-align: center;">
       <div style="font-size: 34px; font-weight: 800; letter-spacing: 6px; color: #006C4C; font-family: monospace;">${code}</div>
-      <div style="font-size: 12px; color: #666; margin-top: 6px;">验证码 10 分钟内有效，请在网页中输入</div>
+      <div style="font-size: 12px; color: #666; margin-top: 6px;">验证码 5 分钟内有效，请在网页中输入</div>
     </div>
     <p style="font-size: 12px; color: #888; line-height: 1.5; border-top: 1px dashed #ddd; padding-top: 12px;">
       • 此邮件为发信测试邮件。如非您本人操作，请忽略此邮件。<br>
@@ -787,13 +828,14 @@ export async function handleSendInitVerifyCode(env: Env, body: any) {
   const verifyData = {
     email: email.trim().toLowerCase(),
     code,
-    expiresAt: Date.now() + 10 * 60 * 1000,
+    sentAt: Date.now(),
+    expiresAt: Date.now() + 5 * 60 * 1000,
   };
   await env.DB.prepare(
     'INSERT INTO system_settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value'
   ).bind('init_temp_verify_code', JSON.stringify(verifyData)).run();
 
-  return jsonOk(null, '实测验证邮件已成功发出，请查收邮箱并填入 6 位验证码');
+  return jsonOk(null, '实测验证邮件已成功发出，请查收邮箱并填入 6 位验证码（5 分钟内有效）');
 }
 
 /**
@@ -820,6 +862,11 @@ export async function handleConfirmInitVerifyCode(env: Env, body: any) {
     }
 
     await env.DB.prepare("DELETE FROM system_settings WHERE key = 'init_temp_verify_code'").run();
+    // 关键记录：标记该邮箱已实际通过验证码校验激活
+    await env.DB.prepare(
+      "INSERT INTO system_settings (key, value) VALUES ('init_verified_email', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value"
+    ).bind(email.trim().toLowerCase()).run();
+
     return jsonOk({ verified: true }, '✓ 安全邮箱与发信通道已成功测通激活！');
   } catch (err: any) {
     return jsonError('校验异常: ' + err.message, 500);
@@ -923,7 +970,7 @@ export async function handleSendRecoveryEmail(env: Env, body: any) {
     <p style="font-size: 14px; color: #333;">您正在申请重置账号 <strong>${user.username}</strong> 的登录密码，验证码为：</p>
     <div style="background-color: #FFF3E0; border-radius: 12px; padding: 20px; margin: 20px 0; text-align: center; border: 1px solid #FFE0B2;">
       <div style="font-size: 34px; font-weight: 800; letter-spacing: 6px; color: #E65100; font-family: monospace;">${code}</div>
-      <div style="font-size: 12px; color: #666; margin-top: 6px;">验证码 10 分钟内有效，请在网页重置面板输入</div>
+      <div style="font-size: 12px; color: #666; margin-top: 6px;">验证码 5 分钟内有效，请在网页重置面板输入</div>
     </div>
     <p style="font-size: 12px; color: #666;">
       提示：若非您本人操作，请忽略此邮件，切勿将验证码泄露给他人。
@@ -941,13 +988,13 @@ export async function handleSendRecoveryEmail(env: Env, body: any) {
 
   const resetCodeData = {
     code,
-    expiresAt: Date.now() + 10 * 60 * 1000,
+    expiresAt: Date.now() + 5 * 60 * 1000,
   };
   await env.DB.prepare(
     'INSERT INTO system_settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value'
   ).bind(`pwd_reset_code_${user.id}`, JSON.stringify(resetCodeData)).run();
 
-  return jsonOk(null, '重置验证码已发送至您的安全邮箱');
+  return jsonOk(null, '重置验证码已发送至您的安全邮箱 (5 分钟内有效)');
 }
 
 /**
