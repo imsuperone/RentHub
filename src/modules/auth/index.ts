@@ -128,7 +128,7 @@ export async function handleInitAdmin(env: Env, body: any) {
       entries.push(
         ['notify_resend_api_key', String(body.resendApiKey).trim()],
         ['notify_resend_from_email', String(body.resendFromEmail || 'onboarding@resend.dev').trim()],
-        ['notify_resend_from_name', String(body.resendFromName || '房东管家').trim()]
+        ['notify_resend_from_name', String(body.resendFromName || 'RentHub').trim()]
       );
     }
     if (body.smtpHost) {
@@ -138,7 +138,7 @@ export async function handleInitAdmin(env: Env, body: any) {
         ['notify_smtp_secure', String(body.smtpSecure ?? true)],
         ['notify_smtp_user', String(body.smtpUser || '').trim()],
         ['notify_smtp_pass', String(body.smtpPass || '').trim()],
-        ['notify_smtp_from_name', String(body.smtpFromName || '房东管家').trim()],
+        ['notify_smtp_from_name', String(body.smtpFromName || 'RentHub').trim()],
         ['notify_smtp_from_email', String(body.smtpFromEmail || body.smtpUser || '').trim()]
       );
     }
@@ -550,10 +550,62 @@ export async function handleGet2FADetails(env: Env, userId: string) {
 }
 
 /**
- * 查看/换绑安全找回与提醒邮箱
+ * 发送换绑安全邮箱验证码至目标新邮箱
+ */
+export async function handleSendUpdateEmailCode(env: Env, userId: string, body: any) {
+  const { newEmail } = body;
+  if (!newEmail || !String(newEmail).trim().includes('@')) {
+    return jsonError('请填写有效的新安全邮箱地址', 400);
+  }
+
+  const cleanEmail = String(newEmail).trim();
+  const settings = await getNotificationSettings(env);
+  const isConfigured = settings.mailProvider === 'resend' 
+    ? (!!settings.resendApiKey && settings.resendApiKey !== '****')
+    : (!!settings.smtpHost && !!settings.smtpPort);
+
+  if (!isConfigured) {
+    return jsonError('系统尚未配置可用邮件发信服务（Resend 或 SMTP），无法发送验证码。请先在系统设置中完成发信配置。', 400);
+  }
+
+  const code = Math.floor(100000 + Math.random() * 900000).toString();
+  const expiresAt = Date.now() + 10 * 60 * 1000;
+  const verifyData = JSON.stringify({ code, expiresAt, email: cleanEmail, userId });
+
+  await env.DB.prepare(
+    "INSERT INTO system_settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value"
+  ).bind(`update_email_verify_${userId}`, verifyData).run();
+
+  const title = '【RentHub】安全邮箱换绑验证码';
+  const html = `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 520px; margin: 0 auto; padding: 24px; border: 1px solid #e0e0e0; border-radius: 16px; background-color: #ffffff;">
+    <div style="border-bottom: 2px solid #0F5B38; padding-bottom: 12px; margin-bottom: 18px;">
+      <h2 style="color: #0F5B38; margin: 0; font-size: 20px;">📧 安全邮箱换绑验证码</h2>
+      <p style="color: #888; font-size: 12px; margin: 4px 0 0 0;">RentHub · 安全中心</p>
+    </div>
+    <p style="font-size: 14px; color: #333;">您正在申请换绑 RentHub 管理员安全与通知邮箱，本次验证码为：</p>
+    <div style="background-color: #f1f8f4; border-radius: 12px; padding: 20px; margin: 20px 0; text-align: center;">
+      <div style="font-size: 34px; font-weight: 800; letter-spacing: 6px; color: #0F5B38; font-family: monospace;">${code}</div>
+      <div style="font-size: 12px; color: #666; margin-top: 6px;">验证码 10 分钟内有效，请在网页换绑面板输入</div>
+    </div>
+    <p style="font-size: 12px; color: #888; line-height: 1.5; border-top: 1px dashed #ddd; padding-top: 12px;">
+      • 此邮件为安全验证邮件。如非您本人操作，请立刻检查账号密码安全。<br>
+      • 切勿将验证码泄露给任何人。
+    </p>
+  </div>`;
+
+  const sendResult = await sendEmailMessage(settings, cleanEmail, title, html);
+  if (!sendResult.success) {
+    return jsonError(`发送换绑验证码失败: ${sendResult.message}`, 400);
+  }
+
+  return jsonOk(null, '✓ 换绑验证码已成功发送至新邮箱，请在 10 分钟内填写');
+}
+
+/**
+ * 查看/换绑安全找回与提醒邮箱 (验证管理员密码 + 邮箱验证码)
  */
 export async function handleUpdateSecurityEmail(env: Env, userId: string, body: any) {
-  const { newEmail, password, currentPassword } = body;
+  const { newEmail, password, currentPassword, code } = body;
   const pwd = password || currentPassword;
 
   if (!newEmail || !String(newEmail).trim().includes('@')) {
@@ -574,6 +626,46 @@ export async function handleUpdateSecurityEmail(env: Env, userId: string, body: 
   }
 
   const cleanTargetEmail = String(newEmail).trim();
+
+  // 校验验证码（若系统已配置发信渠道）
+  const settings = await getNotificationSettings(env);
+  const isConfigured = settings.mailProvider === 'resend' 
+    ? (!!settings.resendApiKey && settings.resendApiKey !== '****')
+    : (!!settings.smtpHost && !!settings.smtpPort);
+
+  if (isConfigured) {
+    if (!code || String(code).trim().length !== 6) {
+      return jsonError('请输入发送至新邮箱的 6 位数字验证码', 400);
+    }
+    const verifyRow = (await env.DB.prepare(
+      "SELECT value FROM system_settings WHERE key = ?"
+    ).bind(`update_email_verify_${userId}`).first()) as any;
+
+    if (!verifyRow || !verifyRow.value) {
+      return jsonError('验证码已过期或未获取，请重新点击获取验证码', 400);
+    }
+
+    try {
+      const vData = JSON.parse(verifyRow.value);
+      if (Date.now() > vData.expiresAt) {
+        return jsonError('验证码已过期，请重新获取', 400);
+      }
+      if (vData.email !== cleanTargetEmail) {
+        return jsonError('验证码与当前填写的邮箱不匹配，请重新获取', 400);
+      }
+      if (vData.code !== String(code).trim()) {
+        return jsonError('验证码错误，请核对后重新输入', 400);
+      }
+    } catch {
+      return jsonError('验证码解析异常，请重新获取', 400);
+    }
+
+    // 验证通过，清理临时验证码
+    await env.DB.prepare("DELETE FROM system_settings WHERE key = ?")
+      .bind(`update_email_verify_${userId}`)
+      .run();
+  }
+
   await env.DB.prepare('UPDATE users SET recovery_email = ? WHERE id = ?')
     .bind(cleanTargetEmail, userId)
     .run();
@@ -583,7 +675,7 @@ export async function handleUpdateSecurityEmail(env: Env, userId: string, body: 
     "INSERT INTO system_settings (key, value) VALUES ('notify_recipient_email', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value"
   ).bind(cleanTargetEmail).run();
 
-  return jsonOk({ recoveryEmail: cleanTargetEmail, recovery_email: cleanTargetEmail }, '安全邮箱已成功换绑更新');
+  return jsonOk({ recoveryEmail: cleanTargetEmail, recovery_email: cleanTargetEmail }, '安全与通知邮箱已成功换绑更新');
 }
 
 export async function handleLogout() {
@@ -653,13 +745,13 @@ export async function handleSendInitVerifyCode(env: Env, body: any) {
     mailProvider: effectiveProvider,
     resendApiKey: String(resendApiKey || '').trim(),
     resendFromEmail: String(resendFromEmail || 'onboarding@resend.dev').trim(),
-    resendFromName: String(resendFromName || '房东管家').trim(),
+    resendFromName: String(resendFromName || 'RentHub').trim(),
     smtpHost: String(smtpHost || '').trim(),
     smtpPort: parseInt(String(smtpPort), 10) || 465,
     smtpSecure: Boolean(smtpSecure),
     smtpUser: String(smtpUser || '').trim(),
     smtpPass: String(smtpPass || '').trim(),
-    smtpFromName: String(smtpFromName || '房东管家').trim(),
+    smtpFromName: String(smtpFromName || 'RentHub').trim(),
     smtpFromEmail: String(smtpFromEmail || smtpUser || '').trim(),
     notifyDaysBefore: '7,3,1',
     notifyOnDueDay: true,
@@ -670,13 +762,13 @@ export async function handleSendInitVerifyCode(env: Env, body: any) {
     templateUtilityBody: ''
   };
 
-  const title = '【房东管家】安全邮箱绑定验证码';
+  const title = '【RentHub】安全邮箱绑定验证码';
   const html = `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 520px; margin: 0 auto; padding: 24px; border: 1px solid #e0e0e0; border-radius: 16px; background-color: #ffffff;">
-    <div style="border-bottom: 2px solid #006C4C; padding-bottom: 12px; margin-bottom: 18px;">
-      <h2 style="color: #006C4C; margin: 0; font-size: 20px;">📧 邮箱验证码</h2>
-      <p style="color: #888; font-size: 12px; margin: 4px 0 0 0;">房东管家 · 邮箱验证</p>
+    <div style="border-bottom: 2px solid #0F5B38; padding-bottom: 12px; margin-bottom: 18px;">
+      <h2 style="color: #0F5B38; margin: 0; font-size: 20px;">📧 邮箱验证码</h2>
+      <p style="color: #888; font-size: 12px; margin: 4px 0 0 0;">RentHub · 邮箱验证</p>
     </div>
-    <p style="font-size: 14px; color: #333;">您正在为房东管家配置安全邮箱，本次测试验证码为：</p>
+    <p style="font-size: 14px; color: #333;">您正在为 RentHub 配置安全邮箱，本次测试验证码为：</p>
     <div style="background-color: #E8F5E9; border-radius: 12px; padding: 20px; margin: 20px 0; text-align: center;">
       <div style="font-size: 34px; font-weight: 800; letter-spacing: 6px; color: #006C4C; font-family: monospace;">${code}</div>
       <div style="font-size: 12px; color: #666; margin-top: 6px;">验证码 10 分钟内有效，请在网页中输入</div>
@@ -823,10 +915,10 @@ export async function handleSendRecoveryEmail(env: Env, body: any) {
   }
 
   const code = Math.floor(100000 + Math.random() * 900000).toString();
-  const title = '【房东管家】密码重置验证码';
+  const title = '【RentHub】密码重置验证码';
   const html = `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 520px; margin: 0 auto; padding: 24px; border: 1px solid #e0e0e0; border-radius: 16px; background-color: #ffffff;">
-    <div style="border-bottom: 2px solid #006C4C; padding-bottom: 12px; margin-bottom: 18px;">
-      <h2 style="color: #006C4C; margin: 0; font-size: 20px;">🔑 密码重置请求</h2>
+    <div style="border-bottom: 2px solid #0F5B38; padding-bottom: 12px; margin-bottom: 18px;">
+      <h2 style="color: #0F5B38; margin: 0; font-size: 20px;">🔑 密码重置请求</h2>
     </div>
     <p style="font-size: 14px; color: #333;">您正在申请重置账号 <strong>${user.username}</strong> 的登录密码，验证码为：</p>
     <div style="background-color: #FFF3E0; border-radius: 12px; padding: 20px; margin: 20px 0; text-align: center; border: 1px solid #FFE0B2;">

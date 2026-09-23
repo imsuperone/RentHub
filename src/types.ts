@@ -36,6 +36,7 @@ export interface Lease {
   rent_amount: number;
   pay_cycle_months: number;
   next_pay_date: string | null;
+  custom_id?: string | null;
   meter_electric_price?: number;
   meter_water_price?: number;
   meter_electric_base?: number | null;
@@ -52,8 +53,13 @@ export interface Lease {
   isPayOverdue?: boolean;
   payOverdueDays?: number;
   isPrepaidBeyond?: boolean;
+  unpaidRentAmount?: number;
+  unpaidRentCount?: number;
   unpaidUtilityAmount?: number;
   unpaidUtilityCount?: number;
+  totalUnpaidAmount?: number;
+  currentRentStatus?: 'PAID' | 'UNPAID' | null;
+  currentRentPaymentId?: string | null;
   attachments?: Attachment[];
 }
 

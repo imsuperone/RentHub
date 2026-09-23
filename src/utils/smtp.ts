@@ -290,7 +290,7 @@ export async function sendSmtpEmail(
 
     // 8. 构造 RFC 2822 标准格式邮件
     const msgId = `<${Date.now()}.${Math.random().toString(36).slice(2, 9)}@${config.host}>`;
-    const fromName = config.fromName || '房东管家';
+    const fromName = config.fromName || 'RentHub';
     const fromHeader = `"${encodeHeader(fromName)}" <${fromAddr}>`;
     const subjectHeader = encodeHeader(mail.subject);
     const dateHeader = new Date().toUTCString();

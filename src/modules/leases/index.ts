@@ -84,7 +84,18 @@ function calculatePayRemainingInfo(nextPayDateStr: string | null | undefined, st
   }
 }
 
+let hasEnsuredCustomId = false;
+async function ensureLeaseCustomIdColumn(env: Env) {
+  if (hasEnsuredCustomId) return;
+  try {
+    await env.DB.prepare('ALTER TABLE leases ADD COLUMN custom_id TEXT').run();
+  } catch {}
+  hasEnsuredCustomId = true;
+}
+
 export async function handleListLeases(env: Env) {
+  await ensureLeaseCustomIdColumn(env);
+
   const result = await env.DB.prepare(
     'SELECT * FROM leases ORDER BY status ASC, end_date ASC'
   ).all();
@@ -94,18 +105,38 @@ export async function handleListLeases(env: Env) {
   ).all();
 
   const unpaidRes = await env.DB.prepare(
-    `SELECT lease_id, SUM(amount) as total_unpaid, COUNT(*) as unpaid_count 
+    `SELECT lease_id, payment_type, SUM(amount) as total_unpaid, COUNT(*) as unpaid_count 
      FROM payments 
      WHERE status = 'UNPAID' 
-     GROUP BY lease_id`
+     GROUP BY lease_id, payment_type`
   ).all();
 
-  const unpaidByLease = new Map<string, { amount: number; count: number }>();
+  const unpaidMap = new Map<string, { rentAmount: number; rentCount: number; utilityAmount: number; utilityCount: number }>();
   for (const row of unpaidRes.results as any[]) {
-    unpaidByLease.set(row.lease_id, {
-      amount: Number(row.total_unpaid) || 0,
-      count: Number(row.unpaid_count) || 0,
-    });
+    if (!unpaidMap.has(row.lease_id)) {
+      unpaidMap.set(row.lease_id, { rentAmount: 0, rentCount: 0, utilityAmount: 0, utilityCount: 0 });
+    }
+    const item = unpaidMap.get(row.lease_id)!;
+    const amt = Number(row.total_unpaid) || 0;
+    const cnt = Number(row.unpaid_count) || 0;
+    if (row.payment_type === 'RENT') {
+      item.rentAmount += amt;
+      item.rentCount += cnt;
+    } else {
+      item.utilityAmount += amt;
+      item.utilityCount += cnt;
+    }
+  }
+
+  // 查询各房源最新的房租账单记录，以便获取当前租金结清状态
+  const latestRentRes = await env.DB.prepare(
+    `SELECT id, lease_id, status FROM payments WHERE payment_type = 'RENT' ORDER BY paid_at DESC, created_at DESC`
+  ).all();
+  const latestRentMap = new Map<string, { id: string; status: 'PAID' | 'UNPAID' }>();
+  for (const p of latestRentRes.results as any[]) {
+    if (!latestRentMap.has(p.lease_id)) {
+      latestRentMap.set(p.lease_id, { id: p.id, status: p.status || 'PAID' });
+    }
   }
 
   const attachmentsByLease = new Map<string, Attachment[]>();
@@ -122,7 +153,9 @@ export async function handleListLeases(env: Env) {
     const { daysRemaining, remainingText, isOverdue } = calculateRemainingInfo(lease.end_date, lease.status);
     const { daysToNextPay, nextPayText, isPayOverdue, payOverdueDays } = calculatePayRemainingInfo(lease.next_pay_date, lease.status);
     const isPrepaidBeyond = !!(lease.next_pay_date && lease.end_date && lease.next_pay_date > lease.end_date);
-    const unpaidInfo = unpaidByLease.get(lease.id) || { amount: 0, count: 0 };
+    const unpaid = unpaidMap.get(lease.id) || { rentAmount: 0, rentCount: 0, utilityAmount: 0, utilityCount: 0 };
+    const latestRent = latestRentMap.get(lease.id);
+
     return {
       ...lease,
       daysRemaining,
@@ -133,8 +166,13 @@ export async function handleListLeases(env: Env) {
       isPayOverdue,
       payOverdueDays,
       isPrepaidBeyond,
-      unpaidUtilityAmount: unpaidInfo.amount,
-      unpaidUtilityCount: unpaidInfo.count,
+      unpaidRentAmount: unpaid.rentAmount,
+      unpaidRentCount: unpaid.rentCount,
+      unpaidUtilityAmount: unpaid.utilityAmount,
+      unpaidUtilityCount: unpaid.utilityCount,
+      totalUnpaidAmount: unpaid.rentAmount + unpaid.utilityAmount,
+      currentRentStatus: latestRent ? latestRent.status : null,
+      currentRentPaymentId: latestRent ? latestRent.id : null,
       attachments: attachmentsByLease.get(lease.id) || [],
     };
   });
@@ -143,6 +181,8 @@ export async function handleListLeases(env: Env) {
 }
 
 export async function handleGetLease(env: Env, id: string) {
+  await ensureLeaseCustomIdColumn(env);
+
   const lease = (await env.DB.prepare('SELECT * FROM leases WHERE id = ?').bind(id).first()) as Lease | null;
   if (!lease) {
     return jsonError('房源不存在', 404, 404);
@@ -156,8 +196,31 @@ export async function handleGetLease(env: Env, id: string) {
     'SELECT id, file_name, file_size, mime_type, category, storage_type, created_at FROM attachments WHERE lease_id = ? ORDER BY created_at DESC'
   ).bind(id).all();
 
-  const unpaidRow = (await env.DB.prepare(
-    `SELECT SUM(amount) as total_unpaid, COUNT(*) as unpaid_count FROM payments WHERE lease_id = ? AND status = 'UNPAID'`
+  const unpaidRows = await env.DB.prepare(
+    `SELECT payment_type, SUM(amount) as total_unpaid, COUNT(*) as unpaid_count 
+     FROM payments 
+     WHERE lease_id = ? AND status = 'UNPAID'
+     GROUP BY payment_type`
+  ).bind(id).all();
+
+  let unpaidRentAmount = 0;
+  let unpaidRentCount = 0;
+  let unpaidUtilityAmount = 0;
+  let unpaidUtilityCount = 0;
+  for (const row of unpaidRows.results as any[]) {
+    const amt = Number(row.total_unpaid) || 0;
+    const cnt = Number(row.unpaid_count) || 0;
+    if (row.payment_type === 'RENT') {
+      unpaidRentAmount += amt;
+      unpaidRentCount += cnt;
+    } else {
+      unpaidUtilityAmount += amt;
+      unpaidUtilityCount += cnt;
+    }
+  }
+
+  const latestRentPayment = (await env.DB.prepare(
+    `SELECT id, status FROM payments WHERE lease_id = ? AND payment_type = 'RENT' ORDER BY paid_at DESC, created_at DESC LIMIT 1`
   ).bind(id).first()) as any;
 
   const { daysRemaining, remainingText, isOverdue } = calculateRemainingInfo(lease.end_date, lease.status);
@@ -175,8 +238,13 @@ export async function handleGetLease(env: Env, id: string) {
       isPayOverdue,
       payOverdueDays,
       isPrepaidBeyond,
-      unpaidUtilityAmount: Number(unpaidRow?.total_unpaid) || 0,
-      unpaidUtilityCount: Number(unpaidRow?.unpaid_count) || 0,
+      unpaidRentAmount,
+      unpaidRentCount,
+      unpaidUtilityAmount,
+      unpaidUtilityCount,
+      totalUnpaidAmount: unpaidRentAmount + unpaidUtilityAmount,
+      currentRentStatus: latestRentPayment ? latestRentPayment.status : null,
+      currentRentPaymentId: latestRentPayment ? latestRentPayment.id : null,
     },
     payments: payments.results,
     attachments: attachments.results,
@@ -184,7 +252,10 @@ export async function handleGetLease(env: Env, id: string) {
 }
 
 export async function handleCreateLease(env: Env, body: any) {
+  await ensureLeaseCustomIdColumn(env);
+
   const {
+    custom_id,
     title,
     address,
     tenant_name,
@@ -221,18 +292,26 @@ export async function handleCreateLease(env: Env, body: any) {
     return jsonError('合同到期日不能早于起租日期', 400);
   }
 
+  let finalCustomId = custom_id ? String(custom_id).trim() : '';
+  if (!finalCustomId) {
+    const countRow = (await env.DB.prepare('SELECT COUNT(*) as cnt FROM leases').first()) as any;
+    const num = (Number(countRow?.cnt) || 0) + 101;
+    finalCustomId = `H${num}`;
+  }
+
   const id = 'lse_' + generateRandomHex(8);
   await env.DB.prepare(
     `INSERT INTO leases (
-      id, title, address, tenant_name, tenant_phone, tenant_id_card, tenant_email,
+      id, custom_id, title, address, tenant_name, tenant_phone, tenant_id_card, tenant_email,
       start_date, end_date, deposit_amount, rent_amount,
       pay_cycle_months, next_pay_date,
       meter_electric_price, meter_water_price, meter_electric_base, meter_water_base,
       status, notes
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'ACTIVE', ?)`
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'ACTIVE', ?)`
   )
     .bind(
       id,
+      finalCustomId,
       finalTitle,
       finalAddress,
       tenant_name ? tenant_name.trim() : null,
@@ -276,16 +355,19 @@ export async function handleCreateLease(env: Env, body: any) {
     ).run();
   }
 
-  return jsonOk({ id }, '房源添加成功');
+  return jsonOk({ id, custom_id: finalCustomId }, '房源添加成功');
 }
 
 export async function handleUpdateLease(env: Env, id: string, body: any) {
-  const existing = await env.DB.prepare('SELECT id FROM leases WHERE id = ?').bind(id).first();
+  await ensureLeaseCustomIdColumn(env);
+
+  const existing = await env.DB.prepare('SELECT id, custom_id FROM leases WHERE id = ?').bind(id).first();
   if (!existing) {
     return jsonError('房源不存在', 404, 404);
   }
 
   const {
+    custom_id,
     title,
     address,
     tenant_name,
@@ -304,6 +386,8 @@ export async function handleUpdateLease(env: Env, id: string, body: any) {
     meter_water_base,
     status,
     notes,
+    update_current_rent_status,
+    current_rent_payment_id
   } = body;
 
   const startYear = parseYear(start_date);
@@ -312,8 +396,11 @@ export async function handleUpdateLease(env: Env, id: string, body: any) {
     return jsonError('年份必须在 2000 年至 2099 年之间', 400);
   }
 
+  const finalCustomId = custom_id !== undefined ? (String(custom_id).trim() || null) : (existing.custom_id as string || null);
+
   await env.DB.prepare(
     `UPDATE leases SET
+      custom_id = ?,
       title = ?, address = ?, tenant_name = ?, tenant_phone = ?, tenant_id_card = ?, tenant_email = ?,
       start_date = ?, end_date = ?, deposit_amount = ?, rent_amount = ?,
       pay_cycle_months = ?, next_pay_date = ?,
@@ -323,6 +410,7 @@ export async function handleUpdateLease(env: Env, id: string, body: any) {
      WHERE id = ?`
   )
     .bind(
+      finalCustomId,
       title,
       address,
       tenant_name || null,
@@ -345,7 +433,25 @@ export async function handleUpdateLease(env: Env, id: string, body: any) {
     )
     .run();
 
-  return jsonOk({ id }, '房源信息已保存');
+  // 快捷在房源修改弹窗中联动修改当期房租的支付状态 (已付款结清 vs 待付款未结清)
+  if (update_current_rent_status === 'PAID' || update_current_rent_status === 'UNPAID') {
+    if (current_rent_payment_id) {
+      await env.DB.prepare('UPDATE payments SET status = ? WHERE id = ?')
+        .bind(update_current_rent_status, current_rent_payment_id)
+        .run();
+    } else {
+      const pmt = (await env.DB.prepare(
+        "SELECT id FROM payments WHERE lease_id = ? AND payment_type = 'RENT' ORDER BY paid_at DESC, created_at DESC LIMIT 1"
+      ).bind(id).first()) as any;
+      if (pmt) {
+        await env.DB.prepare('UPDATE payments SET status = ? WHERE id = ?')
+          .bind(update_current_rent_status, pmt.id)
+          .run();
+      }
+    }
+  }
+
+  return jsonOk({ id, custom_id: finalCustomId }, '房源信息已保存');
 }
 
 export async function handleDeleteLease(env: Env, id: string) {

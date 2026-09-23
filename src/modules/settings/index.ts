@@ -271,11 +271,11 @@ export async function handleSendDatabaseBackupToEmail(env: Env) {
   const jsonStr = JSON.stringify(dumpData, null, 2);
   const nowStr = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
-  const subject = `【房东管家备份】全量数据归档 (${nowStr})`;
+  const subject = `【RentHub备份】全量数据归档 (${nowStr})`;
   const html = `
 <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 640px; margin: 0 auto; padding: 24px; border: 1px solid #e0e0e0; border-radius: 16px; background-color: #ffffff;">
   <div style="border-bottom: 2px solid #0F5B38; padding-bottom: 12px; margin-bottom: 18px;">
-    <h2 style="color: #0F5B38; margin: 0; font-size: 20px;">📦 房东管家 · 数据库全量备份</h2>
+    <h2 style="color: #0F5B38; margin: 0; font-size: 20px;">📦 RentHub · 数据库全量备份</h2>
     <p style="color: #888; font-size: 12px; margin: 4px 0 0 0;">备份时刻：${nowStr}</p>
   </div>
   <p style="font-size: 14px; color: #333;">房东您好，这是您系统当前的全量数据库备份存档：</p>
@@ -290,7 +290,7 @@ export async function handleSendDatabaseBackupToEmail(env: Env) {
 ${jsonStr.length > 50000 ? jsonStr.slice(0, 50000) + '\n\n... (已截断超长部分，完整数据请在后台导出 JSON)' : jsonStr}
   </div>
   <div style="border-top: 1px dashed #ddd; padding-top: 14px; margin-top: 16px; font-size: 12px; color: #999;">
-    • 此邮件由房东管家系统自动触发生成，请妥善保管您的备份邮件，避免外泄。
+    • 此邮件由 RentHub 系统自动触发生成，请妥善保管您的备份邮件，避免外泄。
   </div>
 </div>`;
 

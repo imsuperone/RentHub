@@ -532,7 +532,9 @@ export function renderAppHtml(username: string): string {
           <!-- 过滤总计展示 -->
           <div class="flex items-center gap-2 px-3.5 py-2 m3-subcard bg-[#E8EDE9]/60 dark:bg-[#161D1A] text-xs font-semibold self-stretch justify-between sm:justify-start">
             <span class="text-neutral-400">当前筛选：</span>
-            <span id="filteredPaymentsSum" class="text-sm font-extrabold font-mono text-[#0F5B38] dark:text-[#7CDCA0]">¥ 0.00</span>
+            <div id="filteredPaymentsSum" class="flex items-center gap-2 text-xs">
+              <span class="text-neutral-600 dark:text-neutral-300 font-bold">实收 <strong class="font-mono text-sm font-extrabold text-[#0F5B38] dark:text-[#7CDCA0]">¥ 0.00</strong></span>
+            </div>
           </div>
         </div>
 
@@ -969,7 +971,7 @@ export function renderAppHtml(username: string): string {
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">发信人显示名称</label>
-                    <input type="text" id="notifySmtpFromName" placeholder="例如 房东管家" class="m3-input w-full text-xs font-bold">
+                    <input type="text" id="notifySmtpFromName" placeholder="例如 RentHub" class="m3-input w-full text-xs font-bold">
                   </div>
                   <div>
                     <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">发信人地址 (若空默认同账号)</label>
@@ -1304,9 +1306,15 @@ export function renderAppHtml(username: string): string {
       <input type="hidden" id="editingLeaseId" value="">
 
       <div class="space-y-3.5 text-xs">
-        <div>
-          <label class="block font-bold text-neutral-600 dark:text-neutral-300 mb-1 px-1">房屋名称 / 房号 (如：幸福公寓302室)</label>
-          <input type="text" id="leaseTitle" placeholder="例如 朝阳区望京SOHO 3-2-501" class="m3-input w-full text-sm font-semibold">
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+          <div class="sm:col-span-1">
+            <label class="block font-bold text-neutral-600 dark:text-neutral-300 mb-1 px-1">房源编号 (选填)</label>
+            <input type="text" id="leaseCustomId" placeholder="例如 #A101" class="m3-input w-full text-sm font-mono font-bold text-[#0F5B38] dark:text-[#7CDCA0]">
+          </div>
+          <div class="sm:col-span-3">
+            <label class="block font-bold text-neutral-600 dark:text-neutral-300 mb-1 px-1">房屋名称 / 房号 (如：幸福公寓302室)</label>
+            <input type="text" id="leaseTitle" placeholder="例如 朝阳区望京SOHO 3-2-501" class="m3-input w-full text-sm font-semibold">
+          </div>
         </div>
         <div>
           <label class="block font-bold text-neutral-600 dark:text-neutral-300 mb-1 px-1">详细地址 (留空则默认同房屋名称)</label>
@@ -1351,24 +1359,27 @@ export function renderAppHtml(username: string): string {
         </div>
 
         <!-- 租金与交租周期 (修改周期时自动校准到期日与下次收租日) -->
-        <div class="grid grid-cols-3 gap-3">
-          <div>
-            <label class="block font-bold text-neutral-600 dark:text-neutral-300 mb-1 px-1">月租金(元)</label>
-            <input type="number" id="leaseRentAmount" placeholder="3000" class="m3-input w-full text-xs font-extrabold text-[#0F5B38] dark:text-[#7CDCA0]">
+        <div class="space-y-1">
+          <div class="grid grid-cols-3 gap-3">
+            <div>
+              <label class="block font-bold text-neutral-600 dark:text-neutral-300 mb-1 px-1">月租金(元)</label>
+              <input type="number" id="leaseRentAmount" placeholder="3000" oninput="updateCycleRentHelper()" onchange="updateCycleRentHelper()" class="m3-input w-full text-xs font-extrabold text-[#0F5B38] dark:text-[#7CDCA0]">
+            </div>
+            <div>
+              <label class="block font-bold text-neutral-600 dark:text-neutral-300 mb-1 px-1">押金(元)</label>
+              <input type="number" id="leaseDepositAmount" placeholder="3000" class="m3-input w-full text-xs font-extrabold">
+            </div>
+            <div>
+              <label class="block font-bold text-neutral-600 dark:text-neutral-300 mb-1 px-1">交租周期</label>
+              <select id="leasePayCycle" onchange="onStartDateOrCycleChange(); updateCycleRentHelper();" class="m3-input w-full text-xs font-bold">
+                <option value="1">月付 (1个月)</option>
+                <option value="3">季付 (3个月)</option>
+                <option value="6">半年付 (6个月)</option>
+                <option value="12" selected>年付 (12个月 / 1年)</option>
+              </select>
+            </div>
           </div>
-          <div>
-            <label class="block font-bold text-neutral-600 dark:text-neutral-300 mb-1 px-1">押金(元)</label>
-            <input type="number" id="leaseDepositAmount" placeholder="3000" class="m3-input w-full text-xs font-extrabold">
-          </div>
-          <div>
-            <label class="block font-bold text-neutral-600 dark:text-neutral-300 mb-1 px-1">交租周期</label>
-            <select id="leasePayCycle" onchange="onStartDateOrCycleChange()" class="m3-input w-full text-xs font-bold">
-              <option value="1">月付 (1个月)</option>
-              <option value="3">季付 (3个月)</option>
-              <option value="6">半年付 (6个月)</option>
-              <option value="12" selected>年付 (12个月 / 1年)</option>
-            </select>
-          </div>
+          <div id="cycleRentHelperText" class="text-[11px] font-bold text-[#0F5B38] dark:text-[#7CDCA0] px-1"></div>
         </div>
 
         <!-- 水电参数绑定 (房源直接设置单价与初始底数) -->
@@ -1446,6 +1457,24 @@ export function renderAppHtml(username: string): string {
             <label class="flex items-center gap-1.5 cursor-pointer">
               <input type="radio" name="initialBillStatus" value="UNPAID" class="accent-rose-600">
               <span class="text-rose-600 dark:text-rose-400 font-bold">待付款 (未偿还欠款)</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- 编辑房源专属：快速切换当期租金结清状态 -->
+        <div id="editRentStatusBox" class="hidden p-3.5 m3-subcard bg-[#E8EDE9]/60 dark:bg-[#161D1A] border border-[#D7DED9]/60 dark:border-[#26312B]/60 rounded-2xl space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-neutral-700 dark:text-neutral-200">💰 当期租金结清状态</span>
+            <span id="editRentStatusDesc" class="text-[11px] font-mono font-bold text-neutral-500"></span>
+          </div>
+          <div class="flex items-center gap-4 text-xs text-neutral-700 dark:text-neutral-200">
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="radio" name="editCurrentRentStatus" id="editRentStatus_PAID" value="PAID" class="accent-[#0F5B38]">
+              <span class="font-bold text-[#0F5B38] dark:text-[#7CDCA0]">✓ 已付款 (租金已结清)</span>
+            </label>
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="radio" name="editCurrentRentStatus" id="editRentStatus_UNPAID" value="UNPAID" class="accent-rose-600">
+              <span class="font-bold text-rose-600 dark:text-rose-400">🔴 待付款 (租金未偿还欠费)</span>
             </label>
           </div>
         </div>
@@ -1950,13 +1979,22 @@ export function renderAppHtml(username: string): string {
       </div>
 
       <div class="p-3.5 rounded-2xl bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-200/50 dark:border-emerald-900/30 text-emerald-900 dark:text-emerald-200 text-xs leading-relaxed">
-        <strong>说明：</strong>绑定此邮箱后，系统将自动向该邮箱投递每日交租提醒、水电欠费催缴，并在忘记密码时作为接收验证凭据的通道。
+        <strong>说明：</strong>绑定此邮箱后，系统将自动向该邮箱投递每日交租提醒、水电欠费催缴，并在忘记密码时作为接收验证凭据的通道。换绑需向新邮箱发送验证码并核验管理员登录密码。
       </div>
 
       <div class="space-y-3.5 text-xs">
         <div>
-          <label class="block font-bold text-neutral-600 dark:text-neutral-300 mb-1 px-1">安全与提醒接收邮箱</label>
-          <input type="email" id="secNewEmailInput" placeholder="例如: landlord@example.com" class="m3-input w-full text-sm font-semibold">
+          <label class="block font-bold text-neutral-600 dark:text-neutral-300 mb-1 px-1">安全与提醒接收新邮箱</label>
+          <div class="flex gap-2">
+            <input type="email" id="secNewEmailInput" placeholder="例如: landlord@example.com" class="m3-input flex-1 text-sm font-semibold">
+            <button type="button" id="btnSendSecEmailCode" onclick="sendSecEmailVerifyCode()" class="px-3.5 py-2.5 rounded-xl bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600 font-bold text-xs whitespace-nowrap transition-colors">
+              获取验证码
+            </button>
+          </div>
+        </div>
+        <div>
+          <label class="block font-bold text-neutral-600 dark:text-neutral-300 mb-1 px-1">邮箱验证码 (6位)</label>
+          <input type="text" id="secVerifyCodeInput" maxlength="6" placeholder="输入接收到的 6 位数字验证码" class="m3-input w-full text-sm font-mono tracking-widest">
         </div>
         <div>
           <label class="block font-bold text-neutral-600 dark:text-neutral-300 mb-1 px-1">管理员登录密码</label>
@@ -1965,7 +2003,7 @@ export function renderAppHtml(username: string): string {
       </div>
 
       <button onclick="submitUpdateSecurityEmail()" id="secEmailSubmitBtn" class="m3-pill w-full py-3.5 bg-[#0F5B38] dark:bg-[#7CDCA0] text-white dark:text-[#00391F] font-bold text-xs shadow-md hover:opacity-95">
-        确认保存邮箱
+        确认安全换绑
       </button>
     </div>
   </div>
@@ -2726,16 +2764,23 @@ export function renderAppHtml(username: string): string {
                     : (l.next_pay_date && l.end_date && l.next_pay_date > l.end_date)
                     ? '<span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-purple-100 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300 flex items-center gap-1">🟣 预付超期 (待续合同)</span>'
                     : l.isPayOverdue
-                    ? \`<span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>🔴 在租未付款 (超期 \${l.payOverdueDays || Math.abs(l.daysToNextPay || 0)} 天 · 未偿还)</span>\`
+                    ? \`<span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>🔴 租金已超期 (超期 \${l.payOverdueDays || Math.abs(l.daysToNextPay || 0)} 天 · 未偿还)</span>\`
                     : (l.daysToNextPay === 0)
-                    ? '<span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 flex items-center gap-1">⚡ 今日应收租 (未偿还)</span>'
+                    ? '<span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 flex items-center gap-1">⚡ 今日交租日</span>'
                     : (l.daysToNextPay !== null && l.daysToNextPay !== undefined && l.daysToNextPay <= 7)
                     ? \`<span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">⚡ 距交租 \${l.daysToNextPay} 天</span>\`
-                    : '<span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">✓ 租金已结清</span>'
+                    : (l.currentRentStatus === 'UNPAID')
+                    ? '<span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 flex items-center gap-1">🔴 在租未付款</span>'
+                    : '<span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">● 正常在租</span>'
+                }
+                \${
+                  l.unpaidRentAmount && l.unpaidRentAmount > 0
+                    ? \`<span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>🔴 待付房租 ¥\${Number(l.unpaidRentAmount).toFixed(2)} (\${l.unpaidRentCount}笔)</span>\`
+                    : ''
                 }
                 \${
                   l.unpaidUtilityAmount && l.unpaidUtilityAmount > 0
-                    ? \`<span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 flex items-center gap-1">🔴 水电欠费 ¥\${Number(l.unpaidUtilityAmount).toFixed(2)} (\${l.unpaidUtilityCount}笔)</span>\`
+                    ? \`<span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>🔴 水电欠费 ¥\${Number(l.unpaidUtilityAmount).toFixed(2)} (\${l.unpaidUtilityCount}笔)</span>\`
                     : ''
                 }
                 \${
@@ -2752,7 +2797,10 @@ export function renderAppHtml(username: string): string {
             </div>
 
             <div>
-              <h3 class="text-base font-extrabold text-neutral-900 dark:text-neutral-100">\${l.title}</h3>
+              <div class="flex items-center gap-2">
+                \${l.custom_id ? \`<span class="px-2 py-0.5 rounded-lg text-xs font-mono font-bold bg-[#E8EDE9] dark:bg-[#161D1A] text-[#0F5B38] dark:text-[#7CDCA0] border border-[#D7DED9]/60 dark:border-[#26312B]">#\${l.custom_id}</span>\` : ''}
+                <h3 class="text-base font-extrabold text-neutral-900 dark:text-neutral-100">\${l.title}</h3>
+              </div>
               <p class="text-xs text-neutral-400 mt-0.5">\${l.address}</p>
             </div>
 
@@ -2772,7 +2820,7 @@ export function renderAppHtml(username: string): string {
               <div>
                 <span class="text-neutral-400">月租金：</span>
                 <strong class="text-[#0F5B38] dark:text-[#7CDCA0] text-sm">¥ \${l.rent_amount}</strong>
-                <span class="text-[10px] text-neutral-400">/ \${l.pay_cycle_months == 12 ? '年付' : l.pay_cycle_months == 6 ? '半年付' : l.pay_cycle_months == 1 ? '月付' : '季付'}</span>
+                <span class="text-[10px] text-neutral-500 font-semibold">(\${l.pay_cycle_months == 12 ? '年付' : l.pay_cycle_months == 6 ? '半年付' : l.pay_cycle_months == 1 ? '月付' : '季付'}\${l.pay_cycle_months > 1 ? ' · 每期 ¥' + ((Number(l.rent_amount) || 0) * l.pay_cycle_months).toFixed(2) : ''})</span>
               </div>
               <div class="col-span-2 text-neutral-400 text-[11px] border-t border-[#D7DED9]/60 dark:border-[#26312B]/60 pt-1.5 flex items-center justify-between flex-wrap gap-1">
                 <span>电单价 ¥\${l.meter_electric_price || 1.0} · 水单价 ¥\${l.meter_water_price || 3.5}</span>
@@ -3174,9 +3222,25 @@ export function renderAppHtml(username: string): string {
       }
     }
 
+    function updateCycleRentHelper() {
+      const rent = parseFloat(document.getElementById('leaseRentAmount')?.value) || 0;
+      const cycle = parseInt(document.getElementById('leasePayCycle')?.value, 10) || 1;
+      const cycleTotal = rent * cycle;
+      const cycleNames = { 1: '月付', 3: '季付', 6: '半年付', 12: '年付' };
+      const helperEl = document.getElementById('cycleRentHelperText');
+      if (!helperEl) return;
+      if (rent > 0) {
+        const name = cycleNames[cycle] || (cycle + '个月一付');
+        helperEl.innerText = '💡 ' + name + '每期应收：¥' + cycleTotal.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' (¥' + rent + '/月 × ' + cycle + '个月)';
+      } else {
+        helperEl.innerText = '';
+      }
+    }
+
     function openAddLeaseModal() {
       document.getElementById('leaseModalTitle').innerText = '录入出租房源';
       document.getElementById('editingLeaseId').value = '';
+      document.getElementById('leaseCustomId').value = '';
       document.getElementById('leaseTitle').value = '';
       document.getElementById('leaseAddress').value = '';
       document.getElementById('leaseTenantName').value = '';
@@ -3187,6 +3251,7 @@ export function renderAppHtml(username: string): string {
       onStartDateOrCycleChange();
       document.getElementById('leaseRentAmount').value = '';
       document.getElementById('leaseDepositAmount').value = '';
+      updateCycleRentHelper();
       document.getElementById('meterElecPrice').value = '1.0';
       document.getElementById('meterWaterPrice').value = '3.5';
       document.getElementById('meterElecBase').value = '';
@@ -3194,6 +3259,7 @@ export function renderAppHtml(username: string): string {
       document.getElementById('leaseStatus').value = 'ACTIVE';
       document.getElementById('leaseNotes').value = '';
       document.getElementById('initialBillOptionBox')?.classList.remove('hidden');
+      document.getElementById('editRentStatusBox')?.classList.add('hidden');
       const chk = document.getElementById('leaseCreateInitialBill');
       if (chk) chk.checked = true;
       checkNextPayDateRelation();
@@ -3205,6 +3271,7 @@ export function renderAppHtml(username: string): string {
       if (!lease) return;
       document.getElementById('leaseModalTitle').innerText = '修改出租房源';
       document.getElementById('editingLeaseId').value = lease.id;
+      document.getElementById('leaseCustomId').value = lease.custom_id || '';
       document.getElementById('leaseTitle').value = lease.title;
       document.getElementById('leaseAddress').value = lease.address;
       document.getElementById('leaseTenantName').value = lease.tenant_name || '';
@@ -3215,6 +3282,7 @@ export function renderAppHtml(username: string): string {
       document.getElementById('leaseRentAmount').value = lease.rent_amount;
       document.getElementById('leaseDepositAmount').value = lease.deposit_amount;
       document.getElementById('leasePayCycle').value = lease.pay_cycle_months || 12;
+      updateCycleRentHelper();
       document.getElementById('meterElecPrice').value = lease.meter_electric_price || 1.0;
       document.getElementById('meterWaterPrice').value = lease.meter_water_price || 3.5;
       document.getElementById('meterElecBase').value = lease.meter_electric_base || '';
@@ -3223,6 +3291,27 @@ export function renderAppHtml(username: string): string {
       document.getElementById('leaseNextPayDate').value = lease.next_pay_date || '';
       document.getElementById('leaseNotes').value = lease.notes || '';
       document.getElementById('initialBillOptionBox')?.classList.add('hidden');
+      const editStatusBox = document.getElementById('editRentStatusBox');
+      if (editStatusBox) {
+        editStatusBox.classList.remove('hidden');
+        const descEl = document.getElementById('editRentStatusDesc');
+        const isUnpaid = lease.currentRentStatus === 'UNPAID' || (lease.unpaidRentAmount && lease.unpaidRentAmount > 0);
+        if (isUnpaid) {
+          const radioUnpaid = document.getElementById('editRentStatus_UNPAID');
+          if (radioUnpaid) radioUnpaid.checked = true;
+          if (descEl) {
+            descEl.innerText = '当前有待付款租金账单 (欠费 ¥' + Number(lease.unpaidRentAmount || 0).toFixed(2) + ')';
+            descEl.className = 'text-[11px] font-mono font-bold text-rose-600 dark:text-rose-400';
+          }
+        } else {
+          const radioPaid = document.getElementById('editRentStatus_PAID');
+          if (radioPaid) radioPaid.checked = true;
+          if (descEl) {
+            descEl.innerText = '当前租金已结清';
+            descEl.className = 'text-[11px] font-mono font-bold text-emerald-600 dark:text-emerald-400';
+          }
+        }
+      }
       checkNextPayDateRelation();
       openModal('leaseModal');
     }
@@ -3232,6 +3321,7 @@ export function renderAppHtml(username: string): string {
       if (isSubmittingLease) return;
 
       const editingId = document.getElementById('editingLeaseId').value;
+      const custom_id = document.getElementById('leaseCustomId').value.trim();
       const title = document.getElementById('leaseTitle').value.trim();
       const address = document.getElementById('leaseAddress').value.trim();
       const tenant_name = document.getElementById('leaseTenantName').value.trim();
@@ -3255,6 +3345,7 @@ export function renderAppHtml(username: string): string {
       }
 
       const payload = {
+        custom_id,
         title, address, tenant_name, tenant_phone,
         tenant_id_card,
         start_date, end_date, rent_amount, deposit_amount,
@@ -3265,6 +3356,9 @@ export function renderAppHtml(username: string): string {
       if (!editingId) {
         payload.create_initial_bill = !!document.getElementById('leaseCreateInitialBill')?.checked;
         payload.initial_bill_status = document.querySelector('input[name="initialBillStatus"]:checked')?.value || 'PAID';
+      } else {
+        const editRentStatus = document.querySelector('input[name="editCurrentRentStatus"]:checked')?.value;
+        if (editRentStatus) payload.update_current_rent_status = editRentStatus;
       }
 
       const btn = document.getElementById('submitLeaseBtn');
@@ -3576,9 +3670,9 @@ export function renderAppHtml(username: string): string {
         }
       });
 
-      let sumHtml = '实收 ¥ ' + paidSum.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      let sumHtml = '<span class="text-neutral-600 dark:text-neutral-300 font-bold">实收 <strong class="font-mono text-sm font-extrabold text-[#0F5B38] dark:text-[#7CDCA0]">¥ ' + paidSum.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</strong></span>';
       if (unpaidSum > 0) {
-        sumHtml += ' <span class="text-rose-600 dark:text-rose-400 font-bold ml-1.5">(待收欠款 ¥ ' + unpaidSum.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ')</span>';
+        sumHtml += ' <span class="text-rose-600 dark:text-rose-400 font-bold ml-1.5">(待收欠款 <strong class="font-mono text-sm font-extrabold text-rose-600 dark:text-rose-400">¥ ' + unpaidSum.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</strong>)</span>';
       }
       const sumEl = document.getElementById('filteredPaymentsSum');
       if (sumEl) sumEl.innerHTML = sumHtml;
@@ -3601,6 +3695,7 @@ export function renderAppHtml(username: string): string {
 
       const headers = [
         '账单ID',
+        '房源编号',
         '记账时间',
         '房源名称',
         '承租人',
@@ -3619,6 +3714,7 @@ export function renderAppHtml(username: string): string {
         const statusText = p.status === 'UNPAID' ? '🔴 待缴欠费' : (Number(p.amount) < 0 ? '已退款' : '已结清');
         return [
           escapeCsv(p.id),
+          escapeCsv(p.lease_custom_id ? ('#' + p.lease_custom_id) : ''),
           escapeCsv(p.paid_at || ''),
           escapeCsv(p.lease_title || ''),
           escapeCsv(p.tenant_name || ''),
@@ -3661,7 +3757,8 @@ export function renderAppHtml(username: string): string {
         var isDep = p.payment_type === 'DEPOSIT';
         var typeShort = isRent ? '租' : (isElec ? '电' : (isWater ? '水' : (isDep ? '押' : '杂')));
         var typeName = getPaymentTypeName(p.payment_type);
-        var leaseTitle = p.lease_title || '房源';
+        var customIdBadge = p.lease_custom_id ? ('[#' + p.lease_custom_id + '] ') : '';
+        var leaseTitle = customIdBadge + (p.lease_title || '房源');
         var isNegative = Number(p.amount) < 0;
         var isUnpaid = p.status === 'UNPAID';
         var amtColor = isNegative ? 'text-rose-500' : (isUnpaid ? 'text-rose-600 dark:text-rose-400' : 'text-[#0F5B38] dark:text-[#7CDCA0]');
@@ -4505,7 +4602,13 @@ export function renderAppHtml(username: string): string {
             smtpFromEmail
           })
         });
-        const json = await res.json();
+        const text = await res.text();
+        let json;
+        try {
+          json = JSON.parse(text);
+        } catch (e) {
+          throw new Error(text || '服务器未返回有效数据');
+        }
         if (json.code === 0) {
           fb.className = 'text-xs font-bold text-[#0F5B38] dark:text-[#7CDCA0]';
           fb.innerText = '✓ ' + json.message;
@@ -4980,15 +5083,67 @@ export function renderAppHtml(username: string): string {
       }
     }
 
+    let secEmailCountdown = 0;
+    let secEmailTimer = null;
+
     function openUpdateSecurityEmailModal() {
       const cur = document.getElementById('settingsSecurityEmailDisplay')?.innerText;
       document.getElementById('secNewEmailInput').value = (cur && cur !== '未绑定' && !cur.includes('...')) ? cur : '';
+      const codeInput = document.getElementById('secVerifyCodeInput');
+      if (codeInput) codeInput.value = '';
       document.getElementById('secPasswordInput').value = '';
       openModal('updateSecurityEmailModal');
     }
 
+    async function sendSecEmailVerifyCode() {
+      const newEmail = document.getElementById('secNewEmailInput')?.value?.trim();
+      if (!newEmail || !newEmail.includes('@')) {
+        return alert('请先输入有效的新安全与通知邮箱');
+      }
+      const btn = document.getElementById('btnSendSecEmailCode');
+      btn.disabled = true;
+      btn.innerText = '正在发送...';
+
+      try {
+        const res = await fetch('/api/auth/send-update-email-code', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ newEmail })
+        });
+        const text = await res.text();
+        let json;
+        try { json = JSON.parse(text); } catch (e) { throw new Error(text || '服务器未返回有效数据'); }
+        if (json.code === 0) {
+          alert('✓ ' + (json.message || '换绑验证码已发送至新邮箱，请在 10 分钟内填写'));
+          document.getElementById('secVerifyCodeInput')?.focus();
+          secEmailCountdown = 60;
+          btn.innerText = secEmailCountdown + 's 后重试';
+          clearInterval(secEmailTimer);
+          secEmailTimer = setInterval(() => {
+            secEmailCountdown--;
+            if (secEmailCountdown <= 0) {
+              clearInterval(secEmailTimer);
+              btn.disabled = false;
+              btn.innerText = '获取验证码';
+            } else {
+              btn.innerText = secEmailCountdown + 's 后重试';
+            }
+          }, 1000);
+        } else {
+          alert(json.message || '发送验证码失败');
+          btn.disabled = false;
+          btn.innerText = '获取验证码';
+        }
+      } catch (err) {
+        alert('发送验证码失败: ' + err.message);
+        btn.disabled = false;
+        btn.innerText = '获取验证码';
+      }
+    }
+
     async function submitUpdateSecurityEmail() {
       const newEmail = document.getElementById('secNewEmailInput').value.trim();
+      const code = document.getElementById('secVerifyCodeInput')?.value?.trim();
       const currentPassword = document.getElementById('secPasswordInput').value;
       if (!newEmail) return alert('请输入有效的安全与通知邮箱');
       if (!currentPassword) return alert('请输入管理员密码以核验身份');
@@ -5001,9 +5156,11 @@ export function renderAppHtml(username: string): string {
         const res = await fetch('/api/auth/update-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ newEmail, password: currentPassword, currentPassword })
+          body: JSON.stringify({ newEmail, code, password: currentPassword, currentPassword })
         });
-        const json = await res.json();
+        const text = await res.text();
+        let json;
+        try { json = JSON.parse(text); } catch (e) { throw new Error(text || '服务器未返回有效数据'); }
         if (json.code === 0) {
           alert('🎉 安全与通知邮箱已成功保存并同步！');
           closeModal('updateSecurityEmailModal');
@@ -5017,7 +5174,7 @@ export function renderAppHtml(username: string): string {
       } catch (err) {
         alert('保存失败: ' + err.message);
       } finally {
-        btn.innerText = '确认保存邮箱';
+        btn.innerText = '确认安全换绑';
         btn.disabled = false;
       }
     }
@@ -5250,7 +5407,11 @@ export function renderAppHtml(username: string): string {
         const json = await res.json();
         if (json.code === 0) appData.leases = json.data;
       }
-      const options = appData.leases.map(l => \`<option value="\${l.id}">\${l.title}</option>\`).join('');
+      const options = appData.leases.map(l => {
+        const idBadge = l.custom_id ? ('[#' + l.custom_id + '] ') : '';
+        const tenantDesc = l.tenant_name ? (' (' + l.tenant_name + ')') : '';
+        return '<option value="' + l.id + '">' + idBadge + l.title + tenantDesc + '</option>';
+      }).join('');
       const rentSelect = document.getElementById('rentLeaseId');
       const utilSelect = document.getElementById('utilLeaseId');
       const uploadSelect = document.getElementById('uploadLeaseId');
@@ -5275,10 +5436,12 @@ export function renderAppHtml(username: string): string {
       if (el) el.classList.add('hidden');
     }
 
-    // 核心优化：点击非窗口区域（遮罩层空白处）直接平滑关闭弹窗
+    // 弹窗关闭策略：表单类弹窗禁止遮罩误触或拖拽选择文字滑出关闭，仅灯箱预览支持点击遮罩关闭；其余请点击右上角✕、取消或按 ESC 键
     document.addEventListener('click', (e) => {
       if (e.target && e.target.classList && e.target.classList.contains('fixed') && e.target.classList.contains('inset-0')) {
-        closeModal(e.target.id);
+        if (e.target.id === 'lightboxModal') {
+          closeModal(e.target.id);
+        }
       }
     });
 

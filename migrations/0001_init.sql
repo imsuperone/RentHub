@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS users (
 -- 2. 租房记录表
 CREATE TABLE IF NOT EXISTS leases (
     id TEXT PRIMARY KEY,
+    custom_id TEXT,
     title TEXT NOT NULL,
     address TEXT NOT NULL,
     tenant_name TEXT,

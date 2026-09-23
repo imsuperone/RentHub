@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS users (
 -- 2. 出租房源与合同管理表 (涵盖租金周期、下次交租日、水表电表底数与单价)
 CREATE TABLE IF NOT EXISTS leases (
     id TEXT PRIMARY KEY,
+    custom_id TEXT,
     title TEXT NOT NULL,
     address TEXT NOT NULL,
     tenant_name TEXT,

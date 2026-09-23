@@ -33,7 +33,7 @@ export async function sendResendEmail(
 
   // Resend 要求规范发件人格式: "DisplayName <sender@domain.com>" 或 "sender@domain.com"
   const fromEmail = (config.fromEmail || '').trim() || 'onboarding@resend.dev';
-  const fromName = (config.fromName || '').trim() || '房东管家';
+  const fromName = (config.fromName || '').trim() || 'RentHub';
   const from = `${fromName} <${fromEmail}>`;
 
   try {

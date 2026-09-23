@@ -412,7 +412,7 @@ export function renderGateHtml(isInitialized: boolean): string {
 
             <div>
               <label class="block text-[10px] font-bold text-neutral-500 dark:text-neutral-400 mb-1 px-1">发信人显示名称</label>
-              <input id="initSmtpFromName" type="text" placeholder="房东管家" class="m3-field w-full px-3 py-2 text-xs font-semibold text-neutral-800 dark:text-neutral-200 outline-none">
+              <input id="initSmtpFromName" type="text" placeholder="RentHub" class="m3-field w-full px-3 py-2 text-xs font-semibold text-neutral-800 dark:text-neutral-200 outline-none">
             </div>
           </div>
 
@@ -765,13 +765,13 @@ export function renderGateHtml(isInitialized: boolean): string {
     }
 
     const SMTP_PRESETS = {
-      qq: { host: 'smtp.qq.com', port: 465, secure: true, fromName: '房东管家' },
-      '163': { host: 'smtp.163.com', port: 465, secure: true, fromName: '房东管家' },
-      '126': { host: 'smtp.126.com', port: 465, secure: true, fromName: '房东管家' },
-      foxmail: { host: 'smtp.exmail.qq.com', port: 465, secure: true, fromName: '房东管家' },
-      qiye163: { host: 'smtphz.qiye.163.com', port: 465, secure: true, fromName: '房东管家' },
-      gmail: { host: 'smtp.gmail.com', port: 465, secure: true, fromName: '房东管家' },
-      outlook: { host: 'smtp.office365.com', port: 587, secure: false, fromName: '房东管家' }
+      qq: { host: 'smtp.qq.com', port: 465, secure: true, fromName: 'RentHub' },
+      '163': { host: 'smtp.163.com', port: 465, secure: true, fromName: 'RentHub' },
+      '126': { host: 'smtp.126.com', port: 465, secure: true, fromName: 'RentHub' },
+      foxmail: { host: 'smtp.exmail.qq.com', port: 465, secure: true, fromName: 'RentHub' },
+      qiye163: { host: 'smtphz.qiye.163.com', port: 465, secure: true, fromName: 'RentHub' },
+      gmail: { host: 'smtp.gmail.com', port: 465, secure: true, fromName: 'RentHub' },
+      outlook: { host: 'smtp.office365.com', port: 587, secure: false, fromName: 'RentHub' }
     };
 
     function toggleInitMailProviderUI(provider) {
@@ -875,7 +875,13 @@ export function renderGateHtml(isInitialized: boolean): string {
             smtpFromEmail: smtpUser
           })
         });
-        const data = await res.json();
+        const text = await res.text();
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (e) {
+          throw new Error(text || '服务器未返回有效数据');
+        }
         if (data.code !== 0) throw new Error(data.message);
 
         document.getElementById('initCodeVerifyBox')?.classList.remove('hidden');
@@ -907,7 +913,13 @@ export function renderGateHtml(isInitialized: boolean): string {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, code })
         });
-        const data = await res.json();
+        const text = await res.text();
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (e) {
+          throw new Error(text || '服务器未返回有效数据');
+        }
         if (data.code !== 0) throw new Error(data.message);
 
         document.getElementById('initCodeVerifyBox')?.classList.add('hidden');

@@ -11,53 +11,54 @@ const DEFAULT_SETTINGS: NotificationSettings = {
   mailProvider: 'smtp',
   resendApiKey: '',
   resendFromEmail: '',
-  resendFromName: '',
+  resendFromName: 'RentHub',
   smtpHost: '',
   smtpPort: 465,
   smtpSecure: true,
   smtpUser: '',
   smtpPass: '',
-  smtpFromName: '',
+  smtpFromName: 'RentHub',
   smtpFromEmail: '',
   notifyDaysBefore: '7,3,1',
   notifyOnDueDay: true,
   notifyOnOverdue: true,
-  templateRentTitle: '[RentHub] Rent Due Notice: {{property_title}} ({{status_desc}})',
+  templateRentTitle: '【RentHub】房租到期交费提醒：{{property_title}} ({{status_desc}})',
   templateRentBody: `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 580px; margin: 0 auto; padding: 24px; border: 1px solid #e0e0e0; border-radius: 16px; background-color: #ffffff;">
   <div style="border-bottom: 2px solid #0F5B38; padding-bottom: 12px; margin-bottom: 18px;">
-    <h2 style="color: #0F5B38; margin: 0; font-size: 20px;">🏠 Rent Due Reminder</h2>
-    <p style="color: #888; font-size: 12px; margin: 4px 0 0 0;">RentHub · Property Management</p>
+    <h2 style="color: #0F5B38; margin: 0; font-size: 20px;">🏠 房租交费提醒通知</h2>
+    <p style="color: #888; font-size: 12px; margin: 4px 0 0 0;">RentHub · 房屋资产管理</p>
   </div>
-  <p style="font-size: 14px; color: #333;">Hello Landlord,</p>
-  <p style="font-size: 14px; color: #555; line-height: 1.6;">Rent collection for <strong>{{property_title}}</strong> ({{address}}) is due:</p>
+  <p style="font-size: 14px; color: #333;">房东您好，</p>
+  <p style="font-size: 14px; color: #555; line-height: 1.6;">您名下的出租房源 <strong>{{property_title}}</strong> ({{address}}) 近期房租即将到期或需要收取，明细如下：</p>
   <div style="background-color: #f1f8f4; border-radius: 12px; padding: 16px; margin: 16px 0; text-align: center;">
-    <div style="font-size: 12px; color: #666;">Amount Due</div>
+    <div style="font-size: 12px; color: #666;">本期应收租金</div>
     <div style="font-size: 28px; font-weight: 800; color: #0F5B38; margin: 4px 0;">¥ {{rent_amount}}</div>
-    <div style="font-size: 13px; font-weight: bold; color: #c5221f;">Due Date: {{due_date}} ({{status_desc}})</div>
+    <div style="font-size: 13px; font-weight: bold; color: #c5221f;">交租日期：{{due_date}} ({{status_desc}})</div>
   </div>
   <table style="width: 100%; font-size: 13px; color: #666; border-collapse: collapse; margin: 16px 0;">
-    <tr><td style="padding: 6px 0; width: 100px;">Tenant:</td><td style="color: #333; font-weight: bold;">{{tenant_name}} ({{tenant_phone}})</td></tr>
-    <tr><td style="padding: 6px 0;">Lease Period:</td><td style="color: #333;">{{lease_period}}</td></tr>
+    <tr><td style="padding: 6px 0; width: 100px;">承租人姓名：</td><td style="color: #333; font-weight: bold;">{{tenant_name}} ({{tenant_phone}})</td></tr>
+    <tr><td style="padding: 6px 0;">合同租期：</td><td style="color: #333;">{{lease_period}}</td></tr>
   </table>
   <div style="border-top: 1px dashed #ddd; padding-top: 14px; font-size: 12px; color: #888; line-height: 1.5;">
-    • Once received, mark as collected in RentHub to roll over to the next billing cycle.
+    • 收到租客款项后，请前往 RentHub 管理后台点击“一键收租”进行核销与下一周期顺延。
   </div>
 </div>`,
-  templateUtilityTitle: '[RentHub] Utility Bill Notice: {{property_title}} Outstanding Fees',
+  templateUtilityTitle: '【RentHub】水电杂费催缴提醒：{{property_title}} 待交明细',
   templateUtilityBody: `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 580px; margin: 0 auto; padding: 24px; border: 1px solid #e0e0e0; border-radius: 16px; background-color: #ffffff;">
   <div style="border-bottom: 2px solid #0F5B38; padding-bottom: 12px; margin-bottom: 18px;">
-    <h2 style="color: #0F5B38; margin: 0; font-size: 20px;">⚡ Utility Bill Reminder</h2>
-    <p style="color: #888; font-size: 12px; margin: 4px 0 0 0;">RentHub · Property Management</p>
+    <h2 style="color: #0F5B38; margin: 0; font-size: 20px;">⚡ 水电杂费催缴提醒</h2>
+    <p style="color: #888; font-size: 12px; margin: 4px 0 0 0;">RentHub · 房屋资产管理</p>
   </div>
-  <p style="font-size: 14px; color: #333;">Hello Landlord,</p>
-  <p style="font-size: 14px; color: #555; line-height: 1.6;">There is an outstanding utility fee for <strong>{{property_title}}</strong>:</p>
+  <p style="font-size: 14px; color: #333;">房东您好，</p>
+  <p style="font-size: 14px; color: #555; line-height: 1.6;">房源 <strong>{{property_title}}</strong> 尚有一笔水电或杂费未结清：</p>
   <div style="background-color: #fff8f6; border-radius: 12px; padding: 16px; margin: 16px 0; border: 1px solid #fed7d7;">
-    <div style="font-size: 12px; color: #742a2a;">Unpaid Amount</div>
+    <div style="font-size: 12px; color: #742a2a;">待交欠款金额</div>
     <div style="font-size: 26px; font-weight: 800; color: #c53030; margin: 4px 0;">¥ {{unpaid_amount}}</div>
-    <div style="font-size: 13px; color: #4a5568;">Tenant: {{tenant_name}} | Details: {{usage_details}}</div>
+    <div style="font-size: 13px; color: #4a5568;">承租人：{{tenant_name}} | 结算日期：{{settle_date}}</div>
+    <div style="font-size: 12px; color: #718096; margin-top: 4px;">用量与明细：{{usage_details}}</div>
   </div>
   <div style="border-top: 1px dashed #ddd; padding-top: 14px; font-size: 12px; color: #888; line-height: 1.5;">
-    • Once tenant settles the payment, mark as settled in RentHub.
+    • 租客结清后，请前往 RentHub 记账台账将该笔记录标记为已结清。
   </div>
 </div>`
 };
@@ -214,7 +215,7 @@ export async function sendEmailMessage(
     return await sendResendEmail(
       {
         apiKey: settings.resendApiKey,
-        fromName: settings.resendFromName || settings.smtpFromName || '房东管家',
+        fromName: settings.resendFromName || settings.smtpFromName || 'RentHub',
         fromEmail: settings.resendFromEmail || 'onboarding@resend.dev',
       },
       {
@@ -236,7 +237,7 @@ export async function sendEmailMessage(
     secure: settings.smtpSecure,
     user: settings.smtpUser,
     pass: settings.smtpPass,
-    fromName: settings.smtpFromName || '房东管家',
+    fromName: settings.smtpFromName || 'RentHub',
     fromEmail: settings.smtpFromEmail || settings.smtpUser,
   }, {
     to: toEmail,

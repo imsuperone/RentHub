@@ -17,6 +17,7 @@ import {
   handlePrepare2FA,
   handleConfirmBind2FA,
   handleDisable2FA,
+  handleSendUpdateEmailCode,
   handleUpdateSecurityEmail,
   handleLogout,
   checkSessionFromCookie,
@@ -212,6 +213,11 @@ app.post('/api/auth/disable-2fa', async (c) => {
   const userId = c.get('userId' as never) as string;
   return handleDisable2FA(c.env, userId, body);
 });
+app.post('/api/auth/send-update-email-code', async (c) => {
+  const body = await c.req.json();
+  const userId = c.get('userId' as never) as string;
+  return handleSendUpdateEmailCode(c.env, userId, body);
+});
 app.post('/api/auth/update-email', async (c) => {
   const body = await c.req.json();
   const userId = c.get('userId' as never) as string;
@@ -260,6 +266,10 @@ app.post('/api/notifications/settings', async (c) => {
 app.post('/api/settings/notifications', async (c) => {
   const body = await c.req.json();
   return handleSaveNotificationSettings(c.env, body);
+});
+app.post('/api/settings/notifications/test', async (c) => {
+  const body = await c.req.json();
+  return handleSendTestNotification(c.env, body);
 });
 app.post('/api/notifications/send-test', async (c) => {
   const body = await c.req.json();

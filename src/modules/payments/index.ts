@@ -6,7 +6,7 @@ import { generateRandomHex } from '../../utils/crypto';
 import { jsonOk, jsonError } from '../../utils/response';
 
 export async function handleListPayments(env: Env, leaseId?: string) {
-  let query = 'SELECT p.*, l.title as lease_title, l.tenant_name FROM payments p LEFT JOIN leases l ON p.lease_id = l.id';
+  let query = 'SELECT p.*, l.title as lease_title, l.custom_id as lease_custom_id, l.tenant_name FROM payments p LEFT JOIN leases l ON p.lease_id = l.id';
   let params: any[] = [];
 
   if (leaseId) {
