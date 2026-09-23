@@ -629,8 +629,8 @@ export function renderAppHtml(username: string): string {
               <span class="flex-1">账号与安全</span>
             </button>
             <button type="button" onclick="switchSettingsSection('database')" id="setNav_database" class="settings-nav-btn w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-left transition-all whitespace-nowrap text-neutral-700 dark:text-neutral-300 hover:bg-[#D7DED9]/60 dark:hover:bg-[#202923]">
-              <span class="text-base">📊</span>
-              <span class="flex-1">数据库透视</span>
+              <span class="text-base">💾</span>
+              <span class="flex-1">数据备份与导出</span>
             </button>
             <button type="button" onclick="switchSettingsSection('reset')" id="setNav_reset" class="settings-nav-btn w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-left transition-all whitespace-nowrap text-rose-700 dark:text-rose-400 hover:bg-rose-100/70 dark:hover:bg-rose-950/40">
               <span class="text-base">🧹</span>
@@ -892,7 +892,7 @@ export function renderAppHtml(username: string): string {
                 </div>
                 <div>
                   <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1 px-1">Resend API Key</label>
-                  <input type="password" id="notifyResendApiKey" placeholder="填入 Resend API Key (以 re_ 开头)" class="m3-input w-full text-xs font-mono">
+                  <input type="password" id="notifyResendApiKey" placeholder="" class="m3-input w-full text-xs font-mono">
                   <span class="text-[10px] text-neutral-400 mt-1 block px-1">在 resend.com 控制台免费申请（例如 <code>re_123456789...</code>）</span>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -903,7 +903,7 @@ export function renderAppHtml(username: string): string {
                   </div>
                   <div>
                     <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1 px-1">发件人显示名称 (From Name)</label>
-                    <input type="text" id="notifyResendFromName" placeholder="例如 房东管家" class="m3-input w-full text-xs font-bold">
+                    <input type="text" id="notifyResendFromName" placeholder="例如 RentHub" class="m3-input w-full text-xs font-bold">
                   </div>
                 </div>
               </div>
@@ -1146,56 +1146,41 @@ export function renderAppHtml(username: string): string {
             </div>
           </div>
 
-          <!-- ==================== 栏目 4: 数据库透视 ==================== -->
+          <!-- ==================== 栏目 4: 数据备份与导出 ==================== -->
           <div id="setSection_database" class="settings-section hidden space-y-4">
-            <div class="m3-card bg-white dark:bg-[#1A211D] border border-[#D7DED9]/50 dark:border-[#26312B]/60 p-6 space-y-4 shadow-sm">
-              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-[#E8EDE9] dark:border-[#26312B]/60">
-                <div>
-                  <h3 class="text-sm font-bold flex items-center gap-2">
-                    <span>🗄️ D1 数据库透视速览</span>
-                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-[#E8EDE9] dark:bg-[#161D1A] text-neutral-600 dark:text-neutral-400 font-mono">SQLite 边缘直读</span>
-                  </h3>
-                  <p class="text-xs text-neutral-400 mt-0.5">直接在网页中像 Excel 一样透视查阅底层所有数据表</p>
-                </div>
-                <div class="flex items-center gap-2 flex-wrap">
-                  <button type="button" onclick="sendEmailBackup()" id="emailBackupBtn" class="m3-pill px-3.5 py-1.5 bg-[#C4EED0] dark:bg-[#1A402D] text-[#002111] dark:text-[#A6F5B9] hover:opacity-90 text-xs font-bold flex items-center gap-1">
-                    📧 发送备份至邮箱
-                  </button>
-                  <button type="button" onclick="dumpDatabaseJson()" class="m3-pill px-3.5 py-1.5 bg-[#E8EDE9] dark:bg-[#161D1A] hover:opacity-90 text-xs font-semibold flex items-center gap-1">
-                    📥 导出全量 JSON
-                  </button>
-                  <button type="button" onclick="inspectDatabaseTable(currentInspectTable)" class="m3-pill px-3.5 py-1.5 bg-[#E8EDE9] dark:bg-[#161D1A] hover:opacity-90 text-xs font-semibold">
-                    🔄 刷新当前表
-                  </button>
-                </div>
+            <div class="m3-card bg-white dark:bg-[#1A211D] border border-[#D7DED9]/50 dark:border-[#26312B]/60 p-6 md:p-8 space-y-5 shadow-sm">
+              <div class="pb-3 border-b border-[#E8EDE9] dark:border-[#26312B]/60">
+                <h3 class="text-sm font-bold flex items-center gap-2">
+                  <span>💾 数据备份与归档导出</span>
+                  <span class="text-[10px] px-2 py-0.5 rounded-full bg-[#E8EDE9] dark:bg-[#161D1A] text-neutral-600 dark:text-neutral-400 font-mono">SQLite 边缘直读</span>
+                </h3>
+                <p class="text-xs text-neutral-400 mt-1">支持随时导出全量业务数据或直接将加密备份发送至房东安全邮箱，确保数据万无一失</p>
               </div>
 
-              <!-- 数据表切换选项卡 -->
-              <div class="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
-                <button type="button" onclick="inspectDatabaseTable('leases')" id="tab_table_leases" class="inspect-tab-btn m3-pill px-3.5 py-1.5 font-bold bg-[#0F5B38] text-white dark:bg-[#7CDCA0] dark:text-[#00391F] transition-all">
-                  🏠 房源租约 (leases)
-                </button>
-                <button type="button" onclick="inspectDatabaseTable('payments')" id="tab_table_payments" class="inspect-tab-btn m3-pill px-3.5 py-1.5 font-medium bg-[#E8EDE9] text-neutral-600 dark:bg-[#161D1A] dark:text-neutral-400 transition-all">
-                  💰 记账明细 (payments)
-                </button>
-                <button type="button" onclick="inspectDatabaseTable('attachments')" id="tab_table_attachments" class="inspect-tab-btn m3-pill px-3.5 py-1.5 font-medium bg-[#E8EDE9] text-neutral-600 dark:bg-[#161D1A] dark:text-neutral-400 transition-all">
-                  📎 单据文件 (attachments)
-                </button>
-                <button type="button" onclick="inspectDatabaseTable('users')" id="tab_table_users" class="inspect-tab-btn m3-pill px-3.5 py-1.5 font-medium bg-[#E8EDE9] text-neutral-600 dark:bg-[#161D1A] dark:text-neutral-400 transition-all">
-                  👤 管理账号 (users)
-                </button>
-                <button type="button" onclick="inspectDatabaseTable('system_settings')" id="tab_table_system_settings" class="inspect-tab-btn m3-pill px-3.5 py-1.5 font-medium bg-[#E8EDE9] text-neutral-600 dark:bg-[#161D1A] dark:text-neutral-400 transition-all">
-                  ⚙️ 系统配置 (system_settings)
-                </button>
-              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                <div class="p-4 rounded-2xl bg-[#E8EDE9]/40 dark:bg-[#161D1A]/60 border border-[#D7DED9]/60 dark:border-[#26312B]/60 space-y-3">
+                  <div>
+                    <h4 class="text-xs font-bold text-neutral-800 dark:text-neutral-100 flex items-center gap-1.5">
+                      <span>📥</span> <span>导出全量 JSON 备份</span>
+                    </h4>
+                    <p class="text-[11px] text-neutral-400 mt-1">下载包含房源、账单、附件元数据及系统配置的纯文本文件</p>
+                  </div>
+                  <button type="button" onclick="dumpDatabaseJson()" class="m3-pill w-full py-2.5 bg-[#E8EDE9] dark:bg-[#242C27] hover:opacity-90 text-xs font-bold transition-all flex items-center justify-center gap-1.5">
+                    <span>📥 下载备份文件</span>
+                  </button>
+                </div>
 
-              <!-- 表格实时渲染区 -->
-              <div class="overflow-x-auto border border-[#D7DED9]/60 dark:border-[#26312B]/60 rounded-2xl max-h-96">
-                <div id="dbInspectLoading" class="hidden p-8 text-center text-xs text-neutral-400">正在实时查询 D1 数据库...</div>
-                <table id="dbInspectTable" class="w-full text-left text-xs font-mono border-collapse">
-                  <thead id="dbInspectThead" class="bg-[#E8EDE9]/60 dark:bg-[#161D1A] text-neutral-500 uppercase tracking-wider text-[10px] border-b border-[#D7DED9]/60 dark:border-[#26312B]/60 sticky top-0"></thead>
-                  <tbody id="dbInspectTbody" class="divide-y divide-[#E8EDE9]/60 dark:divide-[#26312B]/60"></tbody>
-                </table>
+                <div class="p-4 rounded-2xl bg-[#E8EDE9]/40 dark:bg-[#161D1A]/60 border border-[#D7DED9]/60 dark:border-[#26312B]/60 space-y-3">
+                  <div>
+                    <h4 class="text-xs font-bold text-neutral-800 dark:text-neutral-100 flex items-center gap-1.5">
+                      <span>📧</span> <span>发送备份至安全邮箱</span>
+                    </h4>
+                    <p class="text-[11px] text-neutral-400 mt-1">系统将自动打包当前所有业务数据附件，直接发送到您的邮箱</p>
+                  </div>
+                  <button type="button" onclick="sendEmailBackup()" id="emailBackupBtn" class="m3-pill w-full py-2.5 bg-[#0F5B38] text-white dark:bg-[#7CDCA0] dark:text-[#00391F] hover:opacity-90 text-xs font-bold transition-all flex items-center justify-center gap-1.5">
+                    <span>📧 立即发送邮件备份</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -4480,6 +4465,7 @@ export function renderAppHtml(username: string): string {
         console.warn('拉取系统存储设置失败:', err);
       }
       loadNotificationSettings();
+      loadSecurityDetails();
       inspectDatabaseTable(currentInspectTable);
     }
 
@@ -4885,7 +4871,7 @@ export function renderAppHtml(username: string): string {
         const res = await fetch('/api/auth/update-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ newEmail, currentPassword })
+          body: JSON.stringify({ newEmail, password: currentPassword, currentPassword })
         });
         const json = await res.json();
         if (json.code === 0) {
@@ -4907,16 +4893,21 @@ export function renderAppHtml(username: string): string {
     }
 
     async function loadSecurityDetails() {
+      const emailEl = document.getElementById('settingsSecurityEmailDisplay');
       try {
         const res = await fetch('/api/auth/2fa-details');
         const json = await res.json();
         if (json.code === 0 && json.data) {
-          const emailEl = document.getElementById('settingsSecurityEmailDisplay');
+          const email = json.data.recoveryEmail || json.data.recovery_email;
           if (emailEl) {
-            emailEl.innerText = json.data.recovery_email || '未绑定';
+            emailEl.innerText = (email && email !== 'null' && email.trim() !== '') ? email : '未绑定';
           }
+          return;
         }
       } catch (_) {}
+      if (emailEl) {
+        emailEl.innerText = '未绑定';
+      }
     }
 
     async function view2FADetails() {
@@ -5245,6 +5236,10 @@ export function renderAppHtml(username: string): string {
         const res = await fetch('/api/admin/reset-system', { method: 'POST' });
         const json = await res.json();
         if (json.code !== 0) throw new Error(json.message);
+        try {
+          localStorage.clear();
+          sessionStorage.clear();
+        } catch (_) {}
         if (fb) {
           fb.className = 'text-xs font-semibold text-emerald-600';
           fb.innerText = '清空成功！正在进入初始化向导...';

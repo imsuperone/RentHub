@@ -194,6 +194,10 @@ app.get('/api/auth/2fa-info', async (c) => {
   const userId = c.get('userId' as never) as string;
   return handleGet2FADetails(c.env, userId);
 });
+app.get('/api/auth/2fa-details', async (c) => {
+  const userId = c.get('userId' as never) as string;
+  return handleGet2FADetails(c.env, userId);
+});
 app.post('/api/auth/prepare-2fa', async (c) => {
   const userId = c.get('userId' as never) as string;
   return handlePrepare2FA(c.env, userId);
@@ -314,8 +318,24 @@ app.post('/api/admin/reset-system', async (c) => {
     await c.env.DB.prepare('DELETE FROM attachments').run();
     await c.env.DB.prepare('DELETE FROM leases').run();
     await c.env.DB.prepare('DELETE FROM users').run();
-    await c.env.DB.prepare("UPDATE system_settings SET value = 'false' WHERE key = 'init_completed'").run();
-    return jsonOk({ reset: true, message: '系统已成功重置为初装状态' });
+    await c.env.DB.prepare('DELETE FROM system_settings').run();
+    try {
+      await c.env.DB.prepare("DELETE FROM sqlite_sequence WHERE name IN ('payments', 'attachments', 'leases', 'users')").run();
+    } catch {}
+
+    const cookieStr = 'rent_session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0; HttpOnly; SameSite=Lax';
+    const headers = new Headers();
+    headers.append('Set-Cookie', cookieStr);
+    headers.append('Content-Type', 'application/json; charset=utf-8');
+
+    return new Response(
+      JSON.stringify({
+        code: 0,
+        message: '系统数据已彻底清空并重置为全新状态',
+        data: { reset: true }
+      }),
+      { status: 200, headers }
+    );
   } catch (err: any) {
     return jsonError('重置失败: ' + err.message, 500);
   }

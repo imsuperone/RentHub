@@ -7,6 +7,17 @@ import { testS3Connection } from '../s3';
 import { getNotificationSettings, sendEmailMessage } from '../notifications';
 import { jsonOk, jsonError } from '../../utils/response';
 
+function safeParseJson<T>(raw: unknown, defaultValue: T): T {
+  if (typeof raw !== 'string' || !raw.trim()) return defaultValue;
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      return parsed as T;
+    }
+  } catch {}
+  return defaultValue;
+}
+
 export async function handleGetSettings(env: Env) {
   const rows = await env.DB.prepare(
     "SELECT key, value FROM system_settings WHERE key IN ('webdav_config', 's3_config', 'default_storage')"
@@ -38,27 +49,21 @@ export async function handleGetSettings(env: Env) {
   let defaultStorage = map.get('default_storage') || 'D1_LOCAL';
 
   if (map.has('webdav_config')) {
-    try {
-      const parsed = JSON.parse(map.get('webdav_config')!);
-      webdav = {
-        ...parsed,
-        password: parsed.password ? '******' : '', // 脱敏输出
-      };
-    } catch {
-      // ignore
-    }
+    const parsed = safeParseJson<Partial<WebDavConfig>>(map.get('webdav_config'), {});
+    webdav = {
+      ...webdav,
+      ...parsed,
+      password: parsed.password ? '******' : '', // 脱敏输出
+    };
   }
 
   if (map.has('s3_config')) {
-    try {
-      const parsed = JSON.parse(map.get('s3_config')!);
-      s3 = {
-        ...parsed,
-        secret_access_key: parsed.secret_access_key ? '******' : '', // 脱敏输出
-      };
-    } catch {
-      // ignore
-    }
+    const parsed = safeParseJson<Partial<S3Config>>(map.get('s3_config'), {});
+    s3 = {
+      ...s3,
+      ...parsed,
+      secret_access_key: parsed.secret_access_key ? '******' : '', // 脱敏输出
+    };
   }
 
   return jsonOk({ webdav, s3, default_storage: defaultStorage });
@@ -70,14 +75,8 @@ export async function handleSaveSettings(env: Env, body: any) {
   // 1. 保存 WebDAV 设置
   if (webdav) {
     const existingRow = await env.DB.prepare("SELECT value FROM system_settings WHERE key = 'webdav_config'").first();
-    let existingPassword = '';
-    if (existingRow && existingRow.value) {
-      try {
-        existingPassword = JSON.parse(existingRow.value as string).password || '';
-      } catch {
-        // ignore
-      }
-    }
+    const existingObj = safeParseJson<any>(existingRow?.value, {});
+    const existingPassword = existingObj.password || '';
     const finalPassword = webdav.password === '******' ? existingPassword : (webdav.password || '');
 
     const webdavToSave: WebDavConfig = {
@@ -99,13 +98,11 @@ export async function handleSaveSettings(env: Env, body: any) {
     // 二选一保证：若启用了 WebDAV，则自动停用 S3
     if (webdavToSave.is_enabled) {
       const s3Row = await env.DB.prepare("SELECT value FROM system_settings WHERE key = 's3_config'").first();
-      if (s3Row && s3Row.value) {
-        try {
-          const s3Obj = JSON.parse(s3Row.value as string);
-          s3Obj.is_enabled = false;
-          await env.DB.prepare("UPDATE system_settings SET value = ?, updated_at = datetime('now') WHERE key = 's3_config'")
-            .bind(JSON.stringify(s3Obj)).run();
-        } catch {}
+      const s3Obj = safeParseJson<any>(s3Row?.value, null);
+      if (s3Obj) {
+        s3Obj.is_enabled = false;
+        await env.DB.prepare("UPDATE system_settings SET value = ?, updated_at = datetime('now') WHERE key = 's3_config'")
+          .bind(JSON.stringify(s3Obj)).run();
       }
     }
   }
@@ -113,14 +110,8 @@ export async function handleSaveSettings(env: Env, body: any) {
   // 2. 保存 S3 对象存储设置
   if (s3) {
     const existingRow = await env.DB.prepare("SELECT value FROM system_settings WHERE key = 's3_config'").first();
-    let existingSecret = '';
-    if (existingRow && existingRow.value) {
-      try {
-        existingSecret = JSON.parse(existingRow.value as string).secret_access_key || '';
-      } catch {
-        // ignore
-      }
-    }
+    const existingObj = safeParseJson<any>(existingRow?.value, {});
+    const existingSecret = existingObj.secret_access_key || '';
     const finalSecret = s3.secret_access_key === '******' ? existingSecret : (s3.secret_access_key || '');
 
     const s3ToSave: S3Config = {
@@ -144,13 +135,11 @@ export async function handleSaveSettings(env: Env, body: any) {
     // 二选一保证：若启用了 S3，则自动停用 WebDAV
     if (s3ToSave.is_enabled) {
       const wdRow = await env.DB.prepare("SELECT value FROM system_settings WHERE key = 'webdav_config'").first();
-      if (wdRow && wdRow.value) {
-        try {
-          const wdObj = JSON.parse(wdRow.value as string);
-          wdObj.is_enabled = false;
-          await env.DB.prepare("UPDATE system_settings SET value = ?, updated_at = datetime('now') WHERE key = 'webdav_config'")
-            .bind(JSON.stringify(wdObj)).run();
-        } catch {}
+      const wdObj = safeParseJson<any>(wdRow?.value, null);
+      if (wdObj) {
+        wdObj.is_enabled = false;
+        await env.DB.prepare("UPDATE system_settings SET value = ?, updated_at = datetime('now') WHERE key = 'webdav_config'")
+          .bind(JSON.stringify(wdObj)).run();
       }
     }
   }
@@ -168,22 +157,18 @@ export async function handleSaveSettings(env: Env, body: any) {
     if (default_storage === 'D1_LOCAL') {
       // 关闭所有云端备份
       const s3Row = await env.DB.prepare("SELECT value FROM system_settings WHERE key = 's3_config'").first();
-      if (s3Row && s3Row.value) {
-        try {
-          const s3Obj = JSON.parse(s3Row.value as string);
-          s3Obj.is_enabled = false;
-          await env.DB.prepare("UPDATE system_settings SET value = ?, updated_at = datetime('now') WHERE key = 's3_config'")
-            .bind(JSON.stringify(s3Obj)).run();
-        } catch {}
+      const s3Obj = safeParseJson<any>(s3Row?.value, null);
+      if (s3Obj) {
+        s3Obj.is_enabled = false;
+        await env.DB.prepare("UPDATE system_settings SET value = ?, updated_at = datetime('now') WHERE key = 's3_config'")
+          .bind(JSON.stringify(s3Obj)).run();
       }
       const wdRow = await env.DB.prepare("SELECT value FROM system_settings WHERE key = 'webdav_config'").first();
-      if (wdRow && wdRow.value) {
-        try {
-          const wdObj = JSON.parse(wdRow.value as string);
-          wdObj.is_enabled = false;
-          await env.DB.prepare("UPDATE system_settings SET value = ?, updated_at = datetime('now') WHERE key = 'webdav_config'")
-            .bind(JSON.stringify(wdObj)).run();
-        } catch {}
+      const wdObj = safeParseJson<any>(wdRow?.value, null);
+      if (wdObj) {
+        wdObj.is_enabled = false;
+        await env.DB.prepare("UPDATE system_settings SET value = ?, updated_at = datetime('now') WHERE key = 'webdav_config'")
+          .bind(JSON.stringify(wdObj)).run();
       }
     }
   }

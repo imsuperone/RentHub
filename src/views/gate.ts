@@ -341,7 +341,7 @@ export function renderGateHtml(isInitialized: boolean): string {
                 <label class="text-[10px] font-bold text-neutral-500 dark:text-neutral-400">Resend API Key</label>
                 <a href="https://resend.com/api-keys" target="_blank" rel="noopener noreferrer" class="text-[10px] font-bold text-[#006C4C] dark:text-[#2EE59D] hover:underline">获取 API Key ↗</a>
               </div>
-              <input id="initResendApiKey" type="password" placeholder="填入 Resend API Key (以 re_ 开头)" class="m3-field w-full px-3 py-2 text-xs font-mono font-semibold text-neutral-800 dark:text-neutral-200 outline-none">
+              <input id="initResendApiKey" type="password" placeholder="" class="m3-field w-full px-3 py-2 text-xs font-mono font-semibold text-neutral-800 dark:text-neutral-200 outline-none">
               <span class="text-[9px] text-neutral-400 mt-0.5 block px-1">在 resend.com 免费申请（例如 re_123456789...）</span>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -351,7 +351,7 @@ export function renderGateHtml(isInitialized: boolean): string {
               </div>
               <div>
                 <label class="block text-[10px] font-bold text-neutral-500 dark:text-neutral-400 mb-1 px-1">发件人显示名称</label>
-                <input id="initResendFromName" type="text" placeholder="房东管家" class="m3-field w-full px-3 py-2 text-xs font-semibold text-neutral-800 dark:text-neutral-200 outline-none">
+                <input id="initResendFromName" type="text" placeholder="RentHub" class="m3-field w-full px-3 py-2 text-xs font-semibold text-neutral-800 dark:text-neutral-200 outline-none">
               </div>
             </div>
           </div>

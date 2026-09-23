@@ -90,7 +90,11 @@ export async function handleInitAdmin(env: Env, body: any) {
     answerSalt = ansResult.salt;
   }
 
-  const effectiveRecoveryEmail = recoveryEmail || (body as any).recipientEmail;
+  let effectiveRecoveryEmail: string | null = null;
+  const rawEmail = recoveryEmail || (body as any).recipientEmail;
+  if (rawEmail && String(rawEmail).trim() !== '' && String(rawEmail).trim().toLowerCase() !== 'null') {
+    effectiveRecoveryEmail = String(rawEmail).trim();
+  }
 
   // 4. 写入 D1 用户表
   await env.DB.prepare(
@@ -106,7 +110,7 @@ export async function handleInitAdmin(env: Env, body: any) {
       salt,
       totpSecret,
       JSON.stringify(recoveryCodes),
-      effectiveRecoveryEmail ? String(effectiveRecoveryEmail).trim() : null,
+      effectiveRecoveryEmail,
       securityQuestion ? String(securityQuestion).trim() : null,
       answerHash,
       answerSalt
@@ -527,15 +531,21 @@ export async function handleGet2FADetails(env: Env, userId: string) {
 
   let recoveryCodes: string[] = [];
   try {
-    recoveryCodes = JSON.parse(user.recovery_codes || '[]');
+    const parsed = JSON.parse(user.recovery_codes || '[]');
+    if (Array.isArray(parsed)) recoveryCodes = parsed;
   } catch {}
+
+  const cleanEmail = (user.recovery_email && user.recovery_email !== 'null' && user.recovery_email.trim() !== '')
+    ? user.recovery_email.trim()
+    : null;
 
   return jsonOk({
     totpEnabled: (user.totp_enabled as number) === 1,
     totpSecret: user.totp_secret,
     totpUri,
     recoveryCodes,
-    recoveryEmail: user.recovery_email || null,
+    recoveryEmail: cleanEmail,
+    recovery_email: cleanEmail,
   });
 }
 
@@ -543,11 +553,13 @@ export async function handleGet2FADetails(env: Env, userId: string) {
  * 查看/换绑安全找回与提醒邮箱
  */
 export async function handleUpdateSecurityEmail(env: Env, userId: string, body: any) {
-  const { newEmail, password } = body;
+  const { newEmail, password, currentPassword } = body;
+  const pwd = password || currentPassword;
+
   if (!newEmail || !String(newEmail).trim().includes('@')) {
     return jsonError('请填写有效的安全邮箱地址', 400);
   }
-  if (!password) {
+  if (!pwd) {
     return jsonError('请输入当前管理员密码以确认安全换绑', 400);
   }
 
@@ -556,22 +568,22 @@ export async function handleUpdateSecurityEmail(env: Env, userId: string, body: 
     .first()) as User | null;
   if (!user) return jsonError('用户不存在', 404);
 
-  const isValid = await verifyPassword(password, user.salt, user.password_hash);
+  const isValid = await verifyPassword(pwd, user.salt, user.password_hash);
   if (!isValid) {
     return jsonError('管理员密码不正确，无法换绑邮箱', 400);
   }
 
-  const cleanEmail = String(newEmail).trim();
+  const cleanTargetEmail = String(newEmail).trim();
   await env.DB.prepare('UPDATE users SET recovery_email = ? WHERE id = ?')
-    .bind(cleanEmail, userId)
+    .bind(cleanTargetEmail, userId)
     .run();
 
   // 同步更新系统提醒接收邮箱 (system_settings)
   await env.DB.prepare(
     "INSERT INTO system_settings (key, value) VALUES ('notify_recipient_email', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value"
-  ).bind(cleanEmail).run();
+  ).bind(cleanTargetEmail).run();
 
-  return jsonOk({ recoveryEmail: cleanEmail }, '安全邮箱已成功换绑更新');
+  return jsonOk({ recoveryEmail: cleanTargetEmail, recovery_email: cleanTargetEmail }, '安全邮箱已成功换绑更新');
 }
 
 export async function handleLogout() {
@@ -752,8 +764,8 @@ export async function handleGetRecoveryOptions(env: Env, username: string) {
   } catch {}
 
   let maskedEmail: string | null = null;
-  if (user.recovery_email) {
-    const parts = user.recovery_email.split('@');
+  if (user.recovery_email && user.recovery_email !== 'null' && user.recovery_email.trim() !== '') {
+    const parts = user.recovery_email.trim().split('@');
     if (parts.length === 2) {
       const name = parts[0];
       const masked = name.length > 2 ? name[0] + '***' + name.slice(-1) : name[0] + '***';
