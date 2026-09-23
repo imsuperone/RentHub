@@ -464,8 +464,8 @@ export function renderAppHtml(username: string): string {
       <div class="m3-card p-4 bg-white dark:bg-[#1A211D] border border-[#D7DED9]/50 dark:border-[#26312B]/60 shadow-sm space-y-3">
         <!-- 搜索输入框 -->
         <div class="relative">
-          <input type="text" id="leaseSearchInput" placeholder="🔍 搜索房源名称、地址、租客姓名或手机号..." oninput="filterLeases()" class="m3-input w-full text-xs pl-10 pr-4 py-2.5">
-          <svg class="w-4 h-4 text-neutral-400 absolute left-3.5 top-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          <input type="text" id="leaseSearchInput" placeholder="搜索房源编号、名称、地址、租客姓名或手机号..." oninput="filterLeases()" class="m3-input w-full text-xs pl-9 pr-4 py-2.5">
+          <svg class="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
         </div>
 
         <!-- Android 16 过滤芯片 (Chips) -->
@@ -520,8 +520,8 @@ export function renderAppHtml(username: string): string {
         <div class="flex flex-col sm:flex-row gap-3">
           <!-- 搜索 -->
           <div class="relative flex-1">
-            <input type="text" id="paymentSearchInput" placeholder="🔍 搜索房屋名称、租客或账单备注..." oninput="filterPayments()" class="m3-input w-full text-xs pl-10 pr-4 py-2.5">
-            <svg class="w-4 h-4 text-neutral-400 absolute left-3.5 top-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <input type="text" id="paymentSearchInput" placeholder="搜索房源编号、房屋名称、租客或账单备注..." oninput="filterPayments()" class="m3-input w-full text-xs pl-9 pr-4 py-2.5">
+            <svg class="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
           </div>
           <!-- 月份选择器 -->
           <div class="flex-shrink-0">
@@ -694,35 +694,35 @@ export function renderAppHtml(username: string): string {
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                   <!-- 选项 A: 关 / 不开启云备份 -->
-                  <label class="flex items-start gap-2.5 p-3.5 rounded-2xl bg-[#E8EDE9]/40 dark:bg-[#161D1A]/60 border border-[#D7DED9]/60 dark:border-[#26312B]/60 cursor-pointer hover:border-[#0F5B38] transition-all">
+                  <label class="flex items-start gap-2.5 p-3.5 rounded-2xl bg-[#E8EDE9]/40 dark:bg-[#161D1A]/60 border border-[#D7DED9]/60 dark:border-[#26312B]/60 cursor-pointer hover:border-[#0F5B38] transition-all h-full">
                     <input type="radio" name="cloudBackupProvider" id="cloudBackup_none" value="NONE" checked onchange="toggleCloudBackupUI('NONE')" class="accent-[#0F5B38] mt-0.5">
                     <div>
                       <div class="text-xs font-bold text-neutral-800 dark:text-neutral-100">🚫 不开启云备份</div>
-                      <div class="text-[11px] text-neutral-400 mt-0.5 leading-relaxed">仅保存在本地 D1 数据库，不占用任何外部网盘或对象存储</div>
+                      <div class="text-[11px] text-neutral-400 mt-1 leading-relaxed">仅保存在本地 D1 数据库，不占用外部网盘或存储</div>
                     </div>
                   </label>
 
                   <!-- 选项 B: WebDAV / 网盘 / NAS -->
-                  <label class="flex items-start gap-2.5 p-3.5 rounded-2xl bg-[#E8EDE9]/40 dark:bg-[#161D1A]/60 border border-[#D7DED9]/60 dark:border-[#26312B]/60 cursor-pointer hover:border-[#0F5B38] transition-all">
+                  <label class="flex items-start gap-2.5 p-3.5 rounded-2xl bg-[#E8EDE9]/40 dark:bg-[#161D1A]/60 border border-[#D7DED9]/60 dark:border-[#26312B]/60 cursor-pointer hover:border-[#0F5B38] transition-all h-full">
                     <input type="radio" name="cloudBackupProvider" id="cloudBackup_webdav" value="WEBDAV" onchange="toggleCloudBackupUI('WEBDAV')" class="accent-[#0F5B38] mt-0.5">
                     <div>
-                      <div class="text-xs font-bold text-neutral-800 dark:text-neutral-100 flex items-center gap-1.5">
-                        <span>☁️ WebDAV / 网盘 / NAS</span>
-                        <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-800 dark:text-indigo-300 font-bold">网盘 / NAS</span>
+                      <div class="text-xs font-bold text-neutral-800 dark:text-neutral-100 flex items-center gap-1.5 flex-wrap">
+                        <span>☁️ WebDAV 网盘</span>
+                        <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-800 dark:text-indigo-300 font-bold">NAS · 坚果云</span>
                       </div>
-                      <div class="text-[11px] text-neutral-400 mt-0.5 leading-relaxed">通用 WebDAV：各类 NAS (群晖/威联通)、Nextcloud、坚果云直连，或经 AList/OpenList 挂载各大网盘</div>
+                      <div class="text-[11px] text-neutral-400 mt-1 leading-relaxed">支持群晖/威联通 NAS、坚果云、Nextcloud 或经 AList 挂载各大网盘</div>
                     </div>
                   </label>
 
                   <!-- 选项 C: S3 兼容对象存储 -->
-                  <label class="flex items-start gap-2.5 p-3.5 rounded-2xl bg-[#E8EDE9]/40 dark:bg-[#161D1A]/60 border border-[#D7DED9]/60 dark:border-[#26312B]/60 cursor-pointer hover:border-[#0F5B38] transition-all">
+                  <label class="flex items-start gap-2.5 p-3.5 rounded-2xl bg-[#E8EDE9]/40 dark:bg-[#161D1A]/60 border border-[#D7DED9]/60 dark:border-[#26312B]/60 cursor-pointer hover:border-[#0F5B38] transition-all h-full">
                     <input type="radio" name="cloudBackupProvider" id="cloudBackup_s3" value="S3" onchange="toggleCloudBackupUI('S3')" class="accent-[#0F5B38] mt-0.5">
                     <div>
-                      <div class="text-xs font-bold text-neutral-800 dark:text-neutral-100 flex items-center gap-1.5">
-                        <span>🪣 S3 兼容对象存储</span>
+                      <div class="text-xs font-bold text-neutral-800 dark:text-neutral-100 flex items-center gap-1.5 flex-wrap">
+                        <span>🪣 S3 兼容存储</span>
                         <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-sky-100 dark:bg-sky-950 text-sky-800 dark:text-sky-300 font-bold">高可用</span>
                       </div>
-                      <div class="text-[11px] text-neutral-400 mt-0.5 leading-relaxed">阿里云 OSS、腾讯云 COS、Cloudflare R2、自建 MinIO</div>
+                      <div class="text-[11px] text-neutral-400 mt-1 leading-relaxed">阿里云 OSS、腾讯云 COS、Cloudflare R2、自建 MinIO</div>
                     </div>
                   </label>
                 </div>
@@ -908,7 +908,7 @@ export function renderAppHtml(username: string): string {
                   </div>
                   <div>
                     <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1 px-1">发件人显示名称 (From Name)</label>
-                    <input type="text" id="notifyResendFromName" placeholder="例如 RentHub" class="m3-input w-full text-xs font-bold">
+                    <input type="text" id="notifyResendFromName" placeholder="例如 RentHub" value="RentHub" class="m3-input w-full text-xs font-bold">
                   </div>
                 </div>
                 <div class="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-700 dark:text-amber-300 leading-relaxed">
@@ -974,7 +974,7 @@ export function renderAppHtml(username: string): string {
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">发信人显示名称</label>
-                    <input type="text" id="notifySmtpFromName" placeholder="例如 RentHub" class="m3-input w-full text-xs font-bold">
+                    <input type="text" id="notifySmtpFromName" placeholder="例如 RentHub" value="RentHub" class="m3-input w-full text-xs font-bold">
                   </div>
                   <div>
                     <label class="block text-xs font-bold text-neutral-600 dark:text-neutral-400 mb-1.5 px-1">发信人地址 (若空默认同账号)</label>
@@ -1302,22 +1302,23 @@ export function renderAppHtml(username: string): string {
     <div class="m3-sheet bg-white dark:bg-[#1A211D] w-full max-w-2xl sm:max-w-3xl rounded-t-[36px] sm:rounded-[36px] p-6 sm:p-9 space-y-5 max-h-[90vh] overflow-y-auto shadow-2xl">
       <div class="w-12 h-1.5 rounded-full bg-neutral-300 dark:bg-neutral-600 mx-auto"></div>
       <div class="flex items-center justify-between pb-1 border-b border-[#E8EDE9] dark:border-[#26312B]/60">
-        <h3 id="leaseModalTitle" class="text-base font-extrabold">添加出租房源</h3>
+        <div class="flex items-center gap-3">
+          <h3 id="leaseModalTitle" class="text-base font-extrabold">录入出租房源</h3>
+          <div class="flex items-center gap-1 bg-[#E8EDE9]/80 dark:bg-[#161D1A] px-2.5 py-1 rounded-full border border-[#D7DED9]/70 dark:border-[#26312B]/70" title="房源系统编号 (2-8位自定义或随机分配)">
+            <span class="text-[10px] font-bold text-neutral-400">#</span>
+            <input type="text" id="leaseCustomId" maxlength="8" placeholder="编号" class="w-20 bg-transparent text-xs font-mono font-extrabold text-[#0F5B38] dark:text-[#7CDCA0] outline-none uppercase">
+            <button type="button" onclick="generateNewLeaseCustomId()" class="text-[11px] font-bold text-neutral-500 hover:text-[#0F5B38] dark:hover:text-[#7CDCA0] cursor-pointer" title="点击重新随机生成 6 位编号">🎲</button>
+          </div>
+        </div>
         <button onclick="closeModal('leaseModal')" class="w-7 h-7 rounded-full bg-[#E8EDE9] dark:bg-[#161D1A] text-neutral-400 font-bold flex items-center justify-center text-xs">✕</button>
       </div>
 
       <input type="hidden" id="editingLeaseId" value="">
 
       <div class="space-y-3.5 text-xs">
-        <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
-          <div class="sm:col-span-1">
-            <label class="block font-bold text-neutral-600 dark:text-neutral-300 mb-1 px-1">房源编号 (选填)</label>
-            <input type="text" id="leaseCustomId" placeholder="例如 #A101" class="m3-input w-full text-sm font-mono font-bold text-[#0F5B38] dark:text-[#7CDCA0]">
-          </div>
-          <div class="sm:col-span-3">
-            <label class="block font-bold text-neutral-600 dark:text-neutral-300 mb-1 px-1">房屋名称 / 房号 (如：幸福公寓302室)</label>
-            <input type="text" id="leaseTitle" placeholder="例如 朝阳区望京SOHO 3-2-501" class="m3-input w-full text-sm font-semibold">
-          </div>
+        <div>
+          <label class="block font-bold text-neutral-600 dark:text-neutral-300 mb-1 px-1">房屋名称 / 房号 (如：幸福公寓302室)</label>
+          <input type="text" id="leaseTitle" placeholder="例如 朝阳区望京SOHO 3-2-501" class="m3-input w-full text-sm font-semibold">
         </div>
         <div>
           <label class="block font-bold text-neutral-600 dark:text-neutral-300 mb-1 px-1">详细地址 (留空则默认同房屋名称)</label>
@@ -1361,25 +1362,26 @@ export function renderAppHtml(username: string): string {
           </div>
         </div>
 
-        <!-- 租金与交租周期 (修改周期时自动校准到期日与下次收租日) -->
+        <!-- 租金与交租周期 (按实际周期输入，自动折算月/年租金) -->
         <div class="space-y-1">
-          <div class="grid grid-cols-3 gap-3">
-            <div>
-              <label class="block font-bold text-neutral-600 dark:text-neutral-300 mb-1 px-1">月租金(元)</label>
-              <input type="number" id="leaseRentAmount" placeholder="3000" oninput="updateCycleRentHelper()" onchange="updateCycleRentHelper()" class="m3-input w-full text-xs font-extrabold text-[#0F5B38] dark:text-[#7CDCA0]">
-            </div>
-            <div>
-              <label class="block font-bold text-neutral-600 dark:text-neutral-300 mb-1 px-1">押金(元)</label>
-              <input type="number" id="leaseDepositAmount" placeholder="3000" class="m3-input w-full text-xs font-extrabold">
-            </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <label class="block font-bold text-neutral-600 dark:text-neutral-300 mb-1 px-1">交租周期</label>
-              <select id="leasePayCycle" onchange="onStartDateOrCycleChange(); updateCycleRentHelper();" class="m3-input w-full text-xs font-bold">
+              <select id="leasePayCycle" onchange="onRentCycleChange()" class="m3-input w-full text-xs font-bold">
                 <option value="1">月付 (1个月)</option>
                 <option value="3">季付 (3个月)</option>
                 <option value="6">半年付 (6个月)</option>
                 <option value="12" selected>年付 (12个月 / 1年)</option>
+                <option value="24">两年付 (24个月 / 2年)</option>
               </select>
+            </div>
+            <div>
+              <label id="leaseRentAmountLabel" class="block font-bold text-neutral-600 dark:text-neutral-300 mb-1 px-1">年付租金 (元/年)</label>
+              <input type="number" id="leaseRentAmount" placeholder="如 24000" oninput="updateCycleRentHelper()" onchange="updateCycleRentHelper()" class="m3-input w-full text-xs font-extrabold text-[#0F5B38] dark:text-[#7CDCA0]">
+            </div>
+            <div>
+              <label class="block font-bold text-neutral-600 dark:text-neutral-300 mb-1 px-1">押金 (元)</label>
+              <input type="number" id="leaseDepositAmount" placeholder="3000" class="m3-input w-full text-xs font-extrabold">
             </div>
           </div>
           <div id="cycleRentHelperText" class="text-[11px] font-bold text-[#0F5B38] dark:text-[#7CDCA0] px-1"></div>
@@ -1408,28 +1410,32 @@ export function renderAppHtml(username: string): string {
           </div>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <label class="block font-bold text-neutral-600 dark:text-neutral-300 mb-1 px-1">租约状态</label>
-            <select id="leaseStatus" class="m3-input w-full text-xs font-bold">
-              <option value="ACTIVE">● 正常在租</option>
-              <option value="TERMINATED">○ 已退租结清</option>
-              <option value="EXPIRED">✕ 租约到期</option>
-            </select>
+        <!-- 租约状态与下次收租日期 (紧凑消除留白) -->
+        <div class="p-3.5 m3-subcard bg-[#E8EDE9]/40 dark:bg-[#161D1A]/60 space-y-2.5">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block font-bold text-neutral-600 dark:text-neutral-300 mb-1 px-0.5">租约状态</label>
+              <select id="leaseStatus" class="m3-input w-full text-xs font-bold">
+                <option value="ACTIVE">● 正常在租</option>
+                <option value="TERMINATED">○ 已退租结清</option>
+                <option value="EXPIRED">✕ 租约到期</option>
+              </select>
+            </div>
+            <div>
+              <label class="block font-bold text-neutral-600 dark:text-neutral-300 mb-1 px-0.5">下次收租日期</label>
+              <input type="date" id="leaseNextPayDate" min="2000-01-01" max="2099-12-31" class="m3-input w-full text-xs font-bold" onchange="checkNextPayDateRelation()" oninput="checkNextPayDateRelation()">
+            </div>
           </div>
-          <div>
-            <label class="block font-bold text-neutral-600 dark:text-neutral-300 mb-1 px-1">下次收租日期</label>
-            <input type="date" id="leaseNextPayDate" min="2000-01-01" max="2099-12-31" class="m3-input w-full text-xs font-bold" onchange="checkNextPayDateRelation()" oninput="checkNextPayDateRelation()">
-            <div id="nextPayDateNotice" class="hidden text-[11px] font-bold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/40 p-2 rounded-xl mt-1.5 border border-purple-200 dark:border-purple-900/60 flex items-center justify-between">
-              <span>🟣 下次收租日晚于合同到期日（租金已预收超期）</span>
-              <button type="button" onclick="syncEndDateToNextPay()" class="text-[11px] underline font-extrabold hover:opacity-85 text-purple-800 dark:text-purple-200">一键顺延到期日</button>
-            </div>
-            <div class="flex items-center gap-1.5 flex-wrap mt-1.5">
-              <button type="button" onclick="calibrateNextPay('END_PLUS_1')" class="text-[10px] text-[#0F5B38] dark:text-[#7CDCA0] bg-[#C4EED0]/60 dark:bg-[#1A402D] px-2 py-0.5 rounded-full font-bold hover:opacity-85" title="以到期日顺延下一年">📅 到期下一年 (+1年)</button>
-              <button type="button" onclick="calibrateNextPay('END_EXACT')" class="text-[10px] text-neutral-600 dark:text-neutral-300 bg-[#E8EDE9] dark:bg-[#161D1A] px-2 py-0.5 rounded-full font-bold hover:opacity-85" title="设为合同到期当天">🏁 合同到期日</button>
-              <button type="button" onclick="calibrateNextPay('RECENT_CYCLE')" class="text-[10px] text-neutral-600 dark:text-neutral-300 bg-[#E8EDE9] dark:bg-[#161D1A] px-2 py-0.5 rounded-full font-bold hover:opacity-85" title="计算距今最近交租周期">⚡ 最近应收周期</button>
-              <button type="button" onclick="calibrateNextPay('START_CYCLE')" class="text-[10px] text-neutral-600 dark:text-neutral-300 bg-[#E8EDE9] dark:bg-[#161D1A] px-2 py-0.5 rounded-full font-bold hover:opacity-85" title="起租日顺延1周期">🌱 起租下周期</button>
-            </div>
+          <div id="nextPayDateNotice" class="hidden text-[11px] font-bold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/40 p-2 rounded-xl border border-purple-200 dark:border-purple-900/60 flex items-center justify-between">
+            <span>🟣 下次收租日晚于合同到期日（租金已预收超期）</span>
+            <button type="button" onclick="syncEndDateToNextPay()" class="text-[11px] underline font-extrabold hover:opacity-85 text-purple-800 dark:text-purple-200">一键顺延到期日</button>
+          </div>
+          <div class="flex items-center gap-1.5 flex-wrap pt-0.5">
+            <span class="text-[10px] text-neutral-400 font-bold mr-0.5">快捷校准：</span>
+            <button type="button" onclick="calibrateNextPay('END_PLUS_1')" class="text-[10px] text-[#0F5B38] dark:text-[#7CDCA0] bg-[#C4EED0]/60 dark:bg-[#1A402D] px-2 py-0.5 rounded-full font-bold hover:opacity-85" title="以到期日顺延下一年">📅 到期下一年 (+1年)</button>
+            <button type="button" onclick="calibrateNextPay('END_EXACT')" class="text-[10px] text-neutral-600 dark:text-neutral-300 bg-[#E8EDE9] dark:bg-[#161D1A] px-2 py-0.5 rounded-full font-bold hover:opacity-85" title="设为合同到期当天">🏁 合同到期日</button>
+            <button type="button" onclick="calibrateNextPay('RECENT_CYCLE')" class="text-[10px] text-neutral-600 dark:text-neutral-300 bg-[#E8EDE9] dark:bg-[#161D1A] px-2 py-0.5 rounded-full font-bold hover:opacity-85" title="计算距今最近交租周期">⚡ 最近应收周期</button>
+            <button type="button" onclick="calibrateNextPay('START_CYCLE')" class="text-[10px] text-neutral-600 dark:text-neutral-300 bg-[#E8EDE9] dark:bg-[#161D1A] px-2 py-0.5 rounded-full font-bold hover:opacity-85" title="起租日顺延1周期">🌱 起租下周期</button>
           </div>
         </div>
 
@@ -1511,16 +1517,34 @@ export function renderAppHtml(username: string): string {
           <select id="rentLeaseId" onchange="onRentLeaseChange()" class="m3-input w-full text-sm font-bold"></select>
         </div>
 
-        <!-- 房源当前租约信息提示卡 -->
-        <div id="rentLeaseSummaryCard" class="p-3.5 m3-subcard bg-[#E8EDE9]/60 dark:bg-[#161D1A] space-y-1.5 text-neutral-700 dark:text-neutral-300 text-[11px]">
-          <div class="flex items-center justify-between">
-            <span class="text-neutral-400">承租人：<strong id="rentTenantText" class="text-neutral-800 dark:text-neutral-200 font-bold">--</strong></span>
-            <span class="text-neutral-400">交租周期：<strong id="rentCycleText" class="text-[#0F5B38] dark:text-[#7CDCA0] font-bold">--</strong></span>
+        <!-- 房源当前租约信息提示条 (紧凑一字排开) -->
+        <div id="rentLeaseSummaryCard" class="p-3 m3-subcard bg-[#E8EDE9]/60 dark:bg-[#161D1A] flex items-center justify-between text-[11px] flex-wrap gap-2 text-neutral-600 dark:text-neutral-300">
+          <div class="flex items-center gap-1">
+            <span>👤 承租人：</span><strong id="rentTenantText" class="text-neutral-800 dark:text-neutral-200 font-bold">--</strong>
           </div>
-          <div class="flex items-center justify-between">
-            <span class="text-neutral-400">月租金标准：<strong id="rentMonthlyText" class="text-neutral-800 dark:text-neutral-200 font-bold">¥ 0</strong> / 月</span>
-            <span class="text-neutral-400">下次收租日：<strong id="rentPrevDueText" class="text-neutral-800 dark:text-neutral-200 font-bold">--</strong></span>
+          <div class="flex items-center gap-1">
+            <span>📅 周期：</span><strong id="rentCycleText" class="text-[#0F5B38] dark:text-[#7CDCA0] font-bold">--</strong>
           </div>
+          <div class="flex items-center gap-1">
+            <span>💰 月租基准：</span><strong id="rentMonthlyText" class="text-neutral-800 dark:text-neutral-200 font-bold">¥ 0</strong>
+          </div>
+          <div class="flex items-center gap-1">
+            <span>⏰ 下次收租：</span><strong id="rentPrevDueText" class="text-neutral-800 dark:text-neutral-200 font-bold">--</strong>
+          </div>
+        </div>
+
+        <!-- 历史待收欠费检测与优先结清 -->
+        <div id="quickRentUnpaidBanner" class="hidden p-3 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 flex items-center justify-between text-xs gap-2">
+          <div class="flex-1">
+            <div class="font-bold text-amber-800 dark:text-amber-200 flex items-center gap-1">
+              <span>⚠️ 检测到历史待收欠费账单</span>
+              <span id="quickRentUnpaidCountBadge" class="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-200 dark:bg-amber-800 text-amber-900 dark:text-amber-100 font-mono">1笔</span>
+            </div>
+            <div id="quickRentUnpaidDesc" class="text-[11px] text-amber-700 dark:text-amber-300 mt-0.5">待收欠款</div>
+          </div>
+          <button type="button" id="btnQuickSettleUnpaid" onclick="selectUnpaidBillToSettle()" class="m3-pill px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs flex items-center gap-1 shadow-sm flex-shrink-0">
+            <span>⚡ 优先结清该账单</span>
+          </button>
         </div>
 
         <div class="grid grid-cols-2 gap-3">
@@ -1793,14 +1817,14 @@ export function renderAppHtml(username: string): string {
     </div>
   </div>
 
-  <!-- ==================== 弹窗：退租结清 / 押金核算 ==================== -->
+  <!-- ==================== 弹窗：退租结清 / 押金核算与强制坏账归档 ==================== -->
   <div id="checkoutModal" class="hidden fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center p-0 sm:p-4">
     <div class="m3-sheet bg-white dark:bg-[#1A211D] w-full max-w-lg sm:max-w-xl rounded-t-[36px] sm:rounded-[36px] p-6 sm:p-9 space-y-5 shadow-2xl">
       <div class="w-12 h-1.5 rounded-full bg-neutral-300 dark:bg-neutral-600 mx-auto"></div>
       <div class="flex items-center justify-between pb-1 border-b border-[#E8EDE9] dark:border-[#26312B]/60">
         <h3 class="text-base font-extrabold flex items-center gap-1.5 text-neutral-900 dark:text-neutral-100">
           <span>🏁</span>
-          <span>办理退租</span>
+          <span id="checkoutModalTitle">办理退租与押金结算</span>
         </h3>
         <button onclick="closeModal('checkoutModal')" class="w-7 h-7 rounded-full bg-[#E8EDE9] dark:bg-[#161D1A] text-neutral-400 font-bold flex items-center justify-center text-xs">✕</button>
       </div>
@@ -1808,28 +1832,80 @@ export function renderAppHtml(username: string): string {
       <input type="hidden" id="checkoutLeaseId" value="">
 
       <div class="space-y-3.5 text-xs">
-        <div class="p-3.5 m3-subcard bg-[#E8EDE9]/60 dark:bg-[#161D1A]">
-          <div id="checkoutLeaseTitle" class="font-extrabold text-sm text-neutral-900 dark:text-neutral-100">房源</div>
-          <div id="checkoutLeaseDeposit" class="text-neutral-500 font-bold mt-1">在押押金：¥ 0</div>
+        <!-- 房源及欠费情况概览 -->
+        <div class="p-3.5 m3-subcard bg-[#E8EDE9]/60 dark:bg-[#161D1A] space-y-1.5">
+          <div class="flex items-center justify-between">
+            <span id="checkoutLeaseTitle" class="font-extrabold text-sm text-neutral-900 dark:text-neutral-100">房源</span>
+            <span id="checkoutLeaseDeposit" class="font-extrabold text-[#0F5B38] dark:text-[#7CDCA0]">在押押金：¥ 0</span>
+          </div>
+          <div id="checkoutUnpaidDebtsLine" class="text-[11px] text-rose-600 dark:text-rose-400 font-bold flex items-center justify-between pt-1 border-t border-[#D7DED9]/60 dark:border-[#26312B]/60">
+            <span>🔴 关联未结清欠费：</span>
+            <span id="checkoutUnpaidDebtsText">暂无欠款</span>
+          </div>
         </div>
 
-        <div class="p-3 m3-subcard bg-amber-500/10 border border-amber-500/20 text-amber-800 dark:text-amber-300 text-[11px] leading-relaxed">
-          💡 办理退租后，房源状态将变更为<strong>已退租</strong>，不再出现在待收房租列表中。
+        <!-- 退租性质选择：正常退房 vs 强制退租(租客赖账/坏账) -->
+        <div class="space-y-1.5">
+          <label class="block font-bold text-neutral-600 dark:text-neutral-300 px-1">退租类型</label>
+          <div class="grid grid-cols-2 gap-2">
+            <label class="flex items-start gap-2 p-2.5 rounded-2xl bg-[#E8EDE9]/60 dark:bg-[#161D1A] border-2 border-[#0F5B38] dark:border-[#7CDCA0] cursor-pointer transition-all" id="labelCheckoutNormal">
+              <input type="radio" name="checkoutType" id="checkoutType_NORMAL" value="NORMAL" checked onchange="toggleCheckoutTypeUI('NORMAL')" class="accent-[#0F5B38] mt-0.5">
+              <div>
+                <div class="text-xs font-bold text-neutral-800 dark:text-neutral-100">● 正常退租结清</div>
+                <div class="text-[10px] text-neutral-400 mt-0.5">租客腾房，正常核对押金</div>
+              </div>
+            </label>
+            <label class="flex items-start gap-2 p-2.5 rounded-2xl bg-[#E8EDE9]/60 dark:bg-[#161D1A] border-2 border-transparent cursor-pointer transition-all" id="labelCheckoutBadDebt">
+              <input type="radio" name="checkoutType" id="checkoutType_BAD_DEBT" value="BAD_DEBT" onchange="toggleCheckoutTypeUI('BAD_DEBT')" class="accent-rose-600 mt-0.5">
+              <div>
+                <div class="text-xs font-bold text-rose-600 dark:text-rose-400">🔴 强制退租 (赖账坏账)</div>
+                <div class="text-[10px] text-neutral-400 mt-0.5">租客拒付欠费，封存不提醒</div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- 坏账封存特别提示 (默认隐藏) -->
+        <div id="checkoutBadDebtNotice" class="hidden p-3 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-rose-800 dark:text-rose-300 text-[11px] leading-relaxed">
+          ⚠️ <strong>坏账处理规则：</strong>标记为强制退租后，租客名下尚未结清的历史欠款将作为<strong>“坏账”</strong>在账本单独保留归档供查账；<strong>系统将永久停止向房东发送该房源的催收提醒邮件</strong>。房源将立即恢复空置状态以便重新出租。
+        </div>
+
+        <!-- 押金核算与抵扣 -->
+        <div class="p-3.5 m3-subcard bg-[#E8EDE9]/40 dark:bg-[#161D1A]/60 space-y-2.5 rounded-2xl border border-[#D7DED9]/60 dark:border-[#26312B]/60">
+          <div class="flex items-center justify-between flex-wrap gap-1">
+            <span class="font-bold text-neutral-700 dark:text-neutral-300">💰 押金处置与退还</span>
+            <div class="flex items-center gap-1">
+              <button type="button" onclick="setCheckoutDepositMode('FULL_REFUND')" class="text-[10px] px-2 py-0.5 rounded-full bg-[#E8EDE9] dark:bg-[#202824] hover:bg-[#D7DED9] font-bold text-neutral-700 dark:text-neutral-200">全额退还</button>
+              <button type="button" onclick="setCheckoutDepositMode('OFFSET_DEBT')" class="text-[10px] px-2 py-0.5 rounded-full bg-[#E8EDE9] dark:bg-[#202824] hover:bg-[#D7DED9] font-bold text-neutral-700 dark:text-neutral-200">抵扣全部欠费</button>
+              <button type="button" onclick="setCheckoutDepositMode('NO_REFUND')" class="text-[10px] px-2 py-0.5 rounded-full bg-[#E8EDE9] dark:bg-[#202824] hover:bg-[#D7DED9] font-bold text-rose-600 dark:text-rose-400">全额扣留(不退)</button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-bold text-neutral-600 dark:text-neutral-300 mb-1">押金扣除/抵扣金额 (元)</label>
+              <input type="number" id="checkoutDeductDeposit" placeholder="0" min="0" oninput="onCheckoutDeductChange()" class="m3-input w-full text-xs font-mono font-bold text-rose-600 dark:text-rose-400">
+            </div>
+            <div>
+              <label class="block font-bold text-neutral-600 dark:text-neutral-300 mb-1">实退租客押金 (元)</label>
+              <input type="number" id="checkoutRefundDeposit" placeholder="0" min="0" oninput="onCheckoutRefundChange()" class="m3-input w-full text-xs font-mono font-bold text-[#0F5B38] dark:text-[#7CDCA0]">
+            </div>
+          </div>
+
+          <div>
+            <label class="block font-bold text-neutral-600 dark:text-neutral-300 mb-1">押金扣除原因 / 抵扣说明 (选填)</label>
+            <input type="text" id="checkoutDeductReason" placeholder="如：抵扣未交水电费、保洁维修" class="m3-input w-full text-xs">
+          </div>
         </div>
 
         <div>
-          <label class="block font-bold text-neutral-600 dark:text-neutral-300 mb-1">实退押金金额 (元)</label>
-          <input type="number" id="checkoutRefundDeposit" placeholder="0" class="m3-input w-full text-xs font-mono font-bold">
-        </div>
-
-        <div>
-          <label class="block font-bold text-neutral-600 dark:text-neutral-300 mb-1">退租交接备忘 (如扣除清洁费或电费余款)</label>
-          <input type="text" id="checkoutRemark" placeholder="如：已退押金2800元，扣除200元清洁水电" class="m3-input w-full text-xs">
+          <label class="block font-bold text-neutral-600 dark:text-neutral-300 mb-1">退租交接备忘</label>
+          <input type="text" id="checkoutRemark" placeholder="如：钥匙水电卡已交接，正常退房" class="m3-input w-full text-xs">
         </div>
       </div>
 
       <button onclick="submitCheckoutLease()" id="submitCheckoutBtn" class="m3-pill w-full py-3.5 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-bold text-xs shadow-md hover:opacity-95">
-        确认退租
+        确认办理退租结清
       </button>
     </div>
   </div>
@@ -2462,6 +2538,14 @@ export function renderAppHtml(username: string): string {
       await ensureLeaseDropdowns();
       if (!appData.leases || appData.leases.length === 0) return alert('请先录入出租房源');
 
+      if (!appData.allPayments || appData.allPayments.length === 0) {
+        try {
+          const res = await fetch('/api/payments');
+          const json = await res.json();
+          if (json.code === 0) appData.allPayments = json.data || [];
+        } catch (_) {}
+      }
+
       const targetId = leaseId || document.getElementById('rentLeaseId').value || appData.leases[0].id;
       document.getElementById('rentPaymentId').value = '';
       document.getElementById('quickRentTitle').innerHTML = '<span>⚡</span> <span>一键收取房租</span>';
@@ -2480,13 +2564,36 @@ export function renderAppHtml(username: string): string {
       const target = (appData.leases || []).find(l => l.id === leaseId);
       if (!target) return;
 
-      const cycle = target.pay_cycle_months || 1;
-      const cycleText = cycle == 12 ? '年付 (12个月)' : cycle == 6 ? '半年付 (6个月)' : cycle == 3 ? '季付 (3个月)' : '月付 (1个月)';
+      const cycle = parseInt(target.pay_cycle_months, 10) || 1;
+      const cycleText = cycle == 24 ? '两年付 (24个月)' : cycle == 12 ? '年付 (12个月)' : cycle == 6 ? '半年付 (6个月)' : cycle == 3 ? '季付 (3个月)' : '月付 (1个月)';
       
       document.getElementById('rentTenantText').innerText = target.tenant_name ? \`\${target.tenant_name} (\${target.tenant_phone || '--'})\` : '未录入';
       document.getElementById('rentCycleText').innerText = cycleText;
       document.getElementById('rentMonthlyText').innerText = '¥ ' + (Number(target.rent_amount) || 0).toLocaleString();
       document.getElementById('rentPrevDueText').innerText = target.next_pay_date || '未设';
+
+      // 历史待收欠费检测与优先结清
+      const unpaidBills = (appData.allPayments || []).filter(p => p.lease_id === leaseId && p.status === 'UNPAID');
+      const unpaidBanner = document.getElementById('quickRentUnpaidBanner');
+      const unpaidBadge = document.getElementById('quickRentUnpaidCountBadge');
+      const unpaidDesc = document.getElementById('quickRentUnpaidDesc');
+      if (unpaidBills.length > 0 && unpaidBanner) {
+        unpaidBanner.classList.remove('hidden');
+        if (unpaidBadge) unpaidBadge.innerText = unpaidBills.length + '笔待收';
+        const first = unpaidBills[0];
+        const typeName = getPaymentTypeName(first.payment_type);
+        const totalUnpaid = unpaidBills.reduce((acc, b) => acc + Number(b.amount || 0), 0);
+        if (unpaidDesc) {
+          unpaidDesc.innerText = '包含 ' + typeName + ' 等待结清欠款共 ¥' + totalUnpaid.toFixed(2) + '。最新待收：' + (first.remark || typeName) + ' (¥' + Number(first.amount).toFixed(2) + ')';
+        }
+        unpaidBanner.dataset.unpaidId = first.id;
+        unpaidBanner.dataset.unpaidAmount = String(first.amount);
+        unpaidBanner.dataset.unpaidRemark = first.remark || '';
+        unpaidBanner.dataset.unpaidType = first.payment_type;
+      } else if (unpaidBanner) {
+        unpaidBanner.classList.add('hidden');
+        delete unpaidBanner.dataset.unpaidId;
+      }
 
       // 智能推算本期租金总额：月租金 * 周期月份
       const totalRent = (Number(target.rent_amount) || 0) * (cycle > 1 ? cycle : 1);
@@ -2506,6 +2613,20 @@ export function renderAppHtml(username: string): string {
 
       document.getElementById('rentRemark').value = \`收租 (\${cycleText})\`;
       populateExistingAttDropdown('rentExistingAttSelect', leaseId);
+    }
+
+    function selectUnpaidBillToSettle() {
+      const banner = document.getElementById('quickRentUnpaidBanner');
+      if (!banner || !banner.dataset.unpaidId) return;
+      const unpaidId = banner.dataset.unpaidId;
+      const unpaidAmount = banner.dataset.unpaidAmount;
+      const unpaidRemark = banner.dataset.unpaidRemark;
+      const unpaidType = banner.dataset.unpaidType || 'RENT';
+
+      document.getElementById('rentPaymentId').value = unpaidId;
+      document.getElementById('rentAmount').value = unpaidAmount;
+      document.getElementById('rentRemark').value = '优先结清待收款：' + (unpaidRemark || getPaymentTypeName(unpaidType));
+      document.getElementById('quickRentTitle').innerHTML = '<span>⚡</span> <span>优先结清历史欠费账单</span>';
     }
 
     function adjustNextPayMonths(months) {
@@ -2549,6 +2670,7 @@ export function renderAppHtml(username: string): string {
           amount: Number(amount),
           paid_at,
           next_pay_date: next_pay_date || null,
+          status: 'PAID',
           remark: remark || '房租实收'
         };
 
@@ -2724,13 +2846,15 @@ export function renderAppHtml(username: string): string {
           if (l.status !== 'TERMINATED' && l.status !== 'EXPIRED') return false;
         }
 
-        // 2. 关键词匹配
+        // 2. 关键词匹配 (支持房源编号、名称、地址、租客、手机号)
         if (keyword) {
+          const cleanKw = keyword.replace(/^#/, '');
+          const matchCustomId = (l.custom_id || '').toLowerCase().includes(cleanKw);
           const matchTitle = (l.title || '').toLowerCase().includes(keyword);
           const matchAddr = (l.address || '').toLowerCase().includes(keyword);
           const matchTenant = (l.tenant_name || '').toLowerCase().includes(keyword);
           const matchPhone = (l.tenant_phone || '').includes(keyword);
-          if (!matchTitle && !matchAddr && !matchTenant && !matchPhone) return false;
+          if (!matchTitle && !matchAddr && !matchTenant && !matchPhone && !matchCustomId) return false;
         }
 
         return true;
@@ -2823,7 +2947,7 @@ export function renderAppHtml(username: string): string {
               <div>
                 <span class="text-neutral-400">月租金：</span>
                 <strong class="text-[#0F5B38] dark:text-[#7CDCA0] text-sm">¥ \${l.rent_amount}</strong>
-                <span class="text-[10px] text-neutral-500 font-semibold">(\${l.pay_cycle_months == 12 ? '年付' : l.pay_cycle_months == 6 ? '半年付' : l.pay_cycle_months == 1 ? '月付' : '季付'}\${l.pay_cycle_months > 1 ? ' · 每期 ¥' + ((Number(l.rent_amount) || 0) * l.pay_cycle_months).toFixed(2) : ''})</span>
+                <span class="text-[10px] text-neutral-500 font-semibold">(\${l.pay_cycle_months == 24 ? '两年付' : l.pay_cycle_months == 12 ? '年付' : l.pay_cycle_months == 6 ? '半年付' : l.pay_cycle_months == 3 ? '季付' : '月付'}\${l.pay_cycle_months > 1 ? ' · 每期 ¥' + ((Number(l.rent_amount) || 0) * l.pay_cycle_months).toFixed(2) : ''})</span>
               </div>
               <div class="col-span-2 text-neutral-400 text-[11px] border-t border-[#D7DED9]/60 dark:border-[#26312B]/60 pt-1.5 flex items-center justify-between flex-wrap gap-1">
                 <span>电单价 ¥\${l.meter_electric_price || 1.0} · 水单价 ¥\${l.meter_water_price || 3.5}</span>
@@ -2892,7 +3016,7 @@ export function renderAppHtml(username: string): string {
     function copyTenantMemo(leaseId) {
       const l = appData.leases.find(item => item.id === leaseId);
       if (!l) return;
-      const cycleText = l.pay_cycle_months == 12 ? '年付' : l.pay_cycle_months == 6 ? '半年付' : l.pay_cycle_months == 1 ? '月付' : '季付';
+      const cycleText = l.pay_cycle_months == 24 ? '两年付' : l.pay_cycle_months == 12 ? '年付' : l.pay_cycle_months == 6 ? '半年付' : l.pay_cycle_months == 3 ? '季付' : '月付';
       let statusHint = '提醒您注意交租';
       if (l.next_pay_date) {
         const today = new Date();
@@ -3017,17 +3141,116 @@ export function renderAppHtml(username: string): string {
       }
     }
 
-    // 打开退租结清弹窗
+    // 打开退租结清 / 强制坏账归档弹窗
+    let checkoutCurrentLeaseDeposit = 0;
+    let checkoutCurrentUnpaidDebts = 0;
+
     function openCheckoutModal(leaseId) {
       const l = appData.leases.find(item => item.id === leaseId);
       if (!l) return;
 
       document.getElementById('checkoutLeaseId').value = l.id;
       document.getElementById('checkoutLeaseTitle').innerText = l.title;
-      document.getElementById('checkoutLeaseDeposit').innerText = '在押押金：¥ ' + (l.deposit_amount || 0);
-      document.getElementById('checkoutRefundDeposit').value = l.deposit_amount || 0;
-      document.getElementById('checkoutRemark').value = '';
+      
+      const deposit = Number(l.deposit_amount) || 0;
+      checkoutCurrentLeaseDeposit = deposit;
+      document.getElementById('checkoutLeaseDeposit').innerText = '在押押金：¥ ' + deposit.toFixed(2);
+
+      // 计算关联未结清欠费
+      const unpaidList = (appData.allPayments || []).filter(p => p.lease_id === leaseId && p.status === 'UNPAID');
+      const totalUnpaid = unpaidList.reduce((acc, p) => acc + (Number(p.amount) || 0), 0);
+      checkoutCurrentUnpaidDebts = totalUnpaid;
+
+      const debtLine = document.getElementById('checkoutUnpaidDebtsLine');
+      const debtText = document.getElementById('checkoutUnpaidDebtsText');
+      if (totalUnpaid > 0) {
+        if (debtText) debtText.innerText = '¥ ' + totalUnpaid.toFixed(2) + ' (' + unpaidList.length + '笔待收欠款)';
+        if (debtLine) debtLine.classList.remove('hidden');
+      } else {
+        if (debtText) debtText.innerText = '暂无未结清欠款';
+        if (debtLine) debtLine.classList.add('hidden');
+      }
+
+      // 默认设置为正常退租
+      toggleCheckoutTypeUI('NORMAL');
+
+      // 初始化押金处置：默认全额退还
+      document.getElementById('checkoutDeductDeposit').value = '0';
+      document.getElementById('checkoutRefundDeposit').value = deposit;
+      document.getElementById('checkoutDeductReason').value = '';
+      document.getElementById('checkoutRemark').value = '钥匙水电卡已交接，正常退房';
+
       openModal('checkoutModal');
+    }
+
+    function toggleCheckoutTypeUI(type) {
+      const isBadDebt = type === 'BAD_DEBT';
+      const normalRadio = document.getElementById('checkoutType_NORMAL');
+      const badDebtRadio = document.getElementById('checkoutType_BAD_DEBT');
+      if (normalRadio) normalRadio.checked = !isBadDebt;
+      if (badDebtRadio) badDebtRadio.checked = isBadDebt;
+
+      const notice = document.getElementById('checkoutBadDebtNotice');
+      const btn = document.getElementById('submitCheckoutBtn');
+      const labelNormal = document.getElementById('labelCheckoutNormal');
+      const labelBadDebt = document.getElementById('labelCheckoutBadDebt');
+
+      if (isBadDebt) {
+        if (notice) notice.classList.remove('hidden');
+        if (labelBadDebt) labelBadDebt.className = 'flex items-start gap-2 p-2.5 rounded-2xl bg-rose-50/60 dark:bg-rose-950/40 border-2 border-rose-600 dark:border-rose-400 cursor-pointer transition-all';
+        if (labelNormal) labelNormal.className = 'flex items-start gap-2 p-2.5 rounded-2xl bg-[#E8EDE9]/60 dark:bg-[#161D1A] border-2 border-transparent cursor-pointer transition-all';
+        if (btn) {
+          btn.innerText = '确认办理强制退租 (坏账封存)';
+          btn.className = 'm3-pill w-full py-3.5 bg-rose-600 text-white font-bold text-xs shadow-md shadow-rose-600/20 hover:bg-rose-700';
+        }
+        setCheckoutDepositMode('NO_REFUND');
+        const remarkEl = document.getElementById('checkoutRemark');
+        if (remarkEl) remarkEl.value = '租客失联/拒付欠费，强制退租，欠费转坏账归档不再催收';
+      } else {
+        if (notice) notice.classList.add('hidden');
+        if (labelNormal) labelNormal.className = 'flex items-start gap-2 p-2.5 rounded-2xl bg-[#E8EDE9]/60 dark:bg-[#161D1A] border-2 border-[#0F5B38] dark:border-[#7CDCA0] cursor-pointer transition-all';
+        if (labelBadDebt) labelBadDebt.className = 'flex items-start gap-2 p-2.5 rounded-2xl bg-[#E8EDE9]/60 dark:bg-[#161D1A] border-2 border-transparent cursor-pointer transition-all';
+        if (btn) {
+          btn.innerText = '确认办理退租结清';
+          btn.className = 'm3-pill w-full py-3.5 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-bold text-xs shadow-md hover:opacity-95';
+        }
+      }
+    }
+
+    function setCheckoutDepositMode(mode) {
+      const deductEl = document.getElementById('checkoutDeductDeposit');
+      const refundEl = document.getElementById('checkoutRefundDeposit');
+      const reasonEl = document.getElementById('checkoutDeductReason');
+
+      if (mode === 'FULL_REFUND') {
+        if (deductEl) deductEl.value = '0';
+        if (refundEl) refundEl.value = checkoutCurrentLeaseDeposit;
+        if (reasonEl) reasonEl.value = '';
+      } else if (mode === 'OFFSET_DEBT') {
+        const offsetAmt = Math.min(checkoutCurrentLeaseDeposit, checkoutCurrentUnpaidDebts);
+        const remRefund = Math.max(0, checkoutCurrentLeaseDeposit - offsetAmt);
+        if (deductEl) deductEl.value = offsetAmt;
+        if (refundEl) refundEl.value = remRefund;
+        if (reasonEl) reasonEl.value = '抵扣历史未缴欠费 ¥' + offsetAmt.toFixed(2);
+      } else if (mode === 'NO_REFUND') {
+        if (deductEl) deductEl.value = checkoutCurrentLeaseDeposit;
+        if (refundEl) refundEl.value = '0';
+        if (reasonEl && !reasonEl.value) reasonEl.value = '违约/赖账扣留全额押金';
+      }
+    }
+
+    function onCheckoutDeductChange() {
+      const deduct = parseFloat(document.getElementById('checkoutDeductDeposit')?.value) || 0;
+      const refund = Math.max(0, checkoutCurrentLeaseDeposit - deduct);
+      const refundEl = document.getElementById('checkoutRefundDeposit');
+      if (refundEl) refundEl.value = refund;
+    }
+
+    function onCheckoutRefundChange() {
+      const refund = parseFloat(document.getElementById('checkoutRefundDeposit')?.value) || 0;
+      const deduct = Math.max(0, checkoutCurrentLeaseDeposit - refund);
+      const deductEl = document.getElementById('checkoutDeductDeposit');
+      if (deductEl) deductEl.value = deduct;
     }
 
     let isSubmittingCheckout = false;
@@ -3037,24 +3260,35 @@ export function renderAppHtml(username: string): string {
       const l = appData.leases.find(item => item.id === leaseId);
       if (!l) return;
 
-      const refund = document.getElementById('checkoutRefundDeposit').value;
-      const remark = document.getElementById('checkoutRemark').value;
+      const checkoutType = document.querySelector('input[name="checkoutType"]:checked')?.value || 'NORMAL';
+      const isBadDebt = checkoutType === 'BAD_DEBT';
+      const refund = parseFloat(document.getElementById('checkoutRefundDeposit').value) || 0;
+      const deduct = parseFloat(document.getElementById('checkoutDeductDeposit').value) || 0;
+      const deductReason = document.getElementById('checkoutDeductReason').value.trim();
+      const remark = document.getElementById('checkoutRemark').value.trim();
 
-      if (!confirm('确定为该租客办理退租结清吗？\\n结清后状态将变更为 TERMINATED。')) return;
+      const confirmMsg = isBadDebt
+        ? '⚠️ 确认将此房源标记为【强制退租 / 赖账坏账】吗？\\n\\n1. 租客名下尚未结清的历史欠款将作为“坏账”在账本永久保留归档供查账；\\n2. 系统将永久停止向您发送该房源的催缴提醒邮件；\\n3. 房源将恢复为空置状态，可重新出租录入新租约。'
+        : '确定为该租客办理退租结清吗？\\n办理后房源状态将变更为【已退租结清】。';
+
+      if (!confirm(confirmMsg)) return;
 
       const btn = document.getElementById('submitCheckoutBtn');
       isSubmittingCheckout = true;
       btn.disabled = true;
       const originalText = btn.innerText;
-      btn.innerText = '正在办理结清...';
+      btn.innerText = '正在办理...';
       btn.classList.add('opacity-50', 'pointer-events-none');
 
       try {
+        const todayStr = new Date().toISOString().slice(0, 10);
+
         // 1. 更新房源状态为 TERMINATED
+        const notePrefix = isBadDebt ? '[强制退租·坏账归档] ' : '[退租结清] ';
         const leasePayload = {
           ...l,
           status: 'TERMINATED',
-          notes: (l.notes ? l.notes + ' | ' : '') + '已退租结清: ' + (remark || '正常退房')
+          notes: (l.notes ? l.notes + ' | ' : '') + notePrefix + (remark || (isBadDebt ? '租客拒付欠费强制退房' : '正常退房'))
         };
 
         await fetch('/api/leases/' + leaseId, {
@@ -3063,17 +3297,49 @@ export function renderAppHtml(username: string): string {
           body: JSON.stringify(leasePayload)
         });
 
-        // 2. 如果填写了退还押金，记录一笔退还记录
-        if (refund && Number(refund) > 0) {
+        // 2. 如果是坏账封存，给关联的所有 UNPAID 账单补充坏账备注，确保催收邮件彻底忽略
+        if (isBadDebt) {
+          const unpaidList = (appData.allPayments || []).filter(p => p.lease_id === leaseId && p.status === 'UNPAID');
+          for (const up of unpaidList) {
+            try {
+              await fetch('/api/payments/' + up.id, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  ...up,
+                  remark: (up.remark ? up.remark + ' ' : '') + '[坏账封存·永久停止催缴]'
+                })
+              });
+            } catch (_) {}
+          }
+        }
+
+        // 3. 处理押金退还记录 (若实退押金 > 0)
+        if (refund > 0) {
           await fetch('/api/payments', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               lease_id: leaseId,
               payment_type: 'DEPOSIT',
-              amount: -Math.abs(Number(refund)),
-              paid_at: new Date().toISOString().slice(0, 10),
+              amount: -Math.abs(refund),
+              paid_at: todayStr,
               remark: '退还押金: ' + (remark || '退房结清')
+            })
+          });
+        }
+
+        // 4. 处理押金扣除/抵扣记录 (若扣除押金 > 0)
+        if (deduct > 0) {
+          await fetch('/api/payments', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              lease_id: leaseId,
+              payment_type: 'DEPOSIT',
+              amount: Math.abs(deduct),
+              paid_at: todayStr,
+              remark: '押金扣除/抵扣: ' + (deductReason || (isBadDebt ? '赖账扣留全额押金' : '扣除押金抵充'))
             })
           });
         }
@@ -3082,7 +3348,7 @@ export function renderAppHtml(username: string): string {
         loadDashboard();
         loadLeases();
         loadPayments();
-        alert('✓ 房源退租结清手续已完成！');
+        alert(isBadDebt ? '✓ 强制退租手续已完成！历史账单已转入坏账封存，房源已恢复空置。' : '✓ 房源退租结清手续已完成！');
       } catch (err) {
         alert('办理退租失败: ' + (err.message || String(err)));
       } finally {
@@ -3225,25 +3491,85 @@ export function renderAppHtml(username: string): string {
       }
     }
 
+    function generateRandomCustomId() {
+      const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+      let res = '';
+      for (let i = 0; i < 6; i++) {
+        res += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return res;
+    }
+
+    function generateNewLeaseCustomId() {
+      const el = document.getElementById('leaseCustomId');
+      if (el) el.value = generateRandomCustomId();
+    }
+
+    let prevCycleValue = 12;
+    function onRentCycleChange(isUserChange = true) {
+      const cycle = parseInt(document.getElementById('leasePayCycle')?.value, 10) || 12;
+      const labelEl = document.getElementById('leaseRentAmountLabel');
+      const inputEl = document.getElementById('leaseRentAmount');
+
+      if (labelEl) {
+        if (cycle === 12) {
+          labelEl.innerText = '年付租金 (元/年)';
+          if (inputEl) inputEl.placeholder = '如 24000';
+        } else if (cycle === 6) {
+          labelEl.innerText = '半年付租金 (元/半年)';
+          if (inputEl) inputEl.placeholder = '如 12000';
+        } else if (cycle === 3) {
+          labelEl.innerText = '季付租金 (元/季)';
+          if (inputEl) inputEl.placeholder = '如 6000';
+        } else if (cycle === 24) {
+          labelEl.innerText = '两年付租金 (元/2年)';
+          if (inputEl) inputEl.placeholder = '如 48000';
+        } else {
+          labelEl.innerText = '月租金 (元/月)';
+          if (inputEl) inputEl.placeholder = '如 2000';
+        }
+      }
+
+      if (isUserChange && inputEl && inputEl.value) {
+        const currentVal = parseFloat(inputEl.value) || 0;
+        if (currentVal > 0 && prevCycleValue > 0 && prevCycleValue !== cycle) {
+          const baseMonthly = prevCycleValue === 1 ? currentVal : (currentVal / prevCycleValue);
+          const newPeriodRent = cycle === 1 ? baseMonthly : (baseMonthly * cycle);
+          inputEl.value = Math.round(newPeriodRent * 100) / 100;
+        }
+      }
+      prevCycleValue = cycle;
+
+      updateCycleRentHelper();
+    }
+
     function updateCycleRentHelper() {
-      const rent = parseFloat(document.getElementById('leaseRentAmount')?.value) || 0;
-      const cycle = parseInt(document.getElementById('leasePayCycle')?.value, 10) || 1;
-      const cycleTotal = rent * cycle;
-      const cycleNames = { 1: '月付', 3: '季付', 6: '半年付', 12: '年付' };
+      const cycle = parseInt(document.getElementById('leasePayCycle')?.value, 10) || 12;
+      const rawInput = parseFloat(document.getElementById('leaseRentAmount')?.value) || 0;
       const helperEl = document.getElementById('cycleRentHelperText');
       if (!helperEl) return;
-      if (rent > 0) {
-        const name = cycleNames[cycle] || (cycle + '个月一付');
-        helperEl.innerText = '💡 ' + name + '每期应收：¥' + cycleTotal.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' (¥' + rent + '/月 × ' + cycle + '个月)';
-      } else {
+      if (rawInput <= 0) {
         helperEl.innerText = '';
+        return;
+      }
+      if (cycle === 1) {
+        const annualTotal = rawInput * 12;
+        helperEl.innerText = '💡 月租金：¥' + rawInput.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ｜ 预估全年租金：¥' + annualTotal.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' (¥' + rawInput.toFixed(2) + ' × 12个月)';
+      } else {
+        const monthlyRent = rawInput / cycle;
+        let cycleName = '年付';
+        let cycleDesc = '12个月';
+        if (cycle === 6) { cycleName = '半年付'; cycleDesc = '6个月'; }
+        else if (cycle === 3) { cycleName = '季付'; cycleDesc = '3个月'; }
+        else if (cycle === 24) { cycleName = '两年付'; cycleDesc = '24个月'; }
+        helperEl.innerText = '💡 ' + cycleName + '每期实收：¥' + rawInput.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ｜ 折合每月租金：¥' + monthlyRent.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' (¥' + rawInput.toFixed(2) + ' ÷ ' + cycleDesc + ')';
       }
     }
 
     function openAddLeaseModal() {
       document.getElementById('leaseModalTitle').innerText = '录入出租房源';
       document.getElementById('editingLeaseId').value = '';
-      document.getElementById('leaseCustomId').value = '';
+      document.getElementById('leaseCustomId').value = generateRandomCustomId();
       document.getElementById('leaseTitle').value = '';
       document.getElementById('leaseAddress').value = '';
       document.getElementById('leaseTenantName').value = '';
@@ -3254,7 +3580,7 @@ export function renderAppHtml(username: string): string {
       onStartDateOrCycleChange();
       document.getElementById('leaseRentAmount').value = '';
       document.getElementById('leaseDepositAmount').value = '';
-      updateCycleRentHelper();
+      onRentCycleChange(false);
       document.getElementById('meterElecPrice').value = '1.0';
       document.getElementById('meterWaterPrice').value = '3.5';
       document.getElementById('meterElecBase').value = '';
@@ -3282,10 +3608,14 @@ export function renderAppHtml(username: string): string {
       document.getElementById('leaseTenantIdCard').value = lease.tenant_id_card || '';
       document.getElementById('leaseStartDate').value = lease.start_date;
       document.getElementById('leaseEndDate').value = lease.end_date;
-      document.getElementById('leaseRentAmount').value = lease.rent_amount;
+
+      const cycle = parseInt(lease.pay_cycle_months, 10) || 12;
+      document.getElementById('leasePayCycle').value = cycle;
+      const monthly = Number(lease.rent_amount) || 0;
+      document.getElementById('leaseRentAmount').value = cycle > 1 ? (Math.round(monthly * cycle * 100) / 100) : monthly;
       document.getElementById('leaseDepositAmount').value = lease.deposit_amount;
-      document.getElementById('leasePayCycle').value = lease.pay_cycle_months || 12;
-      updateCycleRentHelper();
+      onRentCycleChange(false);
+
       document.getElementById('meterElecPrice').value = lease.meter_electric_price || 1.0;
       document.getElementById('meterWaterPrice').value = lease.meter_water_price || 3.5;
       document.getElementById('meterElecBase').value = lease.meter_electric_base || '';
@@ -3332,9 +3662,11 @@ export function renderAppHtml(username: string): string {
       const tenant_id_card = document.getElementById('leaseTenantIdCard').value.trim();
       const start_date = document.getElementById('leaseStartDate').value;
       const end_date = document.getElementById('leaseEndDate').value;
-      const rent_amount = document.getElementById('leaseRentAmount').value;
+      const pay_cycle_months = parseInt(document.getElementById('leasePayCycle').value, 10) || 12;
+      const inputRent = parseFloat(document.getElementById('leaseRentAmount').value) || 0;
+      const monthlyRent = pay_cycle_months > 1 ? (inputRent / pay_cycle_months) : inputRent;
+      const rent_amount = Math.round(monthlyRent * 100) / 100;
       const deposit_amount = document.getElementById('leaseDepositAmount').value;
-      const pay_cycle_months = document.getElementById('leasePayCycle').value;
       const meter_electric_price = document.getElementById('meterElecPrice').value;
       const meter_water_price = document.getElementById('meterWaterPrice').value;
       const meter_electric_base = document.getElementById('meterElecBase').value;
@@ -3343,7 +3675,7 @@ export function renderAppHtml(username: string): string {
       const next_pay_date = document.getElementById('leaseNextPayDate').value;
       const notes = document.getElementById('leaseNotes').value.trim();
 
-      if (!title || !address || !start_date || !end_date || !rent_amount) {
+      if (!title || !address || !start_date || !end_date || !inputRent) {
         return alert('请完整填写必填项（房屋名称、地址、起止日期、租金）');
       }
 
@@ -3650,10 +3982,12 @@ export function renderAppHtml(username: string): string {
         }
 
         if (keyword) {
+          const cleanKw = keyword.replace(/^#/, '');
+          const matchId = (p.lease_custom_id || '').toLowerCase().includes(cleanKw);
           const matchTitle = (p.lease_title || '').toLowerCase().includes(keyword);
           const matchTenant = (p.tenant_name || '').toLowerCase().includes(keyword);
           const matchRemark = (p.remark || '').toLowerCase().includes(keyword);
-          if (!matchTitle && !matchTenant && !matchRemark) return false;
+          if (!matchTitle && !matchTenant && !matchRemark && !matchId) return false;
         }
 
         return true;
@@ -4469,7 +4803,7 @@ export function renderAppHtml(username: string): string {
             resendKeyEl.placeholder = d.hasResendApiKey ? ('已配置密钥 (' + d.resendApiKeyMasked + ')，留空保持不变') : '例如 re_123456789... (在 resend.com 申请)';
           }
           if (resendFromEl) resendFromEl.value = d.resendFromEmail || '';
-          if (resendNameEl) resendNameEl.value = d.resendFromName || '';
+          if (resendNameEl) resendNameEl.value = d.resendFromName || 'RentHub';
 
           const hostEl = document.getElementById('notifySmtpHost');
           const portEl = document.getElementById('notifySmtpPort');
@@ -4495,7 +4829,7 @@ export function renderAppHtml(username: string): string {
             passEl.value = '';
             passEl.placeholder = d.hasSmtpPass ? '已配置授权码，留空保持不变' : '邮箱授权码 / 密码';
           }
-          if (nameEl) nameEl.value = d.smtpFromName || '';
+          if (nameEl) nameEl.value = d.smtpFromName || 'RentHub';
           if (fromEl) fromEl.value = d.smtpFromEmail || '';
           if (rcptEl) rcptEl.value = d.recipientEmail || '';
           if (daysEl) daysEl.value = d.notifyDaysBefore || '7,3,1';

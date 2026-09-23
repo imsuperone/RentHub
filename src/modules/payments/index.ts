@@ -169,6 +169,11 @@ export async function handleUpdatePayment(env: Env, id: string, body: any) {
   );
 
   const batchStmts = [updateStmt];
+  if (payment_type === 'RENT' && body.next_pay_date) {
+    batchStmts.push(
+      env.DB.prepare('UPDATE leases SET next_pay_date = ? WHERE id = ?').bind(body.next_pay_date, lease_id)
+    );
+  }
   if (payment_type === 'ELECTRICITY' && meter_current !== undefined && meter_current !== '' && meter_current !== null) {
     batchStmts.push(
       env.DB.prepare('UPDATE leases SET meter_electric_base = ? WHERE id = ?').bind(Number(meter_current), lease_id)

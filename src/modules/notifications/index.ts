@@ -422,7 +422,7 @@ export async function handleTriggerNotificationCheck(env: Env) {
   // 检查未结清的水电账单 (UNPAID)
   try {
     const unpaidPayments = await env.DB.prepare(
-      "SELECT p.*, l.title as lease_title, l.tenant_name FROM payments p LEFT JOIN leases l ON p.lease_id = l.id WHERE p.status = 'UNPAID' AND p.payment_type IN ('ELECTRICITY', 'WATER', 'GAS', 'PROPERTY')"
+      "SELECT p.*, l.title as lease_title, l.tenant_name FROM payments p LEFT JOIN leases l ON p.lease_id = l.id WHERE p.status = 'UNPAID' AND p.payment_type IN ('ELECTRICITY', 'WATER', 'GAS', 'PROPERTY') AND l.status = 'ACTIVE' AND (p.remark NOT LIKE '%[坏账%' OR p.remark IS NULL)"
     ).all();
 
     for (const pmt of unpaidPayments.results as any[]) {

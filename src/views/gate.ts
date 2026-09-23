@@ -351,7 +351,7 @@ export function renderGateHtml(isInitialized: boolean): string {
               </div>
               <div>
                 <label class="block text-[10px] font-bold text-neutral-500 dark:text-neutral-400 mb-1 px-1">发件人显示名称</label>
-                <input id="initResendFromName" type="text" placeholder="RentHub" class="m3-field w-full px-3 py-2 text-xs font-semibold text-neutral-800 dark:text-neutral-200 outline-none">
+                <input id="initResendFromName" type="text" placeholder="RentHub" value="RentHub" class="m3-field w-full px-3 py-2 text-xs font-semibold text-neutral-800 dark:text-neutral-200 outline-none">
               </div>
             </div>
             <div class="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[10px] text-amber-700 dark:text-amber-300 leading-relaxed">
@@ -415,7 +415,7 @@ export function renderGateHtml(isInitialized: boolean): string {
 
             <div>
               <label class="block text-[10px] font-bold text-neutral-500 dark:text-neutral-400 mb-1 px-1">发信人显示名称</label>
-              <input id="initSmtpFromName" type="text" placeholder="RentHub" class="m3-field w-full px-3 py-2 text-xs font-semibold text-neutral-800 dark:text-neutral-200 outline-none">
+              <input id="initSmtpFromName" type="text" placeholder="RentHub" value="RentHub" class="m3-field w-full px-3 py-2 text-xs font-semibold text-neutral-800 dark:text-neutral-200 outline-none">
             </div>
           </div>
 

@@ -292,11 +292,12 @@ export async function handleCreateLease(env: Env, body: any) {
     return jsonError('合同到期日不能早于起租日期', 400);
   }
 
-  let finalCustomId = custom_id ? String(custom_id).trim() : '';
+  let finalCustomId = custom_id ? String(custom_id).trim().toUpperCase().slice(0, 8) : '';
   if (!finalCustomId) {
-    const countRow = (await env.DB.prepare('SELECT COUNT(*) as cnt FROM leases').first()) as any;
-    const num = (Number(countRow?.cnt) || 0) + 101;
-    finalCustomId = `H${num}`;
+    const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+    for (let i = 0; i < 6; i++) {
+      finalCustomId += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
   }
 
   const id = 'lse_' + generateRandomHex(8);
@@ -337,7 +338,7 @@ export async function handleCreateLease(env: Env, body: any) {
     const cycleMonths = Number(pay_cycle_months) || 1;
     const initialAmount = (Number(rent_amount) || 0) * (cycleMonths > 1 ? cycleMonths : 1);
     const initialStatus = body.initial_bill_status === 'UNPAID' ? 'UNPAID' : 'PAID';
-    const cycleName = cycleMonths === 12 ? '年付' : cycleMonths === 6 ? '半年付' : cycleMonths === 3 ? '季付' : '月付';
+    const cycleName = cycleMonths === 24 ? '两年付' : cycleMonths === 12 ? '年付' : cycleMonths === 6 ? '半年付' : cycleMonths === 3 ? '季付' : '月付';
     await env.DB.prepare(
       `INSERT INTO payments (
         id, lease_id, payment_type, amount, paid_at,
@@ -396,7 +397,7 @@ export async function handleUpdateLease(env: Env, id: string, body: any) {
     return jsonError('年份必须在 2000 年至 2099 年之间', 400);
   }
 
-  const finalCustomId = custom_id !== undefined ? (String(custom_id).trim() || null) : (existing.custom_id as string || null);
+  const finalCustomId = custom_id !== undefined ? (custom_id ? String(custom_id).trim().toUpperCase().slice(0, 8) : null) : (existing.custom_id as string || null);
 
   await env.DB.prepare(
     `UPDATE leases SET
