@@ -473,17 +473,20 @@ export function renderAppHtml(username: string): string {
           <button onclick="setLeaseFilter('ALL')" id="leaseChip_ALL" class="lease-filter-chip m3-pill px-3.5 py-1.5 font-bold bg-[#0F5B38] text-white dark:bg-[#7CDCA0] dark:text-[#00391F]">
             全部 (<span id="countLeasesAll">0</span>)
           </button>
-          <button onclick="setLeaseFilter('PAY_OVERDUE')" id="leaseChip_PAY_OVERDUE" class="lease-filter-chip m3-pill px-3.5 py-1.5 font-medium bg-[#E8EDE9] text-rose-700 dark:bg-[#161D1A] dark:text-rose-300">
-            🔴 欠租待收 (<span id="countLeasesPayOverdue">0</span>)
+          <button onclick="setLeaseFilter('UNPAID')" id="leaseChip_UNPAID" class="lease-filter-chip m3-pill px-3.5 py-1.5 font-medium bg-[#E8EDE9] text-rose-700 dark:bg-[#161D1A] dark:text-rose-300">
+            🔴 在租未付 (<span id="countLeasesUnpaid">0</span>)
           </button>
           <button onclick="setLeaseFilter('ACTIVE')" id="leaseChip_ACTIVE" class="lease-filter-chip m3-pill px-3.5 py-1.5 font-medium bg-[#E8EDE9] text-neutral-600 dark:bg-[#161D1A] dark:text-neutral-300">
             ● 正常在租 (<span id="countLeasesActive">0</span>)
           </button>
+          <button onclick="setLeaseFilter('OVER_PREPAID')" id="leaseChip_OVER_PREPAID" class="lease-filter-chip m3-pill px-3.5 py-1.5 font-medium bg-[#E8EDE9] text-purple-700 dark:bg-[#161D1A] dark:text-purple-300">
+            🟣 预付超期 (<span id="countLeasesOverPrepaid">0</span>)
+          </button>
           <button onclick="setLeaseFilter('OVERDUE')" id="leaseChip_OVERDUE" class="lease-filter-chip m3-pill px-3.5 py-1.5 font-medium bg-[#E8EDE9] text-neutral-600 dark:bg-[#161D1A] dark:text-neutral-300">
-            ⚠️ 逾期待续 (<span id="countLeasesOverdue">0</span>)
+            ⚠️ 合同到期 (<span id="countLeasesOverdue">0</span>)
           </button>
           <button onclick="setLeaseFilter('TERMINATED')" id="leaseChip_TERMINATED" class="lease-filter-chip m3-pill px-3.5 py-1.5 font-medium bg-[#E8EDE9] text-neutral-600 dark:bg-[#161D1A] dark:text-neutral-300">
-            ○ 已退租结清 (<span id="countLeasesTerminated">0</span>)
+            ○ 已退租 (<span id="countLeasesTerminated">0</span>)
           </button>
         </div>
       </div>
@@ -697,15 +700,15 @@ export function renderAppHtml(username: string): string {
                     </div>
                   </label>
 
-                  <!-- 选项 B: WebDAV / 网盘 -->
+                  <!-- 选项 B: WebDAV / 网盘 / NAS -->
                   <label class="flex items-start gap-2.5 p-3.5 rounded-2xl bg-[#E8EDE9]/40 dark:bg-[#161D1A]/60 border border-[#D7DED9]/60 dark:border-[#26312B]/60 cursor-pointer hover:border-[#0F5B38] transition-all">
                     <input type="radio" name="cloudBackupProvider" id="cloudBackup_webdav" value="WEBDAV" onchange="toggleCloudBackupUI('WEBDAV')" class="accent-[#0F5B38] mt-0.5">
                     <div>
                       <div class="text-xs font-bold text-neutral-800 dark:text-neutral-100 flex items-center gap-1.5">
-                        <span>☁️ WebDAV / 网盘</span>
-                        <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-800 dark:text-indigo-300 font-bold">国内网盘</span>
+                        <span>☁️ WebDAV / 网盘 / NAS</span>
+                        <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-800 dark:text-indigo-300 font-bold">网盘 / NAS</span>
                       </div>
-                      <div class="text-[11px] text-neutral-400 mt-0.5 leading-relaxed">坚果云直连，或经 AList 备份至阿里云盘、百度网盘、天翼云</div>
+                      <div class="text-[11px] text-neutral-400 mt-0.5 leading-relaxed">通用 WebDAV：各类 NAS (群晖/威联通)、Nextcloud、坚果云直连，或经 AList/OpenList 挂载各大网盘</div>
                     </div>
                   </label>
 
@@ -794,10 +797,10 @@ export function renderAppHtml(username: string): string {
               <div class="flex items-center justify-between pb-2 border-b border-[#E8EDE9] dark:border-[#26312B]/60">
                 <div>
                   <h3 class="text-sm font-bold flex items-center gap-2">
-                    <span>☁️ WebDAV 云盘存储 (坚果云 / AList 挂载阿里云盘·百度网盘 / 123云盘)</span>
-                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-800 dark:text-indigo-300 font-bold">网盘利器</span>
+                    <span>☁️ WebDAV 云盘 / NAS 存储 (NAS / Nextcloud / 坚果云 / AList / OpenList)</span>
+                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-800 dark:text-indigo-300 font-bold">通用协议</span>
                   </h3>
-                  <p class="text-xs text-neutral-400 mt-0.5">支持坚果云直连；配合 AList 更可无感对接阿里云盘、百度网盘、天翼云、夸克等各种国内网盘</p>
+                  <p class="text-xs text-neutral-400 mt-0.5">通用开放协议：支持各类 NAS 设备、Nextcloud、坚果云直连；配合 AList / OpenList 更可挂载阿里云盘、百度网盘等主流网盘</p>
                 </div>
               </div>
 
@@ -1402,7 +1405,11 @@ export function renderAppHtml(username: string): string {
           </div>
           <div>
             <label class="block font-bold text-neutral-600 dark:text-neutral-300 mb-1 px-1">下次收租日期</label>
-            <input type="date" id="leaseNextPayDate" min="2000-01-01" max="2099-12-31" class="m3-input w-full text-xs font-bold">
+            <input type="date" id="leaseNextPayDate" min="2000-01-01" max="2099-12-31" class="m3-input w-full text-xs font-bold" onchange="checkNextPayDateRelation()" oninput="checkNextPayDateRelation()">
+            <div id="nextPayDateNotice" class="hidden text-[11px] font-bold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/40 p-2 rounded-xl mt-1.5 border border-purple-200 dark:border-purple-900/60 flex items-center justify-between">
+              <span>🟣 下次收租日晚于合同到期日（租金已预收超期）</span>
+              <button type="button" onclick="syncEndDateToNextPay()" class="text-[11px] underline font-extrabold hover:opacity-85 text-purple-800 dark:text-purple-200">一键顺延到期日</button>
+            </div>
             <div class="flex items-center gap-1.5 flex-wrap mt-1.5">
               <button type="button" onclick="calibrateNextPay('END_PLUS_1')" class="text-[10px] text-[#0F5B38] dark:text-[#7CDCA0] bg-[#C4EED0]/60 dark:bg-[#1A402D] px-2 py-0.5 rounded-full font-bold hover:opacity-85" title="以到期日顺延下一年">📅 到期下一年 (+1年)</button>
               <button type="button" onclick="calibrateNextPay('END_EXACT')" class="text-[10px] text-neutral-600 dark:text-neutral-300 bg-[#E8EDE9] dark:bg-[#161D1A] px-2 py-0.5 rounded-full font-bold hover:opacity-85" title="设为合同到期当天">🏁 合同到期日</button>
@@ -1415,6 +1422,32 @@ export function renderAppHtml(username: string): string {
         <div>
           <label class="block font-bold text-neutral-600 dark:text-neutral-300 mb-1 px-1">备注备忘 (选填)</label>
           <textarea id="leaseNotes" rows="2" placeholder="家具家电清单、车位号、门禁卡号等备忘..." class="m3-input w-full text-xs"></textarea>
+        </div>
+
+        <!-- 新建房源专属：是否自动创建首期收租账单 -->
+        <div id="initialBillOptionBox" class="p-3.5 m3-subcard bg-[#C4EED0]/30 dark:bg-[#1A402D]/40 border border-[#C4EED0] dark:border-[#1A402D] rounded-2xl space-y-2">
+          <label class="flex items-start gap-2.5 cursor-pointer">
+            <input type="checkbox" id="leaseCreateInitialBill" checked class="accent-[#0F5B38] mt-0.5">
+            <div>
+              <div class="text-xs font-bold text-neutral-800 dark:text-neutral-100 flex items-center gap-1.5">
+                <span>⚡ 自动创建首期租金账单</span>
+                <span class="text-[10px] px-2 py-0.2 rounded-full bg-[#0F5B38] text-white font-bold">方便绑定</span>
+              </div>
+              <p class="text-[11px] text-neutral-500 dark:text-neutral-400 mt-0.5">
+                建档成功后自动在台账生成首期收租记录，方便立即绑定租房合同或转账凭据
+              </p>
+            </div>
+          </label>
+          <div class="flex items-center gap-4 pl-6 text-xs text-neutral-600 dark:text-neutral-300">
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="radio" name="initialBillStatus" value="PAID" checked class="accent-[#0F5B38]">
+              <span>已付款 (已结清)</span>
+            </label>
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="radio" name="initialBillStatus" value="UNPAID" class="accent-rose-600">
+              <span class="text-rose-600 dark:text-rose-400 font-bold">待付款 (未偿还欠款)</span>
+            </label>
+          </div>
         </div>
       </div>
 
@@ -2372,8 +2405,8 @@ export function renderAppHtml(username: string): string {
                 </div>
               </div>
               <div class="text-right">
-                <div class="font-extrabold text-sm text-[#0F5B38] dark:text-[#7CDCA0]">¥ \${Number(p.amount).toFixed(2)}</div>
-                <div class="text-[10px] text-emerald-600 font-bold">已结清</div>
+                <div class="font-extrabold text-sm \${p.status === 'UNPAID' ? 'text-rose-600 dark:text-rose-400' : 'text-[#0F5B38] dark:text-[#7CDCA0]'}">¥ \${Number(p.amount).toFixed(2)}</div>
+                <div class="text-[10px] font-bold \${p.status === 'UNPAID' ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600'}">\${p.status === 'UNPAID' ? '待付款 (未结清)' : '已结清'}</div>
               </div>
             </div>
           \`).join('');
@@ -2589,17 +2622,24 @@ export function renderAppHtml(username: string): string {
 
     function updateLeaseFilterCounts(leases) {
       const all = leases.length;
-      const payOverdue = leases.filter(l => l.status === 'ACTIVE' && l.isPayOverdue).length;
-      const active = leases.filter(l => l.status === 'ACTIVE' && !l.isOverdue).length;
+      const unpaid = leases.filter(l => l.status === 'ACTIVE' && (l.isPayOverdue || l.daysToNextPay === 0 || (l.unpaidUtilityAmount && l.unpaidUtilityAmount > 0))).length;
+      const overPrepaid = leases.filter(l => l.status === 'ACTIVE' && l.next_pay_date && l.end_date && l.next_pay_date > l.end_date).length;
+      const active = leases.filter(l => l.status === 'ACTIVE' && !l.isOverdue && !(l.isPayOverdue || l.daysToNextPay === 0) && !(l.next_pay_date && l.end_date && l.next_pay_date > l.end_date)).length;
       const overdue = leases.filter(l => l.status === 'ACTIVE' && l.isOverdue).length;
       const terminated = leases.filter(l => l.status === 'TERMINATED' || l.status === 'EXPIRED').length;
 
-      document.getElementById('countLeasesAll').innerText = all;
-      const payEl = document.getElementById('countLeasesPayOverdue');
-      if (payEl) payEl.innerText = payOverdue;
-      document.getElementById('countLeasesActive').innerText = active;
-      document.getElementById('countLeasesOverdue').innerText = overdue;
-      document.getElementById('countLeasesTerminated').innerText = terminated;
+      const elAll = document.getElementById('countLeasesAll');
+      if (elAll) elAll.innerText = all;
+      const elUnpaid = document.getElementById('countLeasesUnpaid');
+      if (elUnpaid) elUnpaid.innerText = unpaid;
+      const elActive = document.getElementById('countLeasesActive');
+      if (elActive) elActive.innerText = active;
+      const elPrepaid = document.getElementById('countLeasesOverPrepaid');
+      if (elPrepaid) elPrepaid.innerText = overPrepaid;
+      const elOverdue = document.getElementById('countLeasesOverdue');
+      if (elOverdue) elOverdue.innerText = overdue;
+      const elTerm = document.getElementById('countLeasesTerminated');
+      if (elTerm) elTerm.innerText = terminated;
     }
 
     function setLeaseFilter(filterKey) {
@@ -2609,8 +2649,12 @@ export function renderAppHtml(username: string): string {
       });
       const activeChip = document.getElementById('leaseChip_' + filterKey);
       if (activeChip) {
-        if (filterKey === 'PAY_OVERDUE') {
+        if (filterKey === 'UNPAID') {
           activeChip.className = 'lease-filter-chip m3-pill px-3.5 py-1.5 font-bold bg-rose-600 text-white dark:bg-rose-500 dark:text-white';
+        } else if (filterKey === 'OVER_PREPAID') {
+          activeChip.className = 'lease-filter-chip m3-pill px-3.5 py-1.5 font-bold bg-purple-600 text-white dark:bg-purple-500 dark:text-white';
+        } else if (filterKey === 'OVERDUE') {
+          activeChip.className = 'lease-filter-chip m3-pill px-3.5 py-1.5 font-bold bg-amber-600 text-white dark:bg-amber-500 dark:text-white';
         } else {
           activeChip.className = 'lease-filter-chip m3-pill px-3.5 py-1.5 font-bold bg-[#0F5B38] text-white dark:bg-[#7CDCA0] dark:text-[#00391F]';
         }
@@ -2620,14 +2664,24 @@ export function renderAppHtml(username: string): string {
 
     function filterLeases() {
       const keyword = (document.getElementById('leaseSearchInput')?.value || '').trim().toLowerCase();
-      const filterKey = appData.currentLeaseFilter;
+      const filterKey = appData.currentLeaseFilter || 'ALL';
 
       const filtered = appData.leases.filter(l => {
         // 1. 状态匹配
-        if (filterKey === 'PAY_OVERDUE' && (l.status !== 'ACTIVE' || !l.isPayOverdue)) return false;
-        if (filterKey === 'ACTIVE' && (l.status !== 'ACTIVE' || l.isOverdue)) return false;
-        if (filterKey === 'OVERDUE' && (l.status !== 'ACTIVE' || !l.isOverdue)) return false;
-        if (filterKey === 'TERMINATED' && (l.status !== 'TERMINATED' && l.status !== 'EXPIRED')) return false;
+        if (filterKey === 'UNPAID') {
+          const isUnpaid = l.status === 'ACTIVE' && (l.isPayOverdue || l.daysToNextPay === 0 || (l.unpaidUtilityAmount && l.unpaidUtilityAmount > 0));
+          if (!isUnpaid) return false;
+        } else if (filterKey === 'OVER_PREPAID') {
+          const isPrepaid = l.status === 'ACTIVE' && l.next_pay_date && l.end_date && l.next_pay_date > l.end_date;
+          if (!isPrepaid) return false;
+        } else if (filterKey === 'ACTIVE') {
+          const isNormal = l.status === 'ACTIVE' && !l.isOverdue && !(l.isPayOverdue || l.daysToNextPay === 0) && !(l.next_pay_date && l.end_date && l.next_pay_date > l.end_date);
+          if (!isNormal) return false;
+        } else if (filterKey === 'OVERDUE') {
+          if (l.status !== 'ACTIVE' || !l.isOverdue) return false;
+        } else if (filterKey === 'TERMINATED') {
+          if (l.status !== 'TERMINATED' && l.status !== 'EXPIRED') return false;
+        }
 
         // 2. 关键词匹配
         if (keyword) {
@@ -2669,10 +2723,14 @@ export function renderAppHtml(username: string): string {
                 \${
                   l.status === 'TERMINATED'
                     ? '<span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300">○ 已退租结清</span>'
+                    : (l.next_pay_date && l.end_date && l.next_pay_date > l.end_date)
+                    ? '<span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-purple-100 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300 flex items-center gap-1">🟣 预付超期 (待续合同)</span>'
                     : l.isPayOverdue
-                    ? \`<span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>欠租超期 \${l.payOverdueDays || Math.abs(l.daysToNextPay || 0)} 天</span>\`
+                    ? \`<span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>🔴 在租未付款 (超期 \${l.payOverdueDays || Math.abs(l.daysToNextPay || 0)} 天 · 未偿还)</span>\`
+                    : (l.daysToNextPay === 0)
+                    ? '<span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 flex items-center gap-1">⚡ 今日应收租 (未偿还)</span>'
                     : (l.daysToNextPay !== null && l.daysToNextPay !== undefined && l.daysToNextPay <= 7)
-                    ? \`<span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">⚡ \${l.daysToNextPay === 0 ? '今日应收租' : '距交租 ' + l.daysToNextPay + ' 天'}</span>\`
+                    ? \`<span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">⚡ 距交租 \${l.daysToNextPay} 天</span>\`
                     : '<span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">✓ 租金已结清</span>'
                 }
                 \${
@@ -2716,9 +2774,19 @@ export function renderAppHtml(username: string): string {
                 <strong class="text-[#0F5B38] dark:text-[#7CDCA0] text-sm">¥ \${l.rent_amount}</strong>
                 <span class="text-[10px] text-neutral-400">/ \${l.pay_cycle_months == 12 ? '年付' : l.pay_cycle_months == 6 ? '半年付' : l.pay_cycle_months == 1 ? '月付' : '季付'}</span>
               </div>
-              <div class="col-span-2 text-neutral-400 text-[11px] border-t border-[#D7DED9]/60 dark:border-[#26312B]/60 pt-1.5 flex items-center justify-between">
+              <div class="col-span-2 text-neutral-400 text-[11px] border-t border-[#D7DED9]/60 dark:border-[#26312B]/60 pt-1.5 flex items-center justify-between flex-wrap gap-1">
                 <span>电单价 ¥\${l.meter_electric_price || 1.0} · 水单价 ¥\${l.meter_water_price || 3.5}</span>
-                <span>下次收租：<strong class="\${l.isPayOverdue ? 'text-rose-600 dark:text-rose-400 font-extrabold' : 'text-neutral-700 dark:text-neutral-200'}">\${l.next_pay_date || '未设'}\${l.isPayOverdue ? ' (!已超期)' : ''}</strong></span>
+                <span>下次收租：\${
+                  !l.next_pay_date
+                    ? '<strong class="text-neutral-400 font-bold">未设</strong>'
+                    : (l.next_pay_date > l.end_date)
+                    ? \`<strong class="text-purple-600 dark:text-purple-400 font-extrabold">\${l.next_pay_date} (已超租期 · 预付)</strong><button type="button" onclick="syncLeaseEndDate('\${l.id}', '\${l.next_pay_date}')" class="ml-1 text-[10px] text-purple-600 dark:text-purple-400 underline font-bold hover:opacity-85" title="点击一键将合同到期日顺延至下次收租日">[顺延合同]</button>\`
+                    : (l.daysToNextPay === 0)
+                    ? \`<strong class="text-amber-600 dark:text-amber-400 font-extrabold">\${l.next_pay_date} (今日交租 · 未偿还)</strong>\`
+                    : l.isPayOverdue
+                    ? \`<strong class="text-rose-600 dark:text-rose-400 font-extrabold">\${l.next_pay_date} (已超期 \${l.payOverdueDays}天 · 未偿还)</strong>\`
+                    : \`<strong class="text-neutral-700 dark:text-neutral-200 font-bold">\${l.next_pay_date} (距收租 \${l.daysToNextPay}天)</strong>\`
+                }</span>
               </div>
             </div>
 
@@ -3083,6 +3151,29 @@ export function renderAppHtml(username: string): string {
       calibrateNextPay('END_PLUS_1');
     }
 
+    function checkNextPayDateRelation() {
+      const endEl = document.getElementById('leaseEndDate');
+      const nextEl = document.getElementById('leaseNextPayDate');
+      const noticeEl = document.getElementById('nextPayDateNotice');
+      if (!endEl || !nextEl || !noticeEl) return;
+      const endVal = endEl.value;
+      const nextVal = nextEl.value;
+      if (endVal && nextVal && nextVal > endVal) {
+        noticeEl.classList.remove('hidden');
+      } else {
+        noticeEl.classList.add('hidden');
+      }
+    }
+
+    function syncEndDateToNextPay() {
+      const nextEl = document.getElementById('leaseNextPayDate');
+      const endEl = document.getElementById('leaseEndDate');
+      if (nextEl && endEl && nextEl.value) {
+        endEl.value = nextEl.value;
+        checkNextPayDateRelation();
+      }
+    }
+
     function openAddLeaseModal() {
       document.getElementById('leaseModalTitle').innerText = '录入出租房源';
       document.getElementById('editingLeaseId').value = '';
@@ -3102,6 +3193,10 @@ export function renderAppHtml(username: string): string {
       document.getElementById('meterWaterBase').value = '';
       document.getElementById('leaseStatus').value = 'ACTIVE';
       document.getElementById('leaseNotes').value = '';
+      document.getElementById('initialBillOptionBox')?.classList.remove('hidden');
+      const chk = document.getElementById('leaseCreateInitialBill');
+      if (chk) chk.checked = true;
+      checkNextPayDateRelation();
       openModal('leaseModal');
     }
 
@@ -3127,6 +3222,8 @@ export function renderAppHtml(username: string): string {
       document.getElementById('leaseStatus').value = lease.status || 'ACTIVE';
       document.getElementById('leaseNextPayDate').value = lease.next_pay_date || '';
       document.getElementById('leaseNotes').value = lease.notes || '';
+      document.getElementById('initialBillOptionBox')?.classList.add('hidden');
+      checkNextPayDateRelation();
       openModal('leaseModal');
     }
 
@@ -3165,6 +3262,11 @@ export function renderAppHtml(username: string): string {
         meter_electric_base, meter_water_base, status, next_pay_date, notes
       };
 
+      if (!editingId) {
+        payload.create_initial_bill = !!document.getElementById('leaseCreateInitialBill')?.checked;
+        payload.initial_bill_status = document.querySelector('input[name="initialBillStatus"]:checked')?.value || 'PAID';
+      }
+
       const btn = document.getElementById('submitLeaseBtn');
       isSubmittingLease = true;
       btn.disabled = true;
@@ -3173,7 +3275,7 @@ export function renderAppHtml(username: string): string {
       btn.classList.add('opacity-50', 'pointer-events-none');
 
       try {
-        const url = editingId ? \`/api/leases/\${editingId}\` : '/api/leases';
+        const url = editingId ? ('/api/leases/' + editingId) : '/api/leases';
         const method = editingId ? 'PUT' : 'POST';
 
         const res = await fetch(url, {
@@ -3186,6 +3288,7 @@ export function renderAppHtml(username: string): string {
           closeModal('leaseModal');
           loadDashboard();
           loadLeases();
+          loadPayments();
         } else {
           alert(json.message || '保存失败');
         }
@@ -3204,6 +3307,33 @@ export function renderAppHtml(username: string): string {
       await fetch('/api/leases/' + id, { method: 'DELETE' });
       loadLeases();
       loadDashboard();
+    }
+
+    async function syncLeaseEndDate(leaseId, newEndDate) {
+      if (!confirm('确定将该房源的合同到期日顺延至 ' + newEndDate + ' 吗？\\n\\n顺延后，合同到期日将与当前已预付的收租日期对齐，消除超期预警。')) return;
+      try {
+        const lease = appData.leases.find(l => l.id === leaseId);
+        if (!lease) return;
+        const res = await fetch('/api/leases/' + leaseId, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...lease,
+            end_date: newEndDate,
+            status: 'ACTIVE'
+          })
+        });
+        const json = await res.json();
+        if (json.code === 0) {
+          alert('✓ 合同到期日已成功顺延至 ' + newEndDate);
+          loadLeases();
+          loadDashboard();
+        } else {
+          alert(json.message || '更新失败');
+        }
+      } catch (err) {
+        alert('操作失败: ' + err.message);
+      }
     }
 
     // ==================== ⚡ 水电抄表与杂费结算 (智能底数滚存与实时核算) ====================
@@ -5219,17 +5349,43 @@ export function renderAppHtml(username: string): string {
       updateDensityUI(saved);
     }
 
-    // ==================== 一键清空系统测试数据 ====================
+    // ==================== 一键清空系统测试数据 (三重防误触确认与备份) ====================
     async function confirmResetSystem() {
-      const confirmed = confirm('⚠️ 危险操作警告：\\n\\n确定要清空所有测试数据并重置系统吗？\\n\\n执行后：\\n1. 所有的房源 (leases)、记账 (payments)、单据附件 (attachments) 将被全部清除。\\n2. 管理员账号与会话将被清除，直接返回系统初装向导。\\n\\n是否立即执行？');
-      if (!confirmed) return;
+      // 第一重确认：高危警告
+      const step1 = confirm('⚠️【第一重危险警示】确定要重置并彻底清空系统数据吗？\\n\\n执行后：\\n1. 所有的房源合同 (leases)、收支记账 (payments)、单据附件 (attachments) 将被全部物理删除。\\n2. 管理员主账号、安全邮箱绑定与 TOTP 二次验证将被全部注销。\\n3. 系统将直接退回全新未安装的初装向导！\\n\\n请确认您是否仍要继续？');
+      if (!step1) return;
+
+      // 第二重确认：强阻尼文本验证 (输入 RESET)
+      const step2 = prompt('🛑【第二重强效验证】此操作不可逆！\\n\\n如确需彻底清空，请输入大写英文字母 "RESET" 确认执行：');
+      if (step2 !== 'RESET') {
+        alert('输入不匹配或已取消，已安全终止重置操作。系统数据完好无损。');
+        return;
+      }
+
+      // 第三重确认：备份询问
+      const wantBackup = confirm('💾【第三重安全保障】在最终彻底清空前，是否需要先将当前全量数据与系统配置备份下载到本地？\\n\\n【确定 (OK)】：自动下载 JSON 完整备份文件，并尝试发送备份归档至已绑定的安全邮箱，然后再执行清空。\\n【取消 (Cancel)】：放弃备份，直接清空数据。');
 
       const btn = document.getElementById('btnResetSystem');
       const fb = document.getElementById('resetSystemFeedback');
       if (btn) btn.disabled = true;
+
+      if (wantBackup) {
+        if (fb) {
+          fb.className = 'text-xs font-semibold text-amber-600 animate-pulse';
+          fb.innerText = '正在导出并下载本地数据备份...';
+        }
+        try {
+          await dumpDatabaseJson();
+        } catch (_) {}
+        try {
+          if (fb) fb.innerText = '正在尝试发送邮件备份快照...';
+          await fetch('/api/settings/email-backup', { method: 'POST' });
+        } catch (_) {}
+      }
+
       if (fb) {
-        fb.className = 'text-xs font-semibold text-amber-600 animate-pulse';
-        fb.innerText = '正在清空系统数据...';
+        fb.className = 'text-xs font-semibold text-rose-600 animate-pulse';
+        fb.innerText = '正在彻底清空系统数据...';
       }
 
       try {
@@ -5242,7 +5398,7 @@ export function renderAppHtml(username: string): string {
         } catch (_) {}
         if (fb) {
           fb.className = 'text-xs font-semibold text-emerald-600';
-          fb.innerText = '清空成功！正在进入初始化向导...';
+          fb.innerText = '✓ 清空成功！正在进入全新初始化向导...';
         }
         setTimeout(() => {
           window.location.href = '/';

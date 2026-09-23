@@ -121,6 +121,7 @@ export async function handleListLeases(env: Env) {
   const leasesWithMeta = (result.results as unknown as Lease[]).map((lease) => {
     const { daysRemaining, remainingText, isOverdue } = calculateRemainingInfo(lease.end_date, lease.status);
     const { daysToNextPay, nextPayText, isPayOverdue, payOverdueDays } = calculatePayRemainingInfo(lease.next_pay_date, lease.status);
+    const isPrepaidBeyond = !!(lease.next_pay_date && lease.end_date && lease.next_pay_date > lease.end_date);
     const unpaidInfo = unpaidByLease.get(lease.id) || { amount: 0, count: 0 };
     return {
       ...lease,
@@ -131,6 +132,7 @@ export async function handleListLeases(env: Env) {
       nextPayText,
       isPayOverdue,
       payOverdueDays,
+      isPrepaidBeyond,
       unpaidUtilityAmount: unpaidInfo.amount,
       unpaidUtilityCount: unpaidInfo.count,
       attachments: attachmentsByLease.get(lease.id) || [],
@@ -160,6 +162,7 @@ export async function handleGetLease(env: Env, id: string) {
 
   const { daysRemaining, remainingText, isOverdue } = calculateRemainingInfo(lease.end_date, lease.status);
   const { daysToNextPay, nextPayText, isPayOverdue, payOverdueDays } = calculatePayRemainingInfo(lease.next_pay_date, lease.status);
+  const isPrepaidBeyond = !!(lease.next_pay_date && lease.end_date && lease.next_pay_date > lease.end_date);
 
   return jsonOk({
     lease: {
@@ -171,6 +174,7 @@ export async function handleGetLease(env: Env, id: string) {
       nextPayText,
       isPayOverdue,
       payOverdueDays,
+      isPrepaidBeyond,
       unpaidUtilityAmount: Number(unpaidRow?.total_unpaid) || 0,
       unpaidUtilityCount: Number(unpaidRow?.unpaid_count) || 0,
     },
@@ -248,6 +252,29 @@ export async function handleCreateLease(env: Env, body: any) {
       notes ? notes.trim() : null
     )
     .run();
+
+  if (body.create_initial_bill) {
+    const pmtId = 'pmt_' + generateRandomHex(8);
+    const cycleMonths = Number(pay_cycle_months) || 1;
+    const initialAmount = (Number(rent_amount) || 0) * (cycleMonths > 1 ? cycleMonths : 1);
+    const initialStatus = body.initial_bill_status === 'UNPAID' ? 'UNPAID' : 'PAID';
+    const cycleName = cycleMonths === 12 ? '年付' : cycleMonths === 6 ? '半年付' : cycleMonths === 3 ? '季付' : '月付';
+    await env.DB.prepare(
+      `INSERT INTO payments (
+        id, lease_id, payment_type, amount, paid_at,
+        period_start, period_end, status, remark
+      ) VALUES (?, ?, 'RENT', ?, ?, ?, ?, ?, ?)`
+    ).bind(
+      pmtId,
+      id,
+      initialAmount,
+      start_date,
+      start_date,
+      next_pay_date || end_date,
+      initialStatus,
+      `首期房租 (${cycleName} · 建档自动生成)`
+    ).run();
+  }
 
   return jsonOk({ id }, '房源添加成功');
 }

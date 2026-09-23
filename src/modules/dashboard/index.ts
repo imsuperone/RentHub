@@ -76,6 +76,8 @@ export async function handleDashboardSummary(env: Env) {
       }
     }
 
+    const isPrepaidBeyond = !!(lease.next_pay_date && lease.end_date && lease.next_pay_date > lease.end_date);
+
     return {
       ...lease,
       daysRemaining,
@@ -85,6 +87,7 @@ export async function handleDashboardSummary(env: Env) {
       nextPayText,
       isPayOverdue,
       payOverdueDays: isPayOverdue ? Math.abs(daysToNextPay!) : 0,
+      isPrepaidBeyond,
     };
   });
 

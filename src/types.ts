@@ -51,6 +51,7 @@ export interface Lease {
   nextPayText?: string | null;
   isPayOverdue?: boolean;
   payOverdueDays?: number;
+  isPrepaidBeyond?: boolean;
   unpaidUtilityAmount?: number;
   unpaidUtilityCount?: number;
   attachments?: Attachment[];
