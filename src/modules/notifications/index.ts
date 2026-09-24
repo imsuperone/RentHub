@@ -429,15 +429,32 @@ export async function handleTriggerNotificationCheck(env: Env) {
       const targetEmail = settings.recipientEmail;
       if (!targetEmail) continue;
 
+      const isElec = pmt.payment_type === 'ELECTRICITY';
+      const isWater = pmt.payment_type === 'WATER';
+      const unit = isElec ? '度' : (isWater ? '吨' : '');
+      const typeName = isElec ? '电费' : (isWater ? '水费' : (pmt.payment_type === 'GAS' ? '燃气费' : (pmt.payment_type === 'PROPERTY' ? '物业费' : '杂费')));
+
+      let detailedUsage = pmt.remark || '抄表结算费用';
+      if (pmt.meter_usage !== null && pmt.meter_usage !== undefined) {
+        detailedUsage = `${typeName}抄表：上期底数 ${pmt.meter_last ?? '--'} → 本期底数 ${pmt.meter_current ?? '--'}，实用 ${pmt.meter_usage} ${unit}，单价 ¥${Number(pmt.unit_price || 0).toFixed(2)}/${unit}，合计 ¥${Number(pmt.amount || 0).toFixed(2)}${pmt.remark ? ' (' + pmt.remark + ')' : ''}`;
+      }
+
       const vars = {
         房源名称: pmt.lease_title || '关联房屋',
         承租人: pmt.tenant_name || '租客',
         欠款金额: String(pmt.amount || 0),
-        用量明细: pmt.remark || '抄表结算费用',
+        结算日期: pmt.paid_at || new Date().toISOString().slice(0, 10),
+        用量明细: detailedUsage,
+        费用类型: typeName,
+        上期底数: String(pmt.meter_last ?? '--'),
+        本期底数: String(pmt.meter_current ?? '--'),
+        实际用量: `${pmt.meter_usage ?? '--'} ${unit}`,
+        收费单价: `¥${Number(pmt.unit_price || 0).toFixed(2)}/${unit}`,
         property_title: pmt.lease_title || '关联房屋',
         tenant_name: pmt.tenant_name || '租客',
         unpaid_amount: String(pmt.amount || 0),
-        usage_details: pmt.remark || '抄表结算费用',
+        settle_date: pmt.paid_at || new Date().toISOString().slice(0, 10),
+        usage_details: detailedUsage,
       };
 
       const title = renderTemplate(settings.templateUtilityTitle, vars);

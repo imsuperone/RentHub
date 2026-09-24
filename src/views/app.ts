@@ -1510,6 +1510,7 @@ export function renderAppHtml(username: string): string {
       </div>
 
       <input type="hidden" id="rentPaymentId" value="">
+      <input type="hidden" id="quickRentPaymentType" value="RENT">
 
       <div class="space-y-3.5 text-xs">
         <div>
@@ -1547,6 +1548,17 @@ export function renderAppHtml(username: string): string {
           </button>
         </div>
 
+        <!-- 收款类型切换：租金 vs 水电杂费 -->
+        <div class="flex items-center justify-between px-1">
+          <label class="font-bold text-neutral-600 dark:text-neutral-300">收款类型</label>
+          <div class="inline-flex rounded-full bg-[#E8EDE9] dark:bg-[#161D1A] p-0.5 text-[11px] font-bold">
+            <button type="button" id="quickRentTypeBtn_RENT" onclick="setQuickRentFeeType('RENT')" class="px-3 py-1 rounded-full bg-white dark:bg-[#202824] text-[#0F5B38] dark:text-[#7CDCA0] shadow-sm transition-all">🏠 房屋租金</button>
+            <button type="button" id="quickRentTypeBtn_ELECTRICITY" onclick="setQuickRentFeeType('ELECTRICITY')" class="px-2.5 py-1 rounded-full text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-all">⚡ 电费</button>
+            <button type="button" id="quickRentTypeBtn_WATER" onclick="setQuickRentFeeType('WATER')" class="px-2.5 py-1 rounded-full text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-all">💧 水费</button>
+            <button type="button" id="quickRentTypeBtn_OTHER" onclick="setQuickRentFeeType('OTHER')" class="px-2.5 py-1 rounded-full text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-all">📦 杂费</button>
+          </div>
+        </div>
+
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block font-bold text-neutral-600 dark:text-neutral-300 mb-1 px-1">本期实收金额 (元)</label>
@@ -1561,17 +1573,22 @@ export function renderAppHtml(username: string): string {
           </div>
         </div>
 
-        <div>
+        <!-- 下次收租日期区块 (仅在收租金时顺延；水电杂费不推迟收租时间) -->
+        <div id="quickRentNextPaySection" class="space-y-1">
           <div class="flex items-center justify-between mb-1 px-1">
-            <label class="font-bold text-neutral-600 dark:text-neutral-300">下次收租日期 (自动推算)</label>
-            <div class="flex items-center gap-1.5 text-[10px]">
+            <label id="quickRentNextPayLabel" class="font-bold text-neutral-600 dark:text-neutral-300">下次收租日期 (自动推算)</label>
+            <div id="quickRentNextPayAdjustBtns" class="flex items-center gap-1.5 text-[10px]">
               <button type="button" onclick="adjustNextPayMonths(1)" class="hover:underline text-[#0F5B38] dark:text-[#7CDCA0] font-bold">+1月</button>
               <button type="button" onclick="adjustNextPayMonths(3)" class="hover:underline text-[#0F5B38] dark:text-[#7CDCA0] font-bold">+季</button>
               <button type="button" onclick="adjustNextPayMonths(6)" class="hover:underline text-[#0F5B38] dark:text-[#7CDCA0] font-bold">+半年</button>
               <button type="button" onclick="adjustNextPayMonths(12)" class="hover:underline text-[#0F5B38] dark:text-[#7CDCA0] font-bold">+1年</button>
             </div>
           </div>
-          <input type="date" id="rentNextPayDate" min="2000-01-01" max="2099-12-31" class="m3-input w-full text-xs font-bold">
+          <input type="date" id="rentNextPayDate" min="2000-01-01" max="2099-12-31" class="m3-input w-full text-xs font-bold transition-opacity">
+          <div id="quickRentUtilNotice" class="hidden text-[11px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 p-2 rounded-xl border border-emerald-200 dark:border-emerald-900/60 flex items-center gap-1.5">
+            <span>🛡️</span>
+            <span>当前为收取/结清水电杂费，系统已锁定保持原收租日不变，不推迟下次收租时间。</span>
+          </div>
         </div>
 
         <div>
@@ -1688,6 +1705,7 @@ export function renderAppHtml(username: string): string {
             <span>实抄用量：<strong id="utilCalcUsage" class="font-mono text-neutral-900 dark:text-neutral-100 font-extrabold">0.0</strong> <span id="utilUsageUnit">度</span></span>
             <span>换算金额：<strong id="utilCalcTotal" class="font-mono text-[#0F5B38] dark:text-[#7CDCA0] font-extrabold text-sm">¥ 0.00</strong></span>
           </div>
+          <div id="utilCalcFormula" class="text-[11px] font-bold text-[#0F5B38] dark:text-[#7CDCA0] pt-1"></div>
           <div id="utilMeterWarning" class="hidden text-[11px] text-amber-700 dark:text-amber-300 font-bold bg-amber-50 dark:bg-amber-950/40 p-2.5 rounded-xl border border-amber-200 dark:border-amber-800/50 flex items-center gap-1.5">
             <span>⚠️</span>
             <span>注意：本次实抄底数小于上次底数，请核实是否录入错误或电表/水表已翻表。</span>
@@ -2533,7 +2551,82 @@ export function renderAppHtml(username: string): string {
       }
     }
 
-    // ==================== ⚡ 一键收取房租 (专职处理租金核算与下次到期顺延) ====================
+    // ==================== ⚡ 一键收取房租与水电杂费 (专职处理租金核算与下次到期顺延) ====================
+    function setQuickRentFeeType(type) {
+      const typeEl = document.getElementById('quickRentPaymentType');
+      if (typeEl) typeEl.value = type;
+
+      ['RENT', 'ELECTRICITY', 'WATER', 'OTHER'].forEach(t => {
+        const btn = document.getElementById('quickRentTypeBtn_' + t);
+        if (btn) {
+          if (t === type) {
+            btn.className = 'px-3 py-1 rounded-full bg-white dark:bg-[#202824] text-[#0F5B38] dark:text-[#7CDCA0] font-bold shadow-sm transition-all';
+          } else {
+            btn.className = 'px-2.5 py-1 rounded-full text-neutral-500 hover:text-neutral-900 dark:hover:text-white font-medium transition-all';
+          }
+        }
+      });
+
+      const leaseId = document.getElementById('rentLeaseId')?.value;
+      const target = (appData.leases || []).find(l => l.id === leaseId);
+      const isUtility = (type !== 'RENT');
+
+      const dateInput = document.getElementById('rentNextPayDate');
+      const adjustBtns = document.getElementById('quickRentNextPayAdjustBtns');
+      const nextLabel = document.getElementById('quickRentNextPayLabel');
+      const utilNotice = document.getElementById('quickRentUtilNotice');
+      const titleEl = document.getElementById('quickRentTitle');
+
+      if (isUtility) {
+        // 水电杂费收款：严格保持原下次收租日不变，绝对不推迟！
+        if (dateInput) {
+          dateInput.value = (target && target.next_pay_date) ? target.next_pay_date : '';
+          dateInput.disabled = true;
+          dateInput.classList.add('opacity-60', 'cursor-not-allowed', 'bg-neutral-100', 'dark:bg-neutral-800');
+        }
+        if (adjustBtns) adjustBtns.classList.add('hidden');
+        if (nextLabel) nextLabel.innerText = '下次收租日期 (保持不变)';
+        if (utilNotice) utilNotice.classList.remove('hidden');
+        if (titleEl) titleEl.innerHTML = '<span>⚡</span> <span>收取' + getPaymentTypeName(type) + '</span>';
+
+        if (!document.getElementById('rentPaymentId').value) {
+          const typeName = getPaymentTypeName(type);
+          document.getElementById('rentRemark').value = '收取' + typeName;
+          document.getElementById('rentAmount').value = '';
+        }
+      } else {
+        // 房租正常收取：顺延下次收租日
+        if (dateInput) {
+          dateInput.disabled = false;
+          dateInput.classList.remove('opacity-60', 'cursor-not-allowed', 'bg-neutral-100', 'dark:bg-neutral-800');
+        }
+        if (adjustBtns) adjustBtns.classList.remove('hidden');
+        if (nextLabel) nextLabel.innerText = '下次收租日期 (自动推算)';
+        if (utilNotice) utilNotice.classList.add('hidden');
+        if (titleEl) titleEl.innerHTML = '<span>⚡</span> <span>一键收取房租</span>';
+
+        if (target) {
+          const cycle = parseInt(target.pay_cycle_months, 10) || 1;
+          const cycleText = cycle == 24 ? '两年付 (24个月)' : cycle == 12 ? '年付 (12个月)' : cycle == 6 ? '半年付 (6个月)' : cycle == 3 ? '季付 (3个月)' : '月付 (1个月)';
+          if (!document.getElementById('rentPaymentId').value) {
+            document.getElementById('rentAmount').value = (Number(target.rent_amount) || 0) * (cycle > 1 ? cycle : 1);
+            document.getElementById('rentRemark').value = '收租 (' + cycleText + ')';
+          }
+
+          let baseDate = new Date();
+          if (target.next_pay_date) {
+            const parsed = new Date(target.next_pay_date);
+            if (!isNaN(parsed.getTime())) baseDate = parsed;
+          }
+          baseDate.setMonth(baseDate.getMonth() + cycle);
+          const ny = baseDate.getFullYear();
+          const nm = String(baseDate.getMonth() + 1).padStart(2, '0');
+          const nd = String(baseDate.getDate()).padStart(2, '0');
+          if (dateInput) dateInput.value = \`\${ny}-\${nm}-\${nd}\`;
+        }
+      }
+    }
+
     async function quickCollectRent(leaseId) {
       await ensureLeaseDropdowns();
       if (!appData.leases || appData.leases.length === 0) return alert('请先录入出租房源');
@@ -2548,7 +2641,6 @@ export function renderAppHtml(username: string): string {
 
       const targetId = leaseId || document.getElementById('rentLeaseId').value || appData.leases[0].id;
       document.getElementById('rentPaymentId').value = '';
-      document.getElementById('quickRentTitle').innerHTML = '<span>⚡</span> <span>一键收取房租</span>';
       document.getElementById('rentLeaseId').value = targetId;
       document.getElementById('rentPaidAt').value = getNowDateTimeLocal();
       switchRentAttMode('upload');
@@ -2556,6 +2648,7 @@ export function renderAppHtml(username: string): string {
       if (receiptInput) receiptInput.value = '';
       populateExistingAttDropdown('rentExistingAttSelect', targetId);
       onRentLeaseChange();
+      setQuickRentFeeType('RENT');
       openModal('quickRentModal');
     }
 
@@ -2595,23 +2688,7 @@ export function renderAppHtml(username: string): string {
         delete unpaidBanner.dataset.unpaidId;
       }
 
-      // 智能推算本期租金总额：月租金 * 周期月份
-      const totalRent = (Number(target.rent_amount) || 0) * (cycle > 1 ? cycle : 1);
-      document.getElementById('rentAmount').value = totalRent;
-
-      // 顺延下次收租日智能推算：若存在下次日期则基于原下次日期加一个周期，否则从收款日或今天推算
-      let baseDate = new Date();
-      if (target.next_pay_date) {
-        const parsed = new Date(target.next_pay_date);
-        if (!isNaN(parsed.getTime())) baseDate = parsed;
-      }
-      baseDate.setMonth(baseDate.getMonth() + cycle);
-      const ny = baseDate.getFullYear();
-      const nm = String(baseDate.getMonth() + 1).padStart(2, '0');
-      const nd = String(baseDate.getDate()).padStart(2, '0');
-      document.getElementById('rentNextPayDate').value = \`\${ny}-\${nm}-\${nd}\`;
-
-      document.getElementById('rentRemark').value = \`收租 (\${cycleText})\`;
+      setQuickRentFeeType(document.getElementById('quickRentPaymentType')?.value || 'RENT');
       populateExistingAttDropdown('rentExistingAttSelect', leaseId);
     }
 
@@ -2625,11 +2702,16 @@ export function renderAppHtml(username: string): string {
 
       document.getElementById('rentPaymentId').value = unpaidId;
       document.getElementById('rentAmount').value = unpaidAmount;
+
+      // 切换到对应的费用类型：若为水电，自动锁定保持原收租日不变！
+      setQuickRentFeeType(unpaidType);
+
       document.getElementById('rentRemark').value = '优先结清待收款：' + (unpaidRemark || getPaymentTypeName(unpaidType));
-      document.getElementById('quickRentTitle').innerHTML = '<span>⚡</span> <span>优先结清历史欠费账单</span>';
+      document.getElementById('quickRentTitle').innerHTML = '<span>⚡</span> <span>优先结清历史欠费 (' + getPaymentTypeName(unpaidType) + ')</span>';
     }
 
     function adjustNextPayMonths(months) {
+      if (document.getElementById('quickRentPaymentType')?.value !== 'RENT') return;
       const rawVal = document.getElementById('rentPaidAt').value || '';
       const paidAtStr = rawVal.slice(0, 10) || new Date().toISOString().slice(0, 10);
       const base = new Date(paidAtStr);
@@ -2651,9 +2733,11 @@ export function renderAppHtml(username: string): string {
       const next_pay_date = document.getElementById('rentNextPayDate').value;
       const remark = document.getElementById('rentRemark').value;
       const editingId = document.getElementById('rentPaymentId').value;
+      const currentPaymentType = document.getElementById('quickRentPaymentType')?.value || 'RENT';
+      const isUtility = (currentPaymentType !== 'RENT');
 
       if (!lease_id) return alert('请选择收租房源');
-      if (!amount || Number(amount) <= 0) return alert('请输入有效的实收租金金额');
+      if (!amount || Number(amount) <= 0) return alert('请输入有效的实收金额');
       if (!paid_at) return alert('请选择实收收款时间');
 
       const btn = document.getElementById('submitRentBtn');
@@ -2666,12 +2750,13 @@ export function renderAppHtml(username: string): string {
       try {
         const payload = {
           lease_id,
-          payment_type: 'RENT',
+          payment_type: currentPaymentType,
           amount: Number(amount),
           paid_at,
-          next_pay_date: next_pay_date || null,
+          // 水电杂费绝不顺延修改租期，保持 null，后端仅对 RENT 顺延收租日
+          next_pay_date: isUtility ? null : (next_pay_date || null),
           status: 'PAID',
-          remark: remark || '房租实收'
+          remark: remark || (isUtility ? ('收取' + getPaymentTypeName(currentPaymentType)) : '房租实收')
         };
 
         const url = editingId ? ('/api/payments/' + editingId) : '/api/payments';
@@ -2950,7 +3035,7 @@ export function renderAppHtml(username: string): string {
                 <span class="text-[10px] text-neutral-500 font-semibold">(\${l.pay_cycle_months == 24 ? '两年付' : l.pay_cycle_months == 12 ? '年付' : l.pay_cycle_months == 6 ? '半年付' : l.pay_cycle_months == 3 ? '季付' : '月付'}\${l.pay_cycle_months > 1 ? ' · 每期 ¥' + ((Number(l.rent_amount) || 0) * l.pay_cycle_months).toFixed(2) : ''})</span>
               </div>
               <div class="col-span-2 text-neutral-400 text-[11px] border-t border-[#D7DED9]/60 dark:border-[#26312B]/60 pt-1.5 flex items-center justify-between flex-wrap gap-1">
-                <span>电单价 ¥\${l.meter_electric_price || 1.0} · 水单价 ¥\${l.meter_water_price || 3.5}</span>
+                <span>⚡ 电 ¥\${l.meter_electric_price || 1.0}/度\${(l.meter_electric_base !== null && l.meter_electric_base !== undefined && l.meter_electric_base !== '') ? (' (底数 ' + l.meter_electric_base + '度)') : ''} · 💧 水 ¥\${l.meter_water_price || 3.5}/吨\${(l.meter_water_base !== null && l.meter_water_base !== undefined && l.meter_water_base !== '') ? (' (底数 ' + l.meter_water_base + '吨)') : ''}</span>
                 <span>下次收租：\${
                   !l.next_pay_date
                     ? '<strong class="text-neutral-400 font-bold">未设</strong>'
@@ -3017,6 +3102,8 @@ export function renderAppHtml(username: string): string {
       const l = appData.leases.find(item => item.id === leaseId);
       if (!l) return;
       const cycleText = l.pay_cycle_months == 24 ? '两年付' : l.pay_cycle_months == 12 ? '年付' : l.pay_cycle_months == 6 ? '半年付' : l.pay_cycle_months == 3 ? '季付' : '月付';
+      const elecBaseHint = (l.meter_electric_base !== null && l.meter_electric_base !== undefined && l.meter_electric_base !== '') ? (' (当前底数: ' + l.meter_electric_base + '度)') : '';
+      const waterBaseHint = (l.meter_water_base !== null && l.meter_water_base !== undefined && l.meter_water_base !== '') ? (' (当前底数: ' + l.meter_water_base + '吨)') : '';
       let statusHint = '提醒您注意交租';
       if (l.next_pay_date) {
         const today = new Date();
@@ -3034,7 +3121,7 @@ export function renderAppHtml(username: string): string {
           statusHint = \`下期交租日为 \${l.next_pay_date}（距今约 \${diffDays} 天），特此同步租约明细\`;
         }
       }
-      const text = \`【房租交费提醒】\\n\${l.tenant_name || '租客'}您好，\${statusHint}，明细如下：\\n・ 房源：\${l.title}\\n・ 租金标准：¥\${l.rent_amount} / 月 (\${cycleText})\\n・ 交租日期：\${l.next_pay_date || '未设置'}\\n・ 水电标准：电费 ¥\${l.meter_electric_price || 1.0}/度，水费 ¥\${l.meter_water_price || 3.5}/吨\\n转账后麻烦发一下截图方便记账核销，祝生活愉快，谢谢配合！\`;
+      const text = \`【房租交费提醒】\\n\${l.tenant_name || '租客'}您好，\${statusHint}，明细如下：\\n・ 房源：\${l.title}\\n・ 租金标准：¥\${l.rent_amount} / 月 (\${cycleText})\\n・ 交租日期：\${l.next_pay_date || '未设置'}\\n・ 水电标准：电费 ¥\${l.meter_electric_price || 1.0}/度\${elecBaseHint}，水费 ¥\${l.meter_water_price || 3.5}/吨\${waterBaseHint}\\n转账后麻烦发一下截图方便记账核销，祝生活愉快，谢谢配合！\`;
       
       navigator.clipboard.writeText(text).then(() => {
         alert('✓ 已复制交租提醒！可以直接粘贴发送给租客。');
@@ -3860,10 +3947,20 @@ export function renderAppHtml(username: string): string {
       const unit = type === 'ELECTRICITY' ? '度' : '吨';
       const name = type === 'ELECTRICITY' ? '电费' : '水费';
 
+      // 实时展现核算公式明细
+      const formulaEl = document.getElementById('utilCalcFormula');
+      if (formulaEl) {
+        if (curr > 0) {
+          formulaEl.innerText = '💡 核算明细：' + curr + ' - ' + last + ' = ' + usage.toFixed(1) + unit + ' ｜ ' + usage.toFixed(1) + unit + ' × ¥' + price.toFixed(2) + '/' + unit + ' = ¥' + total;
+        } else {
+          formulaEl.innerText = '';
+        }
+      }
+
       if (curr > 0) {
         document.getElementById('utilAmount').value = total;
         if (!document.getElementById('utilRemark').value) {
-          document.getElementById('utilRemark').placeholder = name + ' (底数 ' + last + ' → ' + curr + '，用量 ' + usage.toFixed(1) + unit + ')';
+          document.getElementById('utilRemark').placeholder = name + ' (底数 ' + last + ' → ' + curr + '，用量 ' + usage.toFixed(1) + unit + ' × ¥' + price.toFixed(2) + ' = ¥' + total + ')';
         }
       }
     }
@@ -3879,29 +3976,81 @@ export function renderAppHtml(username: string): string {
 
       const typeName = getPaymentTypeName(type);
       const tenantName = (target && target.tenant_name ? target.tenant_name : '租客');
-      let detailText = '';
+      const roomTitle = (target ? target.title : '房源');
+      const roomCustomId = (target && target.custom_id ? ('[#' + target.custom_id + '] ') : '');
+      const tenantPhone = (target && target.tenant_phone ? (' (' + target.tenant_phone + ')') : '');
 
+      let meterSection = '';
       if (type === 'ELECTRICITY' || type === 'WATER') {
         const last = document.getElementById('utilMeterLast').value || '0';
         const curr = document.getElementById('utilMeterCurrent').value || '0';
         const usage = document.getElementById('utilCalcUsage').innerText || '0';
         const price = document.getElementById('utilMeterUnitPrice').value || '0';
         const unit = type === 'ELECTRICITY' ? '度' : '吨';
-        detailText = '・ 抄表读数：上期 ' + last + ' -> 本期 ' + curr + '，实用 ' + usage + ' ' + unit + ' (¥' + price + '/' + unit + ')\\n';
+        const icon = type === 'ELECTRICITY' ? '⚡' : '💧';
+        meterSection = icon + ' 抄表用量核算明细：\\n' +
+          '・ 上期底数：' + last + ' ' + unit + '\\n' +
+          '・ 本期实抄：' + curr + ' ' + unit + '\\n' +
+          '・ 实抄用量：' + usage + ' ' + unit + ' (' + curr + ' - ' + last + ')\\n' +
+          '・ 计费单价：¥ ' + Number(price).toFixed(2) + ' / ' + unit + '\\n' +
+          '・ 计算公式：' + usage + ' ' + unit + ' × ¥' + Number(price).toFixed(2) + '/' + unit + ' = ¥' + Number(amount).toFixed(2) + '\\n';
       }
 
-      const text = '【' + typeName + '账单】\\n' +
-        '您好 ' + tenantName + '，本期【' + (target ? target.title : '房源') + '】' + typeName + '已结算，明细如下：\\n' +
-        detailText +
-        '・ 应付金额：¥' + Number(amount).toFixed(2) + '\\n' +
-        '・ 抄表/记账时间：' + paidAt + '\\n' +
-        (remark ? ('・ 备注说明：' + remark + '\\n') : '') +
-        '核对无误后转账即可，转完麻烦发下截图，谢谢配合！';
+      const text = '🧾【' + roomTitle + ' · ' + typeName + '结算单】\\n' +
+        '━━━━━━━━━━━━━━━━━━━━━━\\n' +
+        '👤 承租人：' + tenantName + tenantPhone + '\\n' +
+        '🏠 房源：' + roomCustomId + roomTitle + '\\n' +
+        '📅 抄表记账时间：' + paidAt + '\\n\\n' +
+        meterSection +
+        '💰 本期应付金额：¥ ' + Number(amount).toFixed(2) + '\\n' +
+        (remark ? ('📝 备注说明：' + remark + '\\n') : '') +
+        '━━━━━━━━━━━━━━━━━━━━━━\\n' +
+        '核对无误后请转账并回传截图，祝生活愉快！';
 
       navigator.clipboard.writeText(text).then(() => {
-        alert('✓ 已复制水电账单！可直接发微信给租客。');
+        alert('✓ 已复制详细水电账单！可直接发微信给租客。');
       }).catch(() => {
         prompt('请复制以下水电账单明细：', text);
+      });
+    }
+
+    function copySinglePaymentNotice(paymentId) {
+      const p = (appData.allPayments || []).find(item => item.id === paymentId);
+      if (!p) return;
+      const typeName = getPaymentTypeName(p.payment_type);
+      const isElec = p.payment_type === 'ELECTRICITY';
+      const isWater = p.payment_type === 'WATER';
+      const isMeter = isElec || isWater;
+      const unit = isElec ? '度' : (isWater ? '吨' : '');
+      const icon = isElec ? '⚡' : (isWater ? '💧' : (p.payment_type === 'RENT' ? '🏠' : '📦'));
+      const statusText = p.status === 'UNPAID' ? '🔴 待付款 (未结清)' : '✓ 已付清结清';
+
+      let meterSection = '';
+      if (isMeter && p.meter_usage !== null && p.meter_usage !== undefined) {
+        meterSection = icon + ' 抄表用量核算明细：\\n' +
+          '・ 上期底数：' + (p.meter_last ?? '--') + ' ' + unit + '\\n' +
+          '・ 本期底数：' + (p.meter_current ?? '--') + ' ' + unit + '\\n' +
+          '・ 实抄用量：' + p.meter_usage + ' ' + unit + '\\n' +
+          '・ 计费单价：¥ ' + Number(p.unit_price ?? 0).toFixed(2) + ' / ' + unit + '\\n' +
+          '・ 核算公式：' + p.meter_usage + ' ' + unit + ' × ¥' + Number(p.unit_price ?? 0).toFixed(2) + '/' + unit + ' = ¥' + Number(p.amount).toFixed(2) + '\\n';
+      }
+
+      const text = '🧾【' + (p.lease_title || '房源') + ' · ' + typeName + '明细】\\n' +
+        '━━━━━━━━━━━━━━━━━━━━━━\\n' +
+        '👤 承租人：' + (p.tenant_name || '租客') + '\\n' +
+        '🏠 房源：' + (p.lease_custom_id ? ('[#' + p.lease_custom_id + '] ') : '') + (p.lease_title || '') + '\\n' +
+        '📅 记账时间：' + (p.paid_at || '') + '\\n' +
+        '📌 状态：' + statusText + '\\n\\n' +
+        meterSection +
+        '💰 费用金额：¥ ' + Number(p.amount).toFixed(2) + '\\n' +
+        (p.remark ? ('📝 备注说明：' + p.remark + '\\n') : '') +
+        '━━━━━━━━━━━━━━━━━━━━━━\\n' +
+        '核对无误后请转账并回传截图，祝生活愉快！';
+
+      navigator.clipboard.writeText(text).then(() => {
+        alert('✓ 已复制该笔费用详细明细单！可以直接粘贴发给租客。');
+      }).catch(() => {
+        prompt('请复制以下明细单：', text);
       });
     }
 
@@ -4105,8 +4254,23 @@ export function renderAppHtml(username: string): string {
         var settleBtn = isUnpaid 
           ? ('<button onclick="settlePayment(&apos;' + p.id + '&apos;)" title="标记为租客已结清" class="px-2.5 py-1 m3-pill bg-[#C4EED0] dark:bg-[#1A402D] text-[#002111] dark:text-[#A6F5B9] hover:opacity-85 text-[11px] font-bold flex items-center gap-1">✓ 结清</button>') 
           : '';
-        var meterDesc = p.meter_usage ? (' · 底数 ' + p.meter_last + '→' + p.meter_current + ' (用量 ' + p.meter_usage + '，单价¥' + p.unit_price + ')') : '';
+        var meterDesc = p.meter_usage ? (' · 底数 ' + p.meter_last + '→' + p.meter_current + ' (用量 ' + p.meter_usage + (isElec ? '度' : (isWater ? '吨' : '')) + '，单价¥' + p.unit_price + ')') : '';
         var remarkDesc = p.remark ? (' · ' + p.remark) : '';
+
+        var meterDetailCard = '';
+        if ((isElec || isWater) && (p.meter_usage !== null && p.meter_usage !== undefined)) {
+          var mUnit = isElec ? '度' : '吨';
+          meterDetailCard = '<div class="mt-2 p-2.5 rounded-2xl bg-[#E8EDE9]/60 dark:bg-[#161D1A]/80 border border-[#D7DED9]/60 dark:border-[#26312B]/60 space-y-1">' +
+            '<div class="flex items-center justify-between text-[11px] font-mono flex-wrap gap-1">' +
+              '<span class="text-neutral-600 dark:text-neutral-300">📊 抄表底数：上期 <strong>' + (p.meter_last ?? '--') + '</strong> → 本期 <strong>' + (p.meter_current ?? '--') + '</strong></span>' +
+              '<span class="font-bold text-[#0F5B38] dark:text-[#7CDCA0]">实用 <strong>' + p.meter_usage + ' ' + mUnit + '</strong> × ¥' + Number(p.unit_price || 0).toFixed(2) + '/' + mUnit + '</span>' +
+            '</div>' +
+            '<div class="flex items-center justify-between text-[10px] text-neutral-400 border-t border-[#D7DED9]/40 dark:border-[#26312B]/40 pt-1 flex-wrap gap-1">' +
+              '<span>公式：' + p.meter_usage + mUnit + ' × ¥' + Number(p.unit_price || 0).toFixed(2) + ' = <strong class="text-neutral-700 dark:text-neutral-200">¥' + Number(p.amount).toFixed(2) + '</strong></span>' +
+              '<button type="button" onclick="copySinglePaymentNotice(&apos;' + p.id + '&apos;)" class="text-[10px] text-[#0F5B38] dark:text-[#7CDCA0] hover:underline font-bold" title="复制详细账单微信发给租客">📋 复制详细单据</button>' +
+            '</div>' +
+          '</div>';
+        }
 
         var boundAtts = p.attachments || [];
         var attHtml = '';
@@ -4133,6 +4297,7 @@ export function renderAppHtml(username: string): string {
               '<div class="font-extrabold text-sm text-neutral-900 dark:text-neutral-100">' + typeName + ' · ' + leaseTitle + '</div>' +
               '<div class="text-neutral-400 mt-0.5">' + p.paid_at + meterDesc + remarkDesc + '</div>' +
               attHtml +
+              meterDetailCard +
             '</div>' +
           '</div>' +
           '<div class="flex items-center gap-3">' +

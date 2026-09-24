@@ -92,11 +92,12 @@ export async function handleCreatePayment(env: Env, body: any) {
 
   const batchStmts = [insertStmt];
 
-  // 如果传入了新的下次交租日期，原子同步更新租约：
+  // 仅在收取房租 (RENT) 且传入了新的下次交租日期时，原子同步更新租约：
   // 1. 同步更新下次收租日
   // 2. 若下次收租日已超过原合同到期日，自动将合同到期日顺延至下次交租日，彻底避免收租后出现“合同超期/到期”的逻辑冲突
   // 3. 将房源状态确保恢复为 ACTIVE (在租)
-  if (next_pay_date) {
+  // 水电及其他杂费绝不推迟或更新收租日
+  if (payment_type === 'RENT' && next_pay_date) {
     batchStmts.push(
       env.DB.prepare(
         `UPDATE leases 
